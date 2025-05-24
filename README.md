@@ -268,6 +268,9 @@ See the `/examples` directory for complete working examples:
 - **CDN Demo** - Quick online BPM detector using the unpkg build
 - **Astro Static Demo** - [`astro-site`](examples/astro-site) shows how to gate
   premium features and deploy to GitHub Pages or Netlify
+- **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
+  showcases scroll-based crossfading and tempo-matched transitions. Place
+  `loop1.mp3` and `loop2.mp3` in the `examples` directory to try it locally.
 
 ## Browser Compatibility
 
