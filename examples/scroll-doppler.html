@@ -23,49 +23,42 @@
       justify-content: center;
     }
     #page2 { background: #222; }
-    #progress {
+    .progress {
+
       position: fixed;
       top: 0;
       left: 0;
       height: 4px;
-      width: 0%;
-      background: linear-gradient(to right, #09f, #f09);
-      z-index: 10;
-    }
-    #visual {
-      position: fixed;
-      inset: 0;
+      width: 0;
+      background: #0f0;
       pointer-events: none;
-      display: flex;
-      z-index: 1;
     }
-    #visual div {
-      flex: 1;
-      transition: opacity 0.1s linear;
-    }
-    #vis1 { background: rgba(0,150,255,0.15); }
-    #vis2 { background: rgba(255,0,150,0.15); }
   </style>
 </head>
 <body>
-  <div id="progress"></div>
-  <div id="visual"><div id="vis1"></div><div id="vis2"></div></div>
+  <div class="progress"></div>
+
   <section id="page1"><h1>Loop 1</h1></section>
   <section id="page2"></section>
   <section id="page3"><h1>Loop 2</h1></section>
 
-
   <script type="module">
     import { librosaLoopAnalysis } from '../src/index.js';
+    import Lenis from 'https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.5/dist/lenis.mjs';
+    import gsap from 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
+    import { ScrollTrigger } from 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js';
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const lenis = new Lenis({ smooth: true });
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
 
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-    const progressBar = document.getElementById('progress');
-    const vis1 = document.getElementById('vis1');
-    const vis2 = document.getElementById('vis2');
-
-    vis1.style.opacity = '1';
-    vis2.style.opacity = '0';
 
     const loops = [
       { url: 'loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
@@ -103,14 +96,21 @@
 
     createSources();
 
-    function updateScroll() {
-      const ratio = window.scrollY / (document.body.scrollHeight - innerHeight);
+    const progressBar = document.querySelector('.progress');
 
-      progressBar.style.width = `${(ratio * 100).toFixed(2)}%`;
+    ScrollTrigger.create({
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: self => {
+        const ratio = self.progress;
+        progressBar.style.width = `${ratio * 100}%`;
+        updateAudio(ratio);
+      }
+    });
 
-      let t;
+    function updateAudio(ratio) {
       if (ratio < 0.5) {
-        t = ratio / 0.5;
+        const t = ratio / 0.5;
 
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
@@ -121,7 +121,7 @@
         loops[0].source.playbackRate.value = 1;
         loops[1].source.playbackRate.value = 1 + t * 0.05;
       } else {
-        t = (ratio - 0.5) / 0.5;
+        const t = (ratio - 0.5) / 0.5;
 
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
@@ -132,14 +132,8 @@
         loops[0].source.playbackRate.value = 1 - t * 0.05;
         loops[1].source.playbackRate.value = 1;
       }
-
-      vis1.style.opacity = (1 - ratio).toFixed(3);
-      vis2.style.opacity = ratio.toFixed(3);
-
     }
 
-    window.addEventListener('scroll', updateScroll);
-    updateScroll();
   </script>
 </body>
 </html>
