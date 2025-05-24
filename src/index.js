@@ -31,7 +31,7 @@ export { WaveformEditor } from './classes/WaveformEditor.js';
 export { LoopPlayer } from './classes/LoopPlayer.js';
 
 // Debugging flag
-export { DEBUG_ENABLED } from './utils/debug.js';
+export { DEBUG_ENABLED, setDebug, debugLog } from './utils/debug.js';
 
 // Version info
 export const version = '1.0.1';
