@@ -22,50 +22,35 @@
       justify-content: center;
     }
     #page2 { background: #222; }
-    #progress-container {
+    .progress {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
       height: 4px;
-      background: rgba(255, 255, 255, 0.2);
-      z-index: 1000;
-    }
-    #progress-bar {
-      width: 0;
-      height: 100%;
-      background: #0af;
+      width: 0%;
+      background: #29e;
+      z-index: 2;
     }
   </style>
 </head>
 <body>
-
-  <div id="progress-container"><div id="progress-bar"></div></div>
-
+  <div class="progress" id="progress"></div>
   <section id="page1"><h1>Loop 1</h1></section>
   <section id="page2"></section>
   <section id="page3"><h1>Loop 2</h1></section>
 
-  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.5/dist/lenis.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
   <script type="module">
     import { librosaLoopAnalysis } from '../src/index.js';
+    import Lenis from 'https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.6/dist/lenis.min.js';
+    import gsap from 'https://cdn.jsdelivr.net/npm/gsap@3.12.2/index.js';
+    import { ScrollTrigger } from 'https://cdn.jsdelivr.net/npm/gsap@3.12.2/ScrollTrigger.js';
+    gsap.registerPlugin(ScrollTrigger);
 
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-    
-    const progressBar = document.getElementById('progress');
-    const vis1 = document.getElementById('vis1');
-    const vis2 = document.getElementById('vis2');
-
-    vis1.style.opacity = '1';
-    vis2.style.opacity = '0';
-
     const loops = [
-      { url: 'loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
-      { url: 'loop2.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() }
+      { url: '../audio/loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
+      { url: '../audio/loop2.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() }
     ];
 
     loops.forEach(l => {
@@ -99,7 +84,11 @@
 
     createSources();
 
-    function applyRatio(ratio) {
+    const progressEl = document.getElementById('progress');
+
+    function updateScroll(progress) {
+      progressEl.style.width = `${(progress * 100).toFixed(2)}%`;
+      const ratio = progress;
       if (ratio < 0.5) {
         const t = ratio / 0.5;
         loops[0].gain.gain.value = 1 - t;
@@ -109,7 +98,7 @@
         loops[0].filter.type = 'highpass';
         loops[0].filter.frequency.value = 500 + t * 19500;
         loops[0].source.playbackRate.value = 1;
-        loops[1].source.playbackRate.value = 1 + t * 0.05;
+        loops[1].source.playbackRate.value = 1 + t * 0.05; // slight doppler
       } else {
         const t = (ratio - 0.5) / 0.5;
         loops[0].gain.gain.value = 1 - t;
@@ -121,33 +110,21 @@
         loops[0].source.playbackRate.value = 1 - t * 0.05;
         loops[1].source.playbackRate.value = 1;
       }
-
     }
 
     const lenis = new Lenis({ smooth: true });
-
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
     requestAnimationFrame(raf);
 
-    gsap.registerPlugin(ScrollTrigger);
-
-    lenis.on('scroll', ScrollTrigger.update);
-
     ScrollTrigger.create({
       start: 0,
-      end: document.body.scrollHeight - innerHeight,
-      onUpdate: self => {
-        applyRatio(self.progress);
-        gsap.to('#progress-bar', { width: `${self.progress * 100}%`, duration: 0.1, overwrite: 'auto' });
-      }
+      end: 'max',
+      onUpdate: self => updateScroll(self.progress)
     });
-
-    ScrollTrigger.update();
-    applyRatio(0);
-
+    updateScroll(0);
   </script>
 </body>
 </html>
