@@ -35,6 +35,13 @@
 
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
+    
+    const progressBar = document.getElementById('progress');
+    const vis1 = document.getElementById('vis1');
+    const vis2 = document.getElementById('vis2');
+
+    vis1.style.opacity = '1';
+    vis2.style.opacity = '0';
 
     const loops = [
       { url: 'loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
@@ -97,6 +104,7 @@
         loops[0].source.playbackRate.value = 1 - t * 0.05;
         loops[1].source.playbackRate.value = 1;
       }
+
     }
 
     window.addEventListener('scroll', updateScroll);

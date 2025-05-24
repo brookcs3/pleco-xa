@@ -1,4 +1,8 @@
 {
+  "name": "pleco-xa-astro-demo",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
   "name": "astro-scroll-demo",
   "private": true,
   "type": "module",
@@ -8,6 +12,8 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "astro": "^4.0.0"
+    "astro": "^4.0.0",
+    "pleco-xa": "^1.0.1"
+
   }
 }
