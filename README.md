@@ -107,6 +107,7 @@ Run the Jest test suite with:
 ```bash
 npm test
 ```
+Make sure to install dependencies first using `npm ci` (or `npm install`). The test script uses the `--experimental-vm-modules` flag so Jest can run ES modules.
 
 This command executes all tests configured in `jest.config.cjs`. Before running
 `npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
@@ -315,6 +316,10 @@ npm publish
 
 Update the package version in `package.json` before publishing. The package can
 be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
+
+## Deploying the Paywall API
+
+A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
 
 ## Contributing
 
