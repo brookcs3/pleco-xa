@@ -9,8 +9,9 @@
     "stripe": "^12.14.0"
   },
   "scripts": {
-    "start": "node server.js",
-    "format": "prettier --write ."
-  },"
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
