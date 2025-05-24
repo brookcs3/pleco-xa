@@ -100,6 +100,9 @@ PLECO_DEBUG=true node your-script.js
 
 In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa or call `setDebug(true)`. When enabled, additional information is printed to the console.
 
+Most example scripts use a `debugLog()` helper that checks this flag. Verbose
+messages are suppressed unless `PLECO_DEBUG` is set.
+
 ## Testing
 
 Run the Jest test suite with:
@@ -107,6 +110,7 @@ Run the Jest test suite with:
 ```bash
 npm test
 ```
+Make sure to install dependencies first using `npm ci` (or `npm install`). The test script uses the `--experimental-vm-modules` flag so Jest can run ES modules.
 
 This command executes all tests configured in `jest.config.cjs`. Before running
 `npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
@@ -278,11 +282,12 @@ See the `/examples` directory for complete working examples:
 - **Custom Visualizations** - Build spectrograms and frequency displays
 - **CDN Demo** - Quick online BPM detector using the unpkg build
 - **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
-  showcases scroll-based crossfading and tempo-matched transitions. Place
-  `loop1.mp3` and `loop2.mp3` in the `examples` directory to try it locally.
-- **Astro Doppler Demo** - [`astro-doppler`](examples/astro-doppler) shows the
-  same effect built with Astro. Put the loops in `astro-doppler/public` and run
-  `npm run dev` from that folder.
+  demonstrates visual crossfade indicators, filter sweeps, and tempo-synced
+  transitions as you scroll. Place `loop1.mp3` and `loop2.mp3` in the
+  `examples` directory to try it locally.
+- **Railway Stripe API** - serverless example using Stripe Checkout in [`deploying/railway-api`](deploying/railway-api/)
+
+
 
 
 ## Browser Compatibility
@@ -316,6 +321,10 @@ npm publish
 
 Update the package version in `package.json` before publishing. The package can
 be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
+
+## Deploying the Paywall API
+
+A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
 
 ## Contributing
 
