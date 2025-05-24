@@ -1,4 +1,4 @@
-import { calculateBeatAlignment } from '../core/musical-timing.js';
+import { calculateBeatAlignment } from '../src/core/musical-timing.js';
 
 describe('calculateBeatAlignment', () => {
   const bpm = 120;
