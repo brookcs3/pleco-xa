@@ -25,6 +25,7 @@
   </style>
 </head>
 <body>
+
   <section id="page1"><h1>Loop 1</h1></section>
   <section id="page2"></section>
   <section id="page3"><h1>Loop 2</h1></section>
@@ -33,6 +34,7 @@
     import { librosaLoopAnalysis } from '../src/index.js';
 
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
 
     const loops = [
       { url: 'loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
@@ -74,6 +76,7 @@
       const ratio = window.scrollY / (document.body.scrollHeight - innerHeight);
       if (ratio < 0.5) {
         const t = ratio / 0.5;
+
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
         loops[1].filter.type = 'lowpass';
@@ -84,6 +87,7 @@
         loops[1].source.playbackRate.value = 1 + t * 0.05; // slight doppler
       } else {
         const t = (ratio - 0.5) / 0.5;
+
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
         loops[1].filter.type = 'lowpass';
@@ -97,6 +101,7 @@
 
     window.addEventListener('scroll', updateScroll);
     updateScroll();
+
   </script>
 </body>
 </html>
