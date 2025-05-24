@@ -1,4 +1,4 @@
-import { detectBPM } from '../core/bpm-detector.js';
+import { detectBPM } from '../src/core/bpm-detector.js';
 
 describe('detectBPM', () => {
   it('returns an object with bpm and confidence', () => {
