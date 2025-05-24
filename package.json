@@ -2,8 +2,8 @@
   "name": "pleco-xa",
   "version": "1.0.1",
   "description": "Browser-native audio analysis engine for musical timing, BPM detection, and intelligent loop finding",
-  "main": "dist/pleco-xa.js",
-  "module": "src/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "astro": "./astro/index.js",
   "type": "module",
   "scripts": {
