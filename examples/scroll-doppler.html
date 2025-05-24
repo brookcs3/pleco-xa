@@ -22,13 +22,33 @@
       justify-content: center;
     }
     #page2 { background: #222; }
+    #progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      z-index: 1000;
+    }
+    #progress-bar {
+      width: 0;
+      height: 100%;
+      background: #0af;
+    }
   </style>
 </head>
 <body>
 
+  <div id="progress-container"><div id="progress-bar"></div></div>
+
   <section id="page1"><h1>Loop 1</h1></section>
   <section id="page2"></section>
   <section id="page3"><h1>Loop 2</h1></section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.5/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
   <script type="module">
     import { librosaLoopAnalysis } from '../src/index.js';
@@ -79,11 +99,9 @@
 
     createSources();
 
-    function updateScroll() {
-      const ratio = window.scrollY / (document.body.scrollHeight - innerHeight);
+    function applyRatio(ratio) {
       if (ratio < 0.5) {
         const t = ratio / 0.5;
-
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
         loops[1].filter.type = 'lowpass';
@@ -91,10 +109,9 @@
         loops[0].filter.type = 'highpass';
         loops[0].filter.frequency.value = 500 + t * 19500;
         loops[0].source.playbackRate.value = 1;
-        loops[1].source.playbackRate.value = 1 + t * 0.05; // slight doppler
+        loops[1].source.playbackRate.value = 1 + t * 0.05;
       } else {
         const t = (ratio - 0.5) / 0.5;
-
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
         loops[1].filter.type = 'lowpass';
@@ -107,8 +124,29 @@
 
     }
 
-    window.addEventListener('scroll', updateScroll);
-    updateScroll();
+    const lenis = new Lenis({ smooth: true });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    lenis.on('scroll', ScrollTrigger.update);
+
+    ScrollTrigger.create({
+      start: 0,
+      end: document.body.scrollHeight - innerHeight,
+      onUpdate: self => {
+        applyRatio(self.progress);
+        gsap.to('#progress-bar', { width: `${self.progress * 100}%`, duration: 0.1, overwrite: 'auto' });
+      }
+    });
+
+    ScrollTrigger.update();
+    applyRatio(0);
 
   </script>
 </body>
