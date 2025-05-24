@@ -334,6 +334,17 @@ be installed with `npm install pleco-xa` and is ready to publish with `npm publi
 
 A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
 
+### Nixpacks configuration
+
+Railway reads the `.nixpacks.toml` file in `deploying/railway-api/` to set up the environment. It installs Node 20 automatically and then runs `npm ci` followed by `npm start`.
+
+For local testing you can run the same commands without Docker:
+
+```bash
+npm ci
+npm start
+```
+
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or pull requests on GitHub.
