@@ -1,4 +1,4 @@
-import { detectBPM } from '../core/bpm-detector.js';
+import { detectBPM } from '../src/core/bpm-detector.js';
 
 function createPulseSample(bpm, sampleRate, durationSeconds) {
   const length = Math.floor(sampleRate * durationSeconds);
