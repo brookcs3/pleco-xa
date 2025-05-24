@@ -83,6 +83,11 @@ browser or with bundlers. The `prepublishOnly` script defined in
 `package.json` automatically runs this build step before the package is
 published.
 
+You can try Pleco Xa immediately in your browser via the CDN build. Open
+[`demo.html`](./demo.html) from this repository or load
+<https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js> directly in a script tag
+on your page.
+
 ## Testing
 
 Run the Jest test suite with:
@@ -91,7 +96,7 @@ Run the Jest test suite with:
 npm test
 ```
 
-This command executes all tests configured in `jest.config.js`.
+This command executes all tests configured in `jest.config.cjs`.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
