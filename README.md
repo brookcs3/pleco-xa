@@ -96,7 +96,7 @@ Run the Jest test suite with:
 npm test
 ```
 
-This command executes all tests configured in `jest.config.js`.
+This command executes all tests configured in `jest.config.cjs`.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
