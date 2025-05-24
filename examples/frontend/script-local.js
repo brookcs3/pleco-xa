@@ -2,13 +2,24 @@
 import { trackLibrary } from './analytics.js';
 import { enhancePlayers } from './audiojs-loader.js';
 
+const DEBUG_ENABLED = Boolean(
+  (typeof process !== 'undefined' && process.env && process.env.PLECO_DEBUG) ||
+  (typeof window !== 'undefined' && window.PLECO_DEBUG)
+);
+
+function debugLog(...args) {
+  if (DEBUG_ENABLED) {
+    console.log(...args);
+  }
+}
+
 let AudioGraph;
 let graph;
 let Tone;
 let uploadedTracks = [];
 
 function trackEvent(action, label) {
-  console.log('track', action, label);
+  debugLog('track', action, label);
 }
 
 async function loadAudioGraph() {
@@ -61,7 +72,7 @@ async function processAudioFile(file) {
       buffer: audioBuffer
     };
     
-    console.log('🎵 Processed audio:', track);
+    debugLog('🎵 Processed audio:', track);
     return track;
     
   } catch (error) {
@@ -236,7 +247,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   if (!file) return;
   
   try {
-    console.log('🎵 Processing uploaded file:', file.name);
+    debugLog('🎵 Processing uploaded file:', file.name);
     trackEvent('upload', file.name);
     
     // Show loading
@@ -260,7 +271,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     // Try to load with AudioGraph for advanced playback
     try {
       const g = await loadAudioGraph();
-      console.log('✅ AudioGraph loaded for advanced playback');
+      debugLog('✅ AudioGraph loaded for advanced playback');
     } catch (e) {
       console.warn('⚠️ AudioGraph not available:', e.message);
     }
@@ -288,14 +299,14 @@ document.getElementById('saveAmbition').addEventListener('click', () => {
   const ambition = document.getElementById('ambitionInput').value;
   if (ambition) {
     trackEvent('ambition', ambition);
-    console.log('💭 Ambition saved:', ambition);
+    debugLog('💭 Ambition saved:', ambition);
   }
   document.getElementById('ambitionBackdrop').style.display = 'none';
 });
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🎵 Beats 2023 - Local Upload Version');
+  debugLog('🎵 Beats 2023 - Local Upload Version');
   
   try {
     trackLibrary.init();
@@ -307,7 +318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   try {
     await loadTone();
-    console.log('✅ Tone.js loaded');
+    debugLog('✅ Tone.js loaded');
   } catch (e) {
     console.warn('⚠️ Tone.js not available:', e.message);
   }

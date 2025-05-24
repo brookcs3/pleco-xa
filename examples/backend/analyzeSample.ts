@@ -1,5 +1,13 @@
 import { analyzeLoop } from './loopAnalysis';
 
+const DEBUG_ENABLED = Boolean(process.env.PLECO_DEBUG);
+
+function debugLog(...args: any[]) {
+  if (DEBUG_ENABLED) {
+    debugLog(...args);
+  }
+}
+
 const file = process.argv[2];
 if (!file) {
   console.error('Usage: node analyzeSample.js <path>');
@@ -7,6 +15,6 @@ if (!file) {
 }
 
 analyzeLoop(file).then(({ loopStart, loopEnd }) => {
-  console.log('loopStart', loopStart.toFixed(3), 'loopEnd', loopEnd.toFixed(3));
+  debugLog('loopStart', loopStart.toFixed(3), 'loopEnd', loopEnd.toFixed(3));
 });
 

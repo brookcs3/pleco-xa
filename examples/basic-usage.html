@@ -64,14 +64,25 @@
   </div>
 
   <script type="module">
-    import { 
-      detectBPM, 
-      librosaLoopAnalysis, 
+    import {
+      detectBPM,
+      librosaLoopAnalysis,
       computeSpectralCentroid,
       computeRMS,
       computePeak,
       LoopPlayer
     } from 'https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js';
+
+    const DEBUG_ENABLED = Boolean(
+      (typeof process !== 'undefined' && process.env && process.env.PLECO_DEBUG) ||
+      (typeof window !== 'undefined' && window.PLECO_DEBUG)
+    );
+
+    function debugLog(...args) {
+      if (DEBUG_ENABLED) {
+        console.log(...args);
+      }
+    }
 
 
     let currentPlayer = null;
@@ -92,7 +103,7 @@
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-        console.log('Audio loaded, starting analysis...');
+        debugLog('Audio loaded, starting analysis...');
 
         // Basic audio info
         const duration = audioBuffer.duration;
@@ -146,7 +157,7 @@
         currentPlayer = new LoopPlayer(audioBuffer);
         currentPlayer.setLoopPoints(analysis.loopStart, analysis.loopEnd);
 
-        console.log('Analysis complete!', analysis);
+        debugLog('Analysis complete!', analysis);
 
       } catch (error) {
         console.error('Analysis failed:', error);
@@ -158,14 +169,14 @@
     document.getElementById('playLoop').addEventListener('click', async () => {
       if (currentPlayer) {
         await currentPlayer.play();
-        console.log('Playing loop...');
+        debugLog('Playing loop...');
       }
     });
 
     document.getElementById('stopLoop').addEventListener('click', () => {
       if (currentPlayer) {
         currentPlayer.stop();
-        console.log('Stopped playback');
+        debugLog('Stopped playback');
       }
     });
   </script>

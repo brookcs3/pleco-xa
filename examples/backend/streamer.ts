@@ -3,6 +3,14 @@ import { join } from 'path';
 import { spawnSync } from 'child_process';
 import { existsSync, mkdirSync, createReadStream } from 'fs';
 
+const DEBUG_ENABLED = Boolean(process.env.PLECO_DEBUG);
+
+function debugLog(...args: any[]) {
+  if (DEBUG_ENABLED) {
+    console.log(...args);
+  }
+}
+
 const rawDir = join(__dirname, 'uploads');
 const processedDir = join(__dirname, 'processed');
 if (!existsSync(processedDir)) {
@@ -39,5 +47,5 @@ app.get('/stream/:name', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Streamer running on http://localhost:${port}`);
+  debugLog(`Streamer running on http://localhost:${port}`);
 });
