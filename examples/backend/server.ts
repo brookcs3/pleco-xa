@@ -4,6 +4,14 @@ import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { analyzeLoop } from './loopAnalysis';
 
+const DEBUG_ENABLED = Boolean(process.env.PLECO_DEBUG);
+
+function debugLog(...args: any[]) {
+  if (DEBUG_ENABLED) {
+    console.log(...args);
+  }
+}
+
 const uploadDir = join(__dirname, 'uploads');
 if (!existsSync(uploadDir)) {
   mkdirSync(uploadDir, { recursive: true });
@@ -58,5 +66,5 @@ app.use(express.static(join(__dirname, '../frontend')));
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  debugLog(`Server running on http://localhost:${port}`);
 });

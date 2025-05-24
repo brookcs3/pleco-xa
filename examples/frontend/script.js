@@ -1,13 +1,24 @@
 import { trackLibrary } from './analytics.js';
 import { enhancePlayers } from './audiojs-loader.js';
 
+const DEBUG_ENABLED = Boolean(
+  (typeof process !== 'undefined' && process.env && process.env.PLECO_DEBUG) ||
+  (typeof window !== 'undefined' && window.PLECO_DEBUG)
+);
+
+function debugLog(...args) {
+  if (DEBUG_ENABLED) {
+    console.log(...args);
+  }
+}
+
 
 let AudioGraph;
 let graph;
 let Tone;
 
 function trackEvent(action, label) {
-  console.log('track', action, label); // placeholder for analytics
+  debugLog('track', action, label); // placeholder for analytics
 }
 
 async function loadAudioGraph() {
