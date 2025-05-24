@@ -7,6 +7,18 @@ app.use(express.json());
 
 const DEBUG_ENABLED = Boolean(process.env.PLECO_DEBUG);
 
+const REQUIRED_ENV = [
+  'STRIPE_SECRET',
+  'PREMIUM_PRICE_ID',
+  'PREMIUM_TOKEN_SECRET',
+  'BASE_URL',
+];
+REQUIRED_ENV.forEach(name => {
+  if (!process.env[name]) {
+    console.warn(`Warning: environment variable ${name} is not set`);
+  }
+});
+
 function debugLog(...args) {
   if (DEBUG_ENABLED) {
     console.log(...args);
