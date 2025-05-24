@@ -279,11 +279,12 @@ See the `/examples` directory for complete working examples:
 - **Custom Visualizations** - Build spectrograms and frequency displays
 - **CDN Demo** - Quick online BPM detector using the unpkg build
 - **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
-  uses Lenis for smooth scrolling and GSAP's ScrollTrigger to automate audio
-  transitions. A progress bar at the top shows how far you've scrolled. Place
-  `loop1.mp3` and `loop2.mp3` in the `examples` directory to try it locally.
-- **Astro Demo** - [`astro-demo`](examples/astro-demo) shows the `PlecoAnalyzer`
-  component inside a minimal Astro project.
+  demonstrates visual crossfade indicators, filter sweeps, and tempo-synced
+  transitions as you scroll. Place `loop1.mp3` and `loop2.mp3` in the
+  `examples` directory to try it locally.
+- **Railway Stripe API** - serverless example using Stripe Checkout in [`deploying/railway-api`](deploying/railway-api/)
+
+
 
 
 ## Browser Compatibility

@@ -1,3 +1,7 @@
+// success.js
+// Validates a completed Checkout session and returns a JWT token.
+// Environment: STRIPE_SECRET, PREMIUM_TOKEN_SECRET
+
 import Stripe from 'stripe';
 import jwt from 'jsonwebtoken';
 
