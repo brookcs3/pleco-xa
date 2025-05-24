@@ -68,11 +68,10 @@ const editor = new WaveformEditor(canvas, audioBuffer, analysis);
 
 ## Build
 
-Run `npm run build` to generate distributable bundles in the `dist/` directory.
-This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
-use in the browser or with bundlers. The `prepublishOnly` script defined in
-`package.json` automatically runs this build step before the package is
-published.
+Run `npm run build` to generate the distributable bundle in the `dist/`
+directory. This produces `dist/index.js` ready for use in the browser or with
+bundlers. The `prepublishOnly` script defined in `package.json` automatically
+runs this build step before the package is published.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
