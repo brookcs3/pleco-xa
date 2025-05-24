@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { spawnSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 
@@ -73,10 +73,10 @@ function computeMelSpectrogram(samples: Float32Array, sr: number, nMels = 40, fr
   return Array.from(mel);
 }
 
-if (import.meta.main) {
-  const [input, outAudio, outMeta] = Bun.argv.slice(2);
+if (require.main === module) {
+  const [input, outAudio, outMeta] = process.argv.slice(2);
   if (!input || !outAudio || !outMeta) {
-    console.error('Usage: bun audio_encoder.ts input.wav output.wav metadata.json');
+    console.error('Usage: node audio_encoder.js input.wav output.wav metadata.json');
     process.exit(1);
   }
   encode(input, outAudio, outMeta);

@@ -1,8 +1,8 @@
 import { analyzeLoop } from './loopAnalysis';
 
-const file = Bun.argv[2];
+const file = process.argv[2];
 if (!file) {
-  console.error('Usage: bun run analyzeSample.ts <path>');
+  console.error('Usage: node analyzeSample.js <path>');
   process.exit(1);
 }
 
