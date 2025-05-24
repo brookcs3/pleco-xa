@@ -1,14 +1,9 @@
-// success.js
-// Validates a completed Checkout session and returns a JWT token.
-// Environment: STRIPE_SECRET, PREMIUM_TOKEN_SECRET
-
 import Stripe from 'stripe';
 import jwt from 'jsonwebtoken';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET, {
   apiVersion: '2023-08-16',
 });
-
 
 export default async function handler(req, res) {
   const { session_id } = req.query;
@@ -26,6 +21,5 @@ export default async function handler(req, res) {
     res.json({ token });
   } catch (err) {
     res.status(500).json({ error: 'Verification failed' });
-
   }
 }
