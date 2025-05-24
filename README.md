@@ -90,6 +90,15 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 See `examples/demo.html` for a simple interactive page that detects BPM from an uploaded audio file.
 
+## Debugging
+
+Enable verbose logging by setting the `PLECO_DEBUG` flag. In Node.js you can run:
+
+```bash
+PLECO_DEBUG=true node your-script.js
+```
+
+In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa. When enabled, additional information is printed to the console.
 
 ## Testing
 
@@ -99,7 +108,9 @@ Run the Jest test suite with:
 npm test
 ```
 
-This command executes all tests configured in `jest.config.cjs`.
+This command executes all tests configured in `jest.config.cjs`. Before running
+`npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
+Node's `--experimental-vm-modules` flag to enable ES modules.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
@@ -270,6 +281,31 @@ See the `/examples` directory for complete working examples:
   demonstrates audio-only scroll transitions powered by Lenis smooth scrolling
   and GSAP ScrollTrigger. Place `loop1.mp3` and `loop2.mp3` in the `examples`
   directory to try it locally.
+
+  showcases scroll-based crossfading and tempo-matched transitions with a
+  progress bar and visual overlay. Place `loop1.mp3` and `loop2.mp3` in the
+  `examples` directory to try it locally.
+
+The `examples/backend` and `examples/frontend` folders are included only as
+reference material used during development. They are not intended to be fully
+featured applications or starting points for production projects.
+
+## Deploying with Stripe Checkout
+
+Example serverless functions for integrating Pleco Xa with Stripe Checkout are provided in [deploying/railway-api](deploying/railway-api/). This example uses [Railway](https://railway.app/) to deploy two endpoints:
+- `createSession.js` – creates a Checkout session
+- `success.js` – verifies the payment and returns a signed token
+
+### Setup
+1. Install the Railway CLI and run `railway init` inside the `deploying/railway-api` folder.
+2. Configure these environment variables:
+   - `STRIPE_SECRET` – your Stripe secret key
+   - `PREMIUM_PRICE_ID` – the Stripe price ID
+   - `PREMIUM_TOKEN_SECRET` – secret used to sign tokens
+   - `BASE_URL` – public URL of your site
+
+Deploy with `railway up` and integrate the token with `paywall.js`. See [deploying/README.md](deploying/README.md) for more details.
+
 
 ## Browser Compatibility
 
