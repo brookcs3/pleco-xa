@@ -90,6 +90,15 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 See `examples/demo.html` for a simple interactive page that detects BPM from an uploaded audio file.
 
+## Debugging
+
+Enable verbose logging by setting the `PLECO_DEBUG` flag. In Node.js you can run:
+
+```bash
+PLECO_DEBUG=true node your-script.js
+```
+
+In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa. When enabled, additional information is printed to the console.
 
 ## Testing
 
@@ -98,8 +107,11 @@ Run the Jest test suite with:
 ```bash
 npm test
 ```
+Make sure to install dependencies first using `npm ci` (or `npm install`). The test script uses the `--experimental-vm-modules` flag so Jest can run ES modules.
 
-This command executes all tests configured in `jest.config.cjs`.
+This command executes all tests configured in `jest.config.cjs`. Before running
+`npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
+Node's `--experimental-vm-modules` flag to enable ES modules.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
@@ -267,9 +279,12 @@ See the `/examples` directory for complete working examples:
 - **Custom Visualizations** - Build spectrograms and frequency displays
 - **CDN Demo** - Quick online BPM detector using the unpkg build
 - **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
-  showcases scroll-based crossfading and tempo-matched transitions using GSAP
-  and Lenis. Drop `loop1.mp3` and `loop2.mp3` in the `audio` directory to try it
-  locally.
+  uses Lenis for smooth scrolling and GSAP's ScrollTrigger to automate audio
+  transitions. A progress bar at the top shows how far you've scrolled. Place
+  `loop1.mp3` and `loop2.mp3` in the `examples` directory to try it locally.
+- **Astro Demo** - [`astro-demo`](examples/astro-demo) shows the `PlecoAnalyzer`
+  component inside a minimal Astro project.
+
 
 ## Browser Compatibility
 
@@ -302,6 +317,10 @@ npm publish
 
 Update the package version in `package.json` before publishing. The package can
 be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
+
+## Deploying the Paywall API
+
+A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
 
 ## Contributing
 

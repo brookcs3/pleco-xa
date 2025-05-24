@@ -1,4 +1,5 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import { terser } from '@rollup/plugin-terser';
 
 const basePlugins = [nodeResolve()];
 
@@ -10,7 +11,7 @@ export default [
       format: 'esm',
       sourcemap: true,
     },
-    plugins: basePlugins,
+    plugins: [...basePlugins, terser()],
   },
   {
     input: 'src/index.js',

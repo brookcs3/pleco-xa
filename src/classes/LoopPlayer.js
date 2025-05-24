@@ -3,6 +3,8 @@
  * Part of Pleco Xa audio analysis engine
  */
 
+import { debugLog } from '../utils/debug.js';
+
 export class LoopPlayer {
   constructor(audioBuffer) {
     this.audioBuffer = audioBuffer;
@@ -27,7 +29,7 @@ export class LoopPlayer {
     if (this.audioContext.state === 'suspended') {
       try {
         await this.audioContext.resume();
-        console.log('Audio context resumed');
+        debugLog('Audio context resumed');
       } catch (error) {
         console.error('Failed to resume audio context:', error);
         return;
@@ -47,20 +49,20 @@ export class LoopPlayer {
     this.gainNode.gain.value = 0.5;
     
     try {
-      console.log(`Audio buffer duration: ${this.audioBuffer.duration}s`);
-      console.log(`Audio buffer sample rate: ${this.audioBuffer.sampleRate}Hz`);
-      console.log(`Loop start: ${this.loopStart}s, Loop end: ${this.loopEnd}s`);
+      debugLog(`Audio buffer duration: ${this.audioBuffer.duration}s`);
+      debugLog(`Audio buffer sample rate: ${this.audioBuffer.sampleRate}Hz`);
+      debugLog(`Loop start: ${this.loopStart}s, Loop end: ${this.loopEnd}s`);
       
       this.source.start(0, this.loopStart);
       this.isPlaying = true;
       this.startTime = this.audioContext.currentTime;
       
-      console.log(`Playing loop: ${this.loopStart.toFixed(3)}s - ${this.loopEnd.toFixed(3)}s`);
-      console.log(`Audio context state: ${this.audioContext.state}`);
+      debugLog(`Playing loop: ${this.loopStart.toFixed(3)}s - ${this.loopEnd.toFixed(3)}s`);
+      debugLog(`Audio context state: ${this.audioContext.state}`);
       
       // Test if audio is actually playing
       setTimeout(() => {
-        console.log(`Audio context time after 100ms: ${this.audioContext.currentTime}`);
+        debugLog(`Audio context time after 100ms: ${this.audioContext.currentTime}`);
       }, 100);
       
     } catch (error) {

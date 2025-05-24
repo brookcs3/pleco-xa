@@ -3,6 +3,8 @@
  * Part of Pleco Xa audio analysis engine
  */
 
+import { debugLog } from './debug.js';
+
 /**
  * Find zero crossing point in audio data for clean boundaries
  * @param {Float32Array} data - Audio data
@@ -88,7 +90,7 @@ export async function createReferenceTemplate(audioBuffer, loopStart, loopEnd) {
     sampleRate: sampleRate
   };
   
-  console.log('Reference template created:', template);
+  debugLog('Reference template created:', template);
   return template;
 }
 
@@ -106,7 +108,7 @@ export async function analyzeWithReference(audioBuffer, template) {
   const templateLength = template.segment.length;
   const stepSize = Math.floor(sampleRate * 0.1); // Check every 100ms
   
-  console.log(`Reference analysis: scanning ${totalSamples} samples with template of ${templateLength} samples`);
+  debugLog(`Reference analysis: scanning ${totalSamples} samples with template of ${templateLength} samples`);
   
   let bestMatch = {
     position: 0,
@@ -151,6 +153,6 @@ export async function analyzeWithReference(audioBuffer, template) {
     templateUsed: true
   };
   
-  console.log('Reference-guided result:', result);
+  debugLog('Reference-guided result:', result);
   return result;
 }
