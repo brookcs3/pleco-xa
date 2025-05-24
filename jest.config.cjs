@@ -1,10 +1,10 @@
 module.exports = {
   testEnvironment: "node",
-  transform: {
-    "^.+\\.[jt]sx?$": "babel-jest",
-    "^.+\\.ts$": "ts-jest"
-  },
-  transformIgnorePatterns: [
-    "/node_modules/(?!dependency1|dependency2|dependency3)/"
-  ]
+
+  // Ignore example backend tests that rely on Bun's test runner
+  testPathIgnorePatterns: ["<rootDir>/examples/backend/tests"],
+
+  transform: {},
+
+
 };
