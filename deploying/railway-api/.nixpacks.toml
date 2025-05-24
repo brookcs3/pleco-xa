@@ -2,6 +2,7 @@
 nixPkgs = ["nodejs-20_x"]
 
 [phases.install]
+# Install dependencies using the lockfile for reproducible builds
 cmds = ["npm ci"]
 
 [phases.build]
