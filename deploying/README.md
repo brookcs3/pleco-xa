@@ -16,6 +16,15 @@ features.
 
    - `BASE_URL` – public URL of your static site (e.g. `https://pleco-xa.com`)
 
+Example `.env` file:
+
+```bash
+STRIPE_SECRET=sk_test_your_key
+PREMIUM_PRICE_ID=price_123
+PREMIUM_TOKEN_SECRET=your_token_secret
+BASE_URL=https://your-site.com
+```
+
 ## 2. Deploy the API
 
 The `railway-api` directory defines two serverless endpoints:
