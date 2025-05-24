@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doppler Scroll Demo</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+    }
+    section {
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #page2 { background: #222; }
+  </style>
+</head>
+<body>
+  <section id="page1"><h1>Loop 1</h1></section>
+  <section id="page2"></section>
+  <section id="page3"><h1>Loop 2</h1></section>
+
+  <script type="module">
+    import { librosaLoopAnalysis } from '../src/index.js';
+
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const loops = [
+      { url: 'loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
+      { url: 'loop2.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() }
+    ];
+
+    loops.forEach(l => {
+      l.gain.gain.value = 0;
+      l.filter.frequency.value = 20000;
+      l.filter.connect(l.gain).connect(ctx.destination);
+    });
+
+    async function loadLoop(loop) {
+      const res = await fetch(loop.url);
+      const arrayBuffer = await res.arrayBuffer();
+      loop.buffer = await ctx.decodeAudioData(arrayBuffer);
+      const analysis = await librosaLoopAnalysis(loop.buffer);
+      loop.loopStart = analysis.loopStart;
+      loop.loopEnd = analysis.loopEnd;
+    }
+
+    await Promise.all(loops.map(loadLoop));
+
+    function createSources() {
+      loops.forEach(loop => {
+        loop.source = ctx.createBufferSource();
+        loop.source.buffer = loop.buffer;
+        loop.source.loop = true;
+        loop.source.loopStart = loop.loopStart;
+        loop.source.loopEnd = loop.loopEnd;
+        loop.source.connect(loop.filter);
+        loop.source.start();
+      });
+    }
+
+    createSources();
+
+    function updateScroll() {
+      const ratio = window.scrollY / (document.body.scrollHeight - innerHeight);
+      if (ratio < 0.5) {
+        const t = ratio / 0.5;
+        loops[0].gain.gain.value = 1 - t;
+        loops[1].gain.gain.value = t;
+        loops[1].filter.type = 'lowpass';
+        loops[1].filter.frequency.value = 500 + t * 19500;
+        loops[0].filter.type = 'highpass';
+        loops[0].filter.frequency.value = 500 + t * 19500;
+        loops[0].source.playbackRate.value = 1;
+        loops[1].source.playbackRate.value = 1 + t * 0.05; // slight doppler
+      } else {
+        const t = (ratio - 0.5) / 0.5;
+        loops[0].gain.gain.value = 1 - t;
+        loops[1].gain.gain.value = t;
+        loops[1].filter.type = 'lowpass';
+        loops[1].filter.frequency.value = 500 + (1 - t) * 19500;
+        loops[0].filter.type = 'highpass';
+        loops[0].filter.frequency.value = 500 + t * 19500;
+        loops[0].source.playbackRate.value = 1 - t * 0.05;
+        loops[1].source.playbackRate.value = 1;
+      }
+    }
+
+    window.addEventListener('scroll', updateScroll);
+    updateScroll();
+  </script>
+</body>
+</html>
