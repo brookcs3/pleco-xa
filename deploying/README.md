@@ -44,6 +44,8 @@ Run `railway up` from the same `railway-api` folder to deploy these functions.
 Railway will install the dependencies declared in `package.json` automatically.
 A `Dockerfile` is included so the service can be built and started without any
 additional configuration.
+Note: the Nixpacks configuration runs `npm ci`, which requires a `package-lock.json`. This example does not include a lockfile, so Railway falls back to `npm install` during deployment. Generate a lock file first if you want to use `npm ci` for reproducible installs.
+
 
 ## 3. Integrate with the Paywall
 
