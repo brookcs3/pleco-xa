@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="{{DESCRIPTION}}" />
+    <meta property="og:title" content="{{TITLE}}" />
+    <meta property="og:description" content="{{DESCRIPTION}}" />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{URL}}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>{{TITLE}}</title>
+    <link rel="stylesheet" href="style.css" />
+    <script id="tracks-jsonld" type="application/ld+json"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Beats</h1>
+    </header>
+    <main>
+      <section class="container">
+        <img src="hero.png" alt="Beats logo" loading="lazy" width="300" />
+        <p>Upload up to three 12 second audio tracks and share your page.</p>
+        <form id="uploadForm">
+          <input type="file" id="fileInput" accept="audio/*" required />
+          <button type="submit">Upload</button>
+        </form>
+        <div id="tracks"></div>
+        <button id="advancedBtn">Enable Advanced Mode</button>
+        <canvas id="visualizer"></canvas>
+      </section>
+    </main>
+    <script type="module" src="script.js" defer></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+      }
+    </script>
+  </body>
+
+</html>

@@ -8,6 +8,7 @@ import { computeRMS, computePeak } from './audio-utils.js';
 import { computeSpectrum, computeSpectralCentroid } from './spectral.js';
 import { calculateBeatAlignment } from './musical-timing.js';
 import { findZeroCrossing, findAudioStart, applyHannWindow } from '../utils/audio-utils.js';
+import { debugLog } from '../utils/debug.js';
 
 /**
  * Main Librosa-style loop analysis with musical timing awareness
@@ -16,7 +17,7 @@ import { findZeroCrossing, findAudioStart, applyHannWindow } from '../utils/audi
  * @returns {Promise<Object>} Complete analysis results
  */
 export async function librosaLoopAnalysis(audioBuffer, useReference = false) {
-  console.log('Starting Musical Timing-Aware Analysis...');
+  debugLog('Starting Musical Timing-Aware Analysis...');
   
   const audioData = audioBuffer.getChannelData(0);
   const sampleRate = audioBuffer.sampleRate;
@@ -26,7 +27,7 @@ export async function librosaLoopAnalysis(audioBuffer, useReference = false) {
   const beatsPerBar = 4; // Assume 4/4 time signature
   const barDuration = (60 / bpmData.bpm) * beatsPerBar;
   
-  console.log(`Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
+  debugLog(`Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
   
   // Basic Librosa metrics
   const rms = computeRMS(audioBuffer);
@@ -74,13 +75,13 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
   const audioStartSample = isLongTrack ? findAudioStart(channelData, sampleRate) : 0;
   const audioStartTime = audioStartSample / sampleRate;
   
-  console.log(`Musical Analysis: Audio starts at ${audioStartTime.toFixed(3)}s`);
+  debugLog(`Musical Analysis: Audio starts at ${audioStartTime.toFixed(3)}s`);
   
   const beatsPerBar = 4;
   const barDuration = (60 / bpmData.bpm) * beatsPerBar;
   const beatDuration = 60 / bpmData.bpm;
   
-  console.log(`Musical Analysis: Bar=${barDuration.toFixed(3)}s, Beat=${beatDuration.toFixed(3)}s`);
+  debugLog(`Musical Analysis: Bar=${barDuration.toFixed(3)}s, Beat=${beatDuration.toFixed(3)}s`);
   
   // Test musical divisions: 1/2 bar, 1 bar, 2 bars, 4 bars
   const musicalDivisions = [0.5, 1, 2, 4, 8].map(div => div * barDuration);
@@ -123,7 +124,7 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
       isMusicalBoundary: true
     });
     
-    console.log(`Testing ${(loopLength/barDuration).toFixed(1)} bars (${loopLength.toFixed(3)}s): correlation=${correlation.toFixed(4)}, confidence=${musicalConfidence.toFixed(4)}`);
+    debugLog(`Testing ${(loopLength/barDuration).toFixed(1)} bars (${loopLength.toFixed(3)}s): correlation=${correlation.toFixed(4)}, confidence=${musicalConfidence.toFixed(4)}`);
   }
   
   // Add fine-grained analysis around promising musical divisions
@@ -209,7 +210,7 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
         isSequential: true
       });
       
-      console.log(`Sequential candidate: ${sequentialStart.toFixed(3)}s - ${sequentialEnd.toFixed(3)}s (${(loopLength/barDuration).toFixed(1)} bars)`);
+      debugLog(`Sequential candidate: ${sequentialStart.toFixed(3)}s - ${sequentialEnd.toFixed(3)}s (${(loopLength/barDuration).toFixed(1)} bars)`);
     }
   }
   
@@ -228,7 +229,7 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
     
     if (fullTrackCandidate) {
       best = fullTrackCandidate;
-      console.log(`Short track: Using full length ${best.loopLength.toFixed(3)}s as loop`);
+      debugLog(`Short track: Using full length ${best.loopLength.toFixed(3)}s as loop`);
     } else {
       // Create a full-track loop option
       best = {
@@ -242,7 +243,7 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
         isMusicalBoundary: false,
         isFullTrack: true
       };
-      console.log(`Short track: Created full-track loop ${best.loopLength.toFixed(3)}s`);
+      debugLog(`Short track: Created full-track loop ${best.loopLength.toFixed(3)}s`);
     }
   } else {
     best = results[0] || {
@@ -257,7 +258,7 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
     };
   }
   
-  console.log(`Best musical loop: ${(best.musicalDivision || 1).toFixed(2)} bars (${best.loopLength.toFixed(3)}s) at ${best.bpm.toFixed(1)} BPM`);
+  debugLog(`Best musical loop: ${(best.musicalDivision || 1).toFixed(2)} bars (${best.loopLength.toFixed(3)}s) at ${best.bpm.toFixed(1)} BPM`);
   
   return {
     loopStart: best.loopStart,
