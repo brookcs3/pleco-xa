@@ -1,45 +1,43 @@
+import express from 'express';
 import { join } from 'path';
 import { spawnSync } from 'child_process';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, createReadStream } from 'fs';
 
-const rawDir = join(import.meta.dir, 'uploads');
-const processedDir = join(import.meta.dir, 'processed');
+const rawDir = join(__dirname, 'uploads');
+const processedDir = join(__dirname, 'processed');
 if (!existsSync(processedDir)) {
   mkdirSync(processedDir);
 }
 
-export default {
-  port: process.env.STREAM_PORT ? Number(process.env.STREAM_PORT) : 3001,
-  async fetch(req: Request) {
-    const url = new URL(req.url);
-    if (url.pathname.startsWith('/stream/')) {
-      const name = url.pathname.split('/').pop();
-      if (!name) {
-        return new Response('Bad request', { status: 400 });
-      }
-      const rawPath = join(rawDir, name);
-      const base = name.replace(/\.[^/.]+$/, '');
-      const outWav = join(processedDir, `${base}.wav`);
-      const metaPath = join(processedDir, `${base}.json`);
+const app = express();
+const port = process.env.STREAM_PORT ? Number(process.env.STREAM_PORT) : 3001;
 
-      if (!existsSync(outWav)) {
-        spawnSync('python3', [
-          join(import.meta.dir, 'librosa_encoder.py'),
-          rawPath,
-          outWav,
-          metaPath,
-        ]);
-      }
+app.get('/stream/:name', (req, res) => {
+  const { name } = req.params;
+  if (!name) return res.status(400).send('Bad request');
 
-      const file = Bun.file(outWav);
-      if (await file.exists()) {
-        return new Response(file, {
-          headers: { 'Content-Type': 'audio/wav' },
-        });
-      }
-      return new Response('Not found', { status: 404 });
-    }
+  const rawPath = join(rawDir, name);
+  const base = name.replace(/\.[^/.]+$/, '');
+  const outWav = join(processedDir, `${base}.wav`);
+  const metaPath = join(processedDir, `${base}.json`);
 
-    return new Response('Not found', { status: 404 });
-  },
-};
+  if (!existsSync(outWav)) {
+    spawnSync('python3', [
+      join(__dirname, 'librosa_encoder.py'),
+      rawPath,
+      outWav,
+      metaPath,
+    ]);
+  }
+
+  if (existsSync(outWav)) {
+    res.setHeader('Content-Type', 'audio/wav');
+    createReadStream(outWav).pipe(res);
+  } else {
+    res.status(404).send('Not found');
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Streamer running on http://localhost:${port}`);
+});
