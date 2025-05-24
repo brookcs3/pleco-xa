@@ -1,10 +1,9 @@
 module.exports = {
   testEnvironment: "node",
-  transform: {
-    "^.+\\.[jt]sx?$": "babel-jest",
-    "^.+\\.ts$": "ts-jest"
-  },
-  transformIgnorePatterns: [
-    "/node_modules/(?!dependency1|dependency2|dependency3)/"
-  ]
+
+  // Only run tests from the dedicated Jest directories
+  roots: ["<rootDir>/tests", "<rootDir>/src/__tests__"],
+
+  transform: {},
 };
+
