@@ -9,7 +9,6 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "jest",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
