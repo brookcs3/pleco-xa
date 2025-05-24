@@ -1,0 +1,12 @@
+[build]
+builder = "NIXPACKS"
+nixpacksConfigPath = ".nixpacks.toml"
+
+[start]
+cmd = "npm start"
+
+[env]
+STRIPE_SECRET = ""
+PREMIUM_PRICE_ID = ""
+PREMIUM_TOKEN_SECRET = ""
+BASE_URL = ""
