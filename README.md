@@ -75,6 +75,11 @@ This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
 use in the browser or with bundlers. `dist/pleco-xa.js` is the main entry point
 referenced by `package.json`, while `dist/pleco-xa.min.js` is exposed via the
 `unpkg` field for direct CDN usage. The `prepublishOnly` script defined in
+
+Run `npm run build` to generate the distributable bundle in the `dist/`
+directory. The build outputs `dist/index.js`, which can be used directly in the
+browser or with bundlers. The `prepublishOnly` script defined in
+
 `package.json` automatically runs this build step before the package is
 published.
 
