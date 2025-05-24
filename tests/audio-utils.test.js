@@ -1,4 +1,8 @@
-import { computeRMS, computePeak, computeZeroCrossingRate } from '../core/audio-utils.js';
+import {
+  computeRMS,
+  computePeak,
+  computeZeroCrossingRate,
+} from '../src/core/audio-utils.js';
 
 function createAudioBuffer(samples) {
   const data = Float32Array.from(samples);
