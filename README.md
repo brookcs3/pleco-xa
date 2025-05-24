@@ -98,6 +98,7 @@ Run the Jest test suite with:
 ```bash
 npm test
 ```
+Make sure to install dependencies first using `npm ci` (or `npm install`). The test script uses the `--experimental-vm-modules` flag so Jest can run ES modules.
 
 This command executes all tests configured in `jest.config.cjs`.
 ## Astro Integration
