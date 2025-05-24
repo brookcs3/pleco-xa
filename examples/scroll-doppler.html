@@ -48,9 +48,11 @@
 
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
+
+    // Place loop1.mp3 and loop2.mp3 in the examples/audio folder
     const loops = [
-      { url: '../audio/loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
-      { url: '../audio/loop2.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() }
+      { url: 'audio/loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
+      { url: 'audio/loop2.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() }
     ];
 
     loops.forEach(l => {
