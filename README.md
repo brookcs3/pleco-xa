@@ -78,17 +78,17 @@ referenced by `package.json`, while `dist/pleco-xa.min.js` is exposed via the
 `package.json` automatically runs this build step before the package is
 published.
 
-### CDN Usage
+## CDN Demo
 
-Load the minified bundle directly from the unpkg CDN:
+You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 ```html
 <script type="module">
-  import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js';
+  import { detectBPM } from "https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js";
 </script>
 ```
 
-See [`examples/demo.html`](examples/demo.html) for a working example.
+See `examples/demo.html` for a simple interactive page that detects BPM from an uploaded audio file.
 
 
 ## Testing
@@ -265,6 +265,11 @@ See the `/examples` directory for complete working examples:
 - **Interactive Editor** - Full waveform editor with loop controls
 - **Batch Analysis** - Process multiple audio files
 - **Custom Visualizations** - Build spectrograms and frequency displays
+- **CDN Demo** - Quick online BPM detector using the unpkg build
+- **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
+  demonstrates visual crossfade indicators, filter sweeps, and tempo-synced
+  transitions as you scroll. Place `loop1.mp3` and `loop2.mp3` in the
+  `examples` directory to try it locally.
 
 ## Browser Compatibility
 
