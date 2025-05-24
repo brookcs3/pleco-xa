@@ -161,6 +161,13 @@
   </div>
 
   <script>
+    const debugEnabled = window.PLECO_DEBUG || false;
+    function debugLog(...args) {
+      if (debugEnabled) {
+        console.log(...args);
+      }
+    }
+
     // Import Librosa functions (inline to avoid module issues)
     async function loadAudioBuffer(url, context = new AudioContext()) {
       const res = await fetch(url);
@@ -208,7 +215,7 @@
 
     // Musical timing-aware loop analysis with BPM detection and phrase boundaries
     async function librosaLoopAnalysis(audioBuffer, useReference = false) {
-      console.log('Starting Musical Timing-Aware Analysis...');
+      debugLog('Starting Musical Timing-Aware Analysis...');
       
       const audioData = audioBuffer.getChannelData(0);
       const sampleRate = audioBuffer.sampleRate;
@@ -218,7 +225,7 @@
       const beatsPerBar = 4; // Assume 4/4 time signature
       const barDuration = (60 / bpmData.bpm) * beatsPerBar;
       
-      console.log(`Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
+      debugLog(`Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
       
       // Basic Librosa metrics
       const rms = computeRMS(audioBuffer);
@@ -272,7 +279,7 @@
         sampleRate: sampleRate
       };
       
-      console.log('Reference template created:', template);
+      debugLog('Reference template created:', template);
       return template;
     }
 
@@ -285,7 +292,7 @@
       const templateLength = template.segment.length;
       const stepSize = Math.floor(sampleRate * 0.1); // Check every 100ms
       
-      console.log(`Reference analysis: scanning ${totalSamples} samples with template of ${templateLength} samples`);
+      debugLog(`Reference analysis: scanning ${totalSamples} samples with template of ${templateLength} samples`);
       
       let bestMatch = {
         position: 0,
@@ -330,7 +337,7 @@
         templateUsed: true
       };
       
-      console.log('Reference-guided result:', result);
+      debugLog('Reference-guided result:', result);
       return result;
     }
 
@@ -486,13 +493,13 @@
       const audioStartSample = isLongTrack ? findAudioStart(channelData, sampleRate) : 0;
       const audioStartTime = audioStartSample / sampleRate;
       
-      console.log(`Musical Analysis: Audio starts at ${audioStartTime.toFixed(3)}s`);
+      debugLog(`Musical Analysis: Audio starts at ${audioStartTime.toFixed(3)}s`);
       
       const beatsPerBar = 4;
       const barDuration = (60 / bpmData.bpm) * beatsPerBar;
       const beatDuration = 60 / bpmData.bpm;
       
-      console.log(`Musical Analysis: Bar=${barDuration.toFixed(3)}s, Beat=${beatDuration.toFixed(3)}s`);
+      debugLog(`Musical Analysis: Bar=${barDuration.toFixed(3)}s, Beat=${beatDuration.toFixed(3)}s`);
       
       // Test musical divisions: 1/2 bar, 1 bar, 2 bars, 4 bars
       const musicalDivisions = [0.5, 1, 2, 4, 8].map(div => div * barDuration);
@@ -535,7 +542,7 @@
           isMusicalBoundary: true
         });
         
-        console.log(`Testing ${(loopLength/barDuration).toFixed(1)} bars (${loopLength.toFixed(3)}s): correlation=${correlation.toFixed(4)}, confidence=${musicalConfidence.toFixed(4)}`);
+        debugLog(`Testing ${(loopLength/barDuration).toFixed(1)} bars (${loopLength.toFixed(3)}s): correlation=${correlation.toFixed(4)}, confidence=${musicalConfidence.toFixed(4)}`);
       }
       
       // Also test fine-grained analysis around promising musical divisions
@@ -621,7 +628,7 @@
             isSequential: true
           });
           
-          console.log(`Sequential candidate: ${sequentialStart.toFixed(3)}s - ${sequentialEnd.toFixed(3)}s (${(loopLength/barDuration).toFixed(1)} bars)`);
+          debugLog(`Sequential candidate: ${sequentialStart.toFixed(3)}s - ${sequentialEnd.toFixed(3)}s (${(loopLength/barDuration).toFixed(1)} bars)`);
         }
       }
       
@@ -640,7 +647,7 @@
         
         if (fullTrackCandidate) {
           best = fullTrackCandidate;
-          console.log(`Short track: Using full length ${best.loopLength.toFixed(3)}s as loop`);
+          debugLog(`Short track: Using full length ${best.loopLength.toFixed(3)}s as loop`);
         } else {
           // Create a full-track loop option
           best = {
@@ -654,7 +661,7 @@
             isMusicalBoundary: false,
             isFullTrack: true
           };
-          console.log(`Short track: Created full-track loop ${best.loopLength.toFixed(3)}s`);
+          debugLog(`Short track: Created full-track loop ${best.loopLength.toFixed(3)}s`);
         }
       } else {
         best = results[0] || {
@@ -669,7 +676,7 @@
         };
       }
       
-      console.log(`Best musical loop: ${(best.musicalDivision || 1).toFixed(2)} bars (${best.loopLength.toFixed(3)}s) at ${best.bpm.toFixed(1)} BPM`);
+      debugLog(`Best musical loop: ${(best.musicalDivision || 1).toFixed(2)} bars (${best.loopLength.toFixed(3)}s) at ${best.bpm.toFixed(1)} BPM`);
       
       return {
         loopStart: best.loopStart,
@@ -920,7 +927,7 @@
     async function tempoBasedCompress(audioBuffer, ratio) {
       // Placeholder for more complex pitch-preserving time stretch
       // This would require algorithms like PSOLA or phase vocoder
-      console.log('Tempo-based compression not fully implemented - falling back to pitch-based');
+      debugLog('Tempo-based compression not fully implemented - falling back to pitch-based');
       return await pitchBasedCompress(audioBuffer, ratio);
     }
 
@@ -949,7 +956,7 @@
         if (this.audioContext.state === 'suspended') {
           try {
             await this.audioContext.resume();
-            console.log('Audio context resumed');
+            debugLog('Audio context resumed');
           } catch (error) {
             console.error('Failed to resume audio context:', error);
             return;
@@ -969,20 +976,20 @@
         this.gainNode.gain.value = 0.5;
         
         try {
-          console.log(`Audio buffer duration: ${this.audioBuffer.duration}s`);
-          console.log(`Audio buffer sample rate: ${this.audioBuffer.sampleRate}Hz`);
-          console.log(`Loop start: ${this.loopStart}s, Loop end: ${this.loopEnd}s`);
+          debugLog(`Audio buffer duration: ${this.audioBuffer.duration}s`);
+          debugLog(`Audio buffer sample rate: ${this.audioBuffer.sampleRate}Hz`);
+          debugLog(`Loop start: ${this.loopStart}s, Loop end: ${this.loopEnd}s`);
           
           this.source.start(0, this.loopStart);
           this.isPlaying = true;
           this.startTime = this.audioContext.currentTime;
           
-          console.log(`Playing loop: ${this.loopStart.toFixed(3)}s - ${this.loopEnd.toFixed(3)}s`);
-          console.log(`Audio context state: ${this.audioContext.state}`);
+          debugLog(`Playing loop: ${this.loopStart.toFixed(3)}s - ${this.loopEnd.toFixed(3)}s`);
+          debugLog(`Audio context state: ${this.audioContext.state}`);
           
           // Test if audio is actually playing
           setTimeout(() => {
-            console.log(`Audio context time after 100ms: ${this.audioContext.currentTime}`);
+            debugLog(`Audio context time after 100ms: ${this.audioContext.currentTime}`);
           }, 100);
           
         } catch (error) {
@@ -1009,7 +1016,7 @@
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
       try {
-        console.log('Processing with Librosa integration:', file.name);
+        debugLog('Processing with Librosa integration:', file.name);
         
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -1029,7 +1036,7 @@
           analysis: analysis
         };
         
-        console.log('Librosa analysis complete:', track);
+        debugLog('Librosa analysis complete:', track);
         return track;
         
       } catch (error) {
@@ -1318,14 +1325,14 @@
       });
       
       testBtn.addEventListener('click', async () => {
-        console.log('Testing simple audio playback...');
+        debugLog('Testing simple audio playback...');
         
         try {
           const audioContext = new (window.AudioContext || window.webkitAudioContext)();
           
           if (audioContext.state === 'suspended') {
             await audioContext.resume();
-            console.log('Test: Audio context resumed');
+            debugLog('Test: Audio context resumed');
           }
           
           const source = audioContext.createBufferSource();
@@ -1336,12 +1343,12 @@
           gain.connect(audioContext.destination);
           gain.gain.value = 0.8;
           
-          console.log('Test: Starting audio from beginning for 3 seconds...');
+          debugLog('Test: Starting audio from beginning for 3 seconds...');
           source.start(0, 0, 3); // Play first 3 seconds
           
           setTimeout(() => {
             source.stop();
-            console.log('Test: Audio stopped');
+            debugLog('Test: Audio stopped');
           }, 3000);
           
         } catch (error) {
@@ -1350,7 +1357,7 @@
       });
       
       findLoopBtn.addEventListener('click', () => {
-        console.log('Resetting to optimal loop points...');
+        debugLog('Resetting to optimal loop points...');
         
         // Reset editor to original algorithm-detected points
         editor.loopStart = track.analysis.loopStart;
@@ -1369,7 +1376,7 @@
         const estimatedWindows = Math.floor(track.duration / (track.analysis.loopEnd - track.analysis.loopStart));
         nextLoopBtn.textContent = `Next Window → (1/${estimatedWindows})`;
         
-        console.log(`Reset to optimal: ${track.analysis.loopStart.toFixed(3)}s - ${track.analysis.loopEnd.toFixed(3)}s`);
+        debugLog(`Reset to optimal: ${track.analysis.loopStart.toFixed(3)}s - ${track.analysis.loopEnd.toFixed(3)}s`);
       });
       
       nextLoopBtn.addEventListener('click', () => {
@@ -1396,7 +1403,7 @@
         const nextEnd = Math.min(nextStart + nextLoopDuration, track.duration);
         
         if (nextEnd - nextStart < 0.5) {
-          console.log('Not enough remaining audio for next loop');
+          debugLog('Not enough remaining audio for next loop');
           // Wrap around to beginning
           editor.loopStart = 0;
           editor.loopEnd = Math.min(nextLoopDuration, track.duration);
@@ -1410,9 +1417,9 @@
         
         const bars = (editor.loopEnd - editor.loopStart) / barDuration;
         
-        console.log(`Next sequential loop: ${editor.loopStart.toFixed(3)}s - ${editor.loopEnd.toFixed(3)}s`);
-        console.log(`  Duration: ${(editor.loopEnd - editor.loopStart).toFixed(3)}s (${bars.toFixed(1)} bars)`);
-        console.log(`  Remaining audio: ${(track.duration - editor.loopEnd).toFixed(3)}s`);
+        debugLog(`Next sequential loop: ${editor.loopStart.toFixed(3)}s - ${editor.loopEnd.toFixed(3)}s`);
+        debugLog(`  Duration: ${(editor.loopEnd - editor.loopStart).toFixed(3)}s (${bars.toFixed(1)} bars)`);
+        debugLog(`  Remaining audio: ${(track.duration - editor.loopEnd).toFixed(3)}s`);
         
         // Update editor and player
         editor.draw();
@@ -1445,7 +1452,7 @@
         player.setLoopPoints(editor.loopStart, editor.loopEnd);
         updateLoopData(editor.loopStart, editor.loopEnd);
         timeDisplay.textContent = `Loop: ${editor.loopStart.toFixed(3)}s - ${editor.loopEnd.toFixed(3)}s`;
-        console.log(`Reduced to ${newBars} bars (${newDuration.toFixed(3)}s) at ${bpm.toFixed(1)} BPM`);
+        debugLog(`Reduced to ${newBars} bars (${newDuration.toFixed(3)}s) at ${bpm.toFixed(1)} BPM`);
       });
       
       doubleBtn.addEventListener('click', () => {
@@ -1461,7 +1468,7 @@
         player.setLoopPoints(editor.loopStart, editor.loopEnd);
         updateLoopData(editor.loopStart, editor.loopEnd);
         timeDisplay.textContent = `Loop: ${editor.loopStart.toFixed(3)}s - ${editor.loopEnd.toFixed(3)}s`;
-        console.log(`Extended to ${newBars} bars (${newDuration.toFixed(3)}s) at ${bpm.toFixed(1)} BPM`);
+        debugLog(`Extended to ${newBars} bars (${newDuration.toFixed(3)}s) at ${bpm.toFixed(1)} BPM`);
       });
       
       fullTrackBtn.addEventListener('click', () => {
@@ -1471,7 +1478,7 @@
         player.setLoopPoints(editor.loopStart, editor.loopEnd);
         updateLoopData(editor.loopStart, editor.loopEnd);
         timeDisplay.textContent = `Loop: ${editor.loopStart.toFixed(3)}s - ${editor.loopEnd.toFixed(3)}s`;
-        console.log(`Set to full track ${track.duration.toFixed(3)}s`);
+        debugLog(`Set to full track ${track.duration.toFixed(3)}s`);
       });
       
       // Save loop functionality
@@ -1486,7 +1493,7 @@
         const targetDuration = 12.0;
         const compressionRatio = targetDuration / currentLoopDuration;
           
-        console.log(`Compressing ${currentLoopDuration.toFixed(2)}s to ${targetDuration}s (ratio: ${compressionRatio.toFixed(3)}) using ${method} method`);
+        debugLog(`Compressing ${currentLoopDuration.toFixed(2)}s to ${targetDuration}s (ratio: ${compressionRatio.toFixed(3)}) using ${method} method`);
           
         
         if (currentLoopDuration <= 12.0) {
@@ -1511,7 +1518,7 @@
           track.sampleRate = compressedBuffer.sampleRate;
           track.channels = compressedBuffer.numberOfChannels;
           
-          console.log('Re-analyzing compressed audio with Librosa...');
+          debugLog('Re-analyzing compressed audio with Librosa...');
           
           // Re-run full Librosa analysis on compressed audio
           const newAnalysis = await librosaLoopAnalysis(compressedBuffer);
@@ -1571,9 +1578,9 @@
             <p><strong>Audio Info:</strong> ${track.channels} ch | ${track.sampleRate} Hz | <strong>Timecode:</strong> ${Math.floor(seconds)}:${((seconds % 1) * 100).toFixed(0).padStart(2, '0')}</p>
           `;
           
-          console.log(`Compression & re-analysis complete!`);
-          console.log(`New optimal loop: ${newAnalysis.loopStart.toFixed(3)}s - ${newAnalysis.loopEnd.toFixed(3)}s`);
-          console.log(`New BPM: ${newAnalysis.bpm.toFixed(1)}, Bars: ${newBars.toFixed(1)}`);
+          debugLog(`Compression & re-analysis complete!`);
+          debugLog(`New optimal loop: ${newAnalysis.loopStart.toFixed(3)}s - ${newAnalysis.loopEnd.toFixed(3)}s`);
+          debugLog(`New BPM: ${newAnalysis.bpm.toFixed(1)}, Bars: ${newBars.toFixed(1)}`);
           
         } catch (error) {
           console.error('Compression failed:', error);
@@ -1612,7 +1619,7 @@
       if (!file) return;
       
       try {
-        console.log('Starting Librosa analysis...');
+        debugLog('Starting Librosa analysis...');
         
         const container = document.getElementById('tracks');
         const loading = document.createElement('div');
@@ -1628,7 +1635,7 @@
         
         fileInput.value = '';
         
-        console.log('Librosa Loop Editor ready!');
+        debugLog('Librosa Loop Editor ready!');
         
       } catch (error) {
         console.error('Failed:', error);
@@ -1641,22 +1648,22 @@
 
     // Test track handlers
     document.getElementById('testShortLoop').addEventListener('click', async () => {
-      console.log('Testing short loop with musical timing analysis...');
+      debugLog('Testing short loop with musical timing analysis...');
       await loadTestTrack('audio/Bassline For Doppler Song - 11.aif', 'Short Loop Sample', false);
     });
 
     document.getElementById('testLongTrack').addEventListener('click', async () => {
-      console.log('Testing long track with musical timing analysis...');
+      debugLog('Testing long track with musical timing analysis...');
       await loadTestTrack('audio/Bassline For Doppler Song longer.aif', 'Long Track with Musical Loop Detection', false);
     });
 
     document.getElementById('testJazzyDrums').addEventListener('click', async () => {
-      console.log('Testing jazz drums - Expected: 152 BPM, 3:03.75 duration...');
+      debugLog('Testing jazz drums - Expected: 152 BPM, 3:03.75 duration...');
       await loadTestTrack('audio/12-8-Jazzy-Drumset-03.aif', 'Jazz Drums Test (152 BPM Validation)', false);
     });
 
     document.getElementById('testDriveThrough').addEventListener('click', async () => {
-      console.log('Testing Drive Through Beat - Expected: 14s full loop, needs compression...');
+      debugLog('Testing Drive Through Beat - Expected: 14s full loop, needs compression...');
       await loadTestTrack('audio/Drive Through Beat.aif', 'Drive Through Beat (14s → Time Adjust Test)', false);
     });
 
@@ -1698,7 +1705,7 @@
         document.getElementById('testLongTrack').style.background = '#ff6600';
         document.getElementById('testLongTrack').textContent = 'Test: 46s Track (Reference Ready!)';
         
-        console.log('Reference template created and ready for guided analysis!');
+        debugLog('Reference template created and ready for guided analysis!');
         
       } catch (error) {
         console.error('Reference track failed:', error);
@@ -1740,9 +1747,9 @@
         container.appendChild(trackElement);
         
         if (useReference) {
-          console.log(`${description} analyzed using reference template!`);
+          debugLog(`${description} analyzed using reference template!`);
         } else {
-          console.log(`${description} loaded and analyzed!`);
+          debugLog(`${description} loaded and analyzed!`);
         }
         
       } catch (error) {
@@ -1862,7 +1869,7 @@
           timestamp: new Date().toISOString()
         };
         
-        console.log('Saved Loop Data:', loopData);
+        debugLog('Saved Loop Data:', loopData);
         
         // Here you would typically send to a server
         // For now, just show success and copy link
@@ -1884,7 +1891,7 @@
       });
     }
 
-    console.log('Librosa Loop Editor Ready - 2023 Research Integration');
+    debugLog('Librosa Loop Editor Ready - 2023 Research Integration');
   </script>
 </body>
 </html>
