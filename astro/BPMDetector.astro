@@ -113,7 +113,7 @@ const {
           }
           
           // Dispatch event
-          const bpmEvent = new CustomEvent('bpmDetected', {
+          const bpmEvent = new CustomEvent('bpmEvent', {
             detail: { bpm: result.bpm, confidence: result.confidence }
           });
           document.dispatchEvent(bpmEvent);
