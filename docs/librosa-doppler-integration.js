@@ -2,6 +2,17 @@
 
 import { EnhancedDopplerScroll } from './EnhancedDopplerScroll.js';
 
+const DEBUG_ENABLED = Boolean(
+  (typeof process !== 'undefined' && process.env && process.env.PLECO_DEBUG) ||
+  (typeof window !== 'undefined' && window.PLECO_DEBUG)
+);
+
+function debugLog(...args) {
+  if (DEBUG_ENABLED) {
+    console.log(...args);
+  }
+}
+
 /**
  * LibrosaDopplerScroll - Doppler Scroll with your Librosa loop analysis
  * Uses confidence-based windowing for tempo morphing based on scroll distance
@@ -30,7 +41,7 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
    * Analyze loops using your librosa loop analysis with musical timing
    */
   async analyzeLoopsWithLibrosa() {
-    console.log('🎵 Starting Musical Timing-Aware Analysis for Doppler Scroll...');
+    debugLog('🎵 Starting Musical Timing-Aware Analysis for Doppler Scroll...');
     
     // Analyze both loops with your musical analysis
     const [analysis1, analysis2] = await Promise.all([
@@ -70,8 +81,8 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
       peak: analysis2.peak
     };
     
-    console.log('Loop 1 Analysis:', this.tempoData.loop1);
-    console.log('Loop 2 Analysis:', this.tempoData.loop2);
+    debugLog('Loop 1 Analysis:', this.tempoData.loop1);
+    debugLog('Loop 2 Analysis:', this.tempoData.loop2);
   }
 
   /**
@@ -87,7 +98,7 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
     const barDuration = (60 / bpmData.bpm) * beatsPerBar;
     const beatDuration = 60 / bpmData.bpm;
     
-    console.log(`${loopId} - Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
+    debugLog(`${loopId} - Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
     
     // Basic Librosa metrics
     const rms = this.computeRMS(audioBuffer);

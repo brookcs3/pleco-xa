@@ -92,13 +92,16 @@ See `examples/demo.html` for a simple interactive page that detects BPM from an 
 
 ## Debugging
 
-Enable verbose logging by setting the `PLECO_DEBUG` flag. In Node.js you can run:
+Enable verbose logging by setting the `PLECO_DEBUG` flag or by calling `setDebug(true)` from code. In Node.js you can run:
 
 ```bash
 PLECO_DEBUG=true node your-script.js
 ```
 
-In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa. When enabled, additional information is printed to the console.
+In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa or call `setDebug(true)`. When enabled, additional information is printed to the console.
+
+Most example scripts use a `debugLog()` helper that checks this flag. Verbose
+messages are suppressed unless `PLECO_DEBUG` is set.
 
 ## Testing
 
@@ -107,6 +110,7 @@ Run the Jest test suite with:
 ```bash
 npm test
 ```
+Make sure to install dependencies first using `npm ci` (or `npm install`). The test script uses the `--experimental-vm-modules` flag so Jest can run ES modules.
 
 This command executes all tests configured in `jest.config.cjs`. Before running
 `npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
@@ -286,6 +290,7 @@ See the `/examples` directory for complete working examples:
   `npm run dev` from that folder.
 
 
+
 ## Browser Compatibility
 
 Pleco Xa works in all modern browsers that support:
@@ -317,6 +322,10 @@ npm publish
 
 Update the package version in `package.json` before publishing. The package can
 be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
+
+## Deploying the Paywall API
+
+A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
 
 ## Contributing
 
