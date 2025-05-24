@@ -4,6 +4,14 @@ const path = require('path');
 const fs = require('fs');
 const { spawnSync } = require('child_process');
 
+const DEBUG_ENABLED = Boolean(process.env.PLECO_DEBUG);
+
+function debugLog(...args) {
+  if (DEBUG_ENABLED) {
+    console.log(...args);
+  }
+}
+
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -56,5 +64,5 @@ app.use('/uploads', express.static(uploadDir));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  debugLog(`Server running on http://localhost:${port}`);
 });

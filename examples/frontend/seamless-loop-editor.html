@@ -138,6 +138,17 @@
   </div>
 
   <script>
+    const DEBUG_ENABLED = Boolean(
+      (typeof process !== 'undefined' && process.env && process.env.PLECO_DEBUG) ||
+      (typeof window !== 'undefined' && window.PLECO_DEBUG)
+    );
+
+    function debugLog(...args) {
+      if (DEBUG_ENABLED) {
+        console.log(...args);
+      }
+    }
+
     // Librosa functions (inline)
     async function loadAudioBuffer(url, context = new AudioContext()) {
       const res = await fetch(url);
@@ -167,7 +178,7 @@
 
     // Enhanced loop analysis with seamless optimization
     async function librosaLoopAnalysis(audioBuffer) {
-      console.log('🔬 Starting seamless loop analysis...');
+      debugLog('🔬 Starting seamless loop analysis...');
       
       const rms = computeRMS(audioBuffer);
       const peak = computePeak(audioBuffer);
@@ -190,7 +201,7 @@
       // Use larger window for better seamless detection
       const window = Math.min(Math.floor(sampleRate * 1.0), Math.floor(totalSamples / 2));
       
-      console.log(`🔍 Seamless analysis: ${totalSamples} samples, window: ${window}`);
+      debugLog(`🔍 Seamless analysis: ${totalSamples} samples, window: ${window}`);
       
       const startSlice = applyHannWindow(channelData.subarray(0, window));
       const endSlice = applyHannWindow(channelData.subarray(totalSamples - window));
@@ -411,12 +422,12 @@
       setLoopPoints(start, end) {
         this.loopStart = start;
         this.loopEnd = end;
-        console.log(`🔄 Seamless loop updated: ${start.toFixed(3)}s - ${end.toFixed(3)}s`);
+        debugLog(`🔄 Seamless loop updated: ${start.toFixed(3)}s - ${end.toFixed(3)}s`);
       }
       
       setCrossfade(duration) {
         this.crossfadeDuration = Math.max(0.001, Math.min(0.1, duration));
-        console.log(`🎛️ Crossfade set to: ${this.crossfadeDuration * 1000}ms`);
+        debugLog(`🎛️ Crossfade set to: ${this.crossfadeDuration * 1000}ms`);
       }
       
       scheduleNote() {
@@ -466,7 +477,7 @@
       play() {
         if (this.isPlaying) return;
         
-        console.log('🎵 Starting seamless loop playback...');
+        debugLog('🎵 Starting seamless loop playback...');
         
         this.isPlaying = true;
         this.nextNoteTime = this.audioContext.currentTime;
@@ -481,7 +492,7 @@
       }
       
       stop() {
-        console.log('⏹️ Stopping seamless loop...');
+        debugLog('⏹️ Stopping seamless loop...');
         
         this.isPlaying = false;
         
@@ -511,7 +522,7 @@
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
       try {
-        console.log('🎵 Processing for seamless looping:', file.name);
+        debugLog('🎵 Processing for seamless looping:', file.name);
         
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -530,7 +541,7 @@
           analysis: analysis
         };
         
-        console.log('✅ Seamless loop analysis complete:', track);
+        debugLog('✅ Seamless loop analysis complete:', track);
         return track;
         
       } catch (error) {
@@ -655,7 +666,7 @@
       });
       
       findLoopBtn.addEventListener('click', () => {
-        console.log('🎯 Resetting to optimal loop points...');
+        debugLog('🎯 Resetting to optimal loop points...');
         
         // Reset editor to original algorithm-detected points
         editor.loopStart = track.analysis.loopStart;
@@ -669,7 +680,7 @@
         updateLoopData(track.analysis.loopStart, track.analysis.loopEnd);
         timeDisplay.textContent = `Seamless Loop: ${track.analysis.loopStart.toFixed(3)}s - ${track.analysis.loopEnd.toFixed(3)}s`;
         
-        console.log(`✅ Reset to optimal: ${track.analysis.loopStart.toFixed(3)}s - ${track.analysis.loopEnd.toFixed(3)}s`);
+        debugLog(`✅ Reset to optimal: ${track.analysis.loopStart.toFixed(3)}s - ${track.analysis.loopEnd.toFixed(3)}s`);
       });
       
       volumeContainer.querySelector('.volume-slider').addEventListener('input', (e) => {
@@ -704,7 +715,7 @@
       if (!file) return;
       
       try {
-        console.log('🚀 Starting seamless loop creation...');
+        debugLog('🚀 Starting seamless loop creation...');
         
         const container = document.getElementById('tracks');
         const loading = document.createElement('div');
@@ -720,7 +731,7 @@
         
         fileInput.value = '';
         
-        console.log('✅ Seamless Loop Editor ready!');
+        debugLog('✅ Seamless Loop Editor ready!');
         
       } catch (error) {
         console.error('❌ Failed:', error);
@@ -731,7 +742,7 @@
       }
     });
 
-    console.log('🎵 Seamless Loop Editor Ready - Zero-Gap Technology');
+    debugLog('🎵 Seamless Loop Editor Ready - Zero-Gap Technology');
   </script>
 </body>
 </html>

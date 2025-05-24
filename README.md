@@ -100,6 +100,9 @@ PLECO_DEBUG=true node your-script.js
 
 In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa. When enabled, additional information is printed to the console.
 
+Most example scripts use a `debugLog()` helper that checks this flag. Verbose
+messages are suppressed unless `PLECO_DEBUG` is set.
+
 ## Testing
 
 Run the Jest test suite with:
