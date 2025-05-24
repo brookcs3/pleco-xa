@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pleco Xa CDN Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; background: #222; color: #fff; }
+    .upload { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Pleco Xa CDN Demo</h1>
+  <p>Select an audio file to detect its BPM using the library loaded from the CDN.</p>
+  <input type="file" id="fileInput" accept="audio/*" class="upload">
+  <p id="bpm"></p>
+  <script type="module">
+    import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js';
+
+    const fileInput = document.getElementById('fileInput');
+    const bpmDisplay = document.getElementById('bpm');
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const context = new (window.AudioContext || window.webkitAudioContext)();
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await context.decodeAudioData(arrayBuffer);
+      const bpm = await detectBPM(audioBuffer);
+      bpmDisplay.textContent = `Detected BPM: ${bpm.toFixed(2)}`;
+    });
+  </script>
+</body>
+</html>

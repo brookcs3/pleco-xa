@@ -72,9 +72,24 @@ const editor = new WaveformEditor(canvas, audioBuffer, analysis);
 
 Run `npm run build` to generate distributable bundles in the `dist/` directory.
 This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
-use in the browser or with bundlers. The `prepublishOnly` script defined in
+use in the browser or with bundlers. `dist/pleco-xa.js` is the main entry point
+referenced by `package.json`, while `dist/pleco-xa.min.js` is exposed via the
+`unpkg` field for direct CDN usage. The `prepublishOnly` script defined in
 `package.json` automatically runs this build step before the package is
 published.
+
+## CDN Demo
+
+You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
+
+```html
+<script type="module">
+  import { detectBPM } from "https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js";
+</script>
+```
+
+See `examples/demo.html` for a simple interactive page that detects BPM from an uploaded audio file.
+
 
 ## Testing
 
@@ -84,7 +99,7 @@ Run the Jest test suite with:
 npm test
 ```
 
-This command executes all tests configured in `jest.config.js`.
+This command executes all tests configured in `jest.config.cjs`.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
@@ -248,6 +263,7 @@ See the `/examples` directory for complete working examples:
 - **Interactive Editor** - Full waveform editor with loop controls
 - **Batch Analysis** - Process multiple audio files
 - **Custom Visualizations** - Build spectrograms and frequency displays
+- **CDN Demo** - Quick online BPM detector using the unpkg build
 
 ## Browser Compatibility
 
