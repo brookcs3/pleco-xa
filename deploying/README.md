@@ -13,6 +13,7 @@ features.
    - `STRIPE_SECRET` – your Stripe secret key
    - `PREMIUM_PRICE_ID` – the Stripe price ID
    - `PREMIUM_TOKEN_SECRET` – random string for signing tokens
+
    - `BASE_URL` – public URL of your static site (e.g. `https://pleco-xa.com`)
 
 ## 2. Deploy the API
@@ -30,3 +31,4 @@ install the dependencies declared in `package.json` automatically.
 On your success page, call `/success?session_id=...` to obtain the token and save
 it in `localStorage` using the provided `paywall.js` helper. The token can then
 be checked on subsequent visits to unlock premium UI elements.
+
