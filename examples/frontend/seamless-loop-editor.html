@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beats - Seamless Loop Editor (2023 Research)</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .track-item {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #333;
+      background: #111;
+      border-radius: 8px;
+    }
+    
+    .track-info h3 {
+      margin: 0 0 10px 0;
+      color: #fff;
+    }
+    
+    .waveform-container {
+      position: relative;
+      margin: 15px 0;
+    }
+    
+    .waveform {
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: #000;
+      cursor: crosshair;
+    }
+    
+    .loop-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    
+    .loop-controls button {
+      padding: 8px 16px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .loop-controls button:hover {
+      background: #555;
+    }
+    
+    .loop-controls button.active {
+      background: #0066cc;
+    }
+    
+    .analysis-data {
+      background: #001122;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    .librosa-analysis {
+      background: #220011;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    .time-display {
+      background: #002200;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #00ff00;
+    }
+    
+    .slider-container {
+      margin: 10px 0;
+    }
+    
+    .slider-container label {
+      display: block;
+      margin-bottom: 5px;
+      color: #ccc;
+    }
+    
+    .slider {
+      width: 100%;
+      margin: 5px 0;
+    }
+    
+    .seamless-info {
+      background: #002211;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 12px;
+      color: #00ff88;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 Beats - Seamless Loop Editor</h1>
+    <p>Upload audio files for gap-free seamless looping with crossfade technology.</p>
+    
+    <div class="upload-info">
+      <p><strong>🔄 Seamless Looping Features:</strong></p>
+      <p>• Zero-gap crossfade looping • Dual-buffer playback • Sample-accurate timing • Real-time crossfade adjustment</p>
+    </div>
+    
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept="audio/*" required>
+      <button type="submit">Upload & Create Seamless Loop</button>
+    </form>
+    
+    <div id="tracks">
+      <!-- Demo track -->
+      <div class="track-item">
+        <div class="track-info">
+          <h3>Bassline For Doppler Song - 11.aif (Demo)</h3>
+          <p>Demo track from 2023 research</p>
+        </div>
+        <audio controls loop>
+          <source src="audio/Bassline For Doppler Song - 11.aif" type="audio/aiff">
+        </audio>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Librosa functions (inline)
+    async function loadAudioBuffer(url, context = new AudioContext()) {
+      const res = await fetch(url);
+      const arr = await res.arrayBuffer();
+      return await context.decodeAudioData(arr);
+    }
+
+    function computeRMS(audioBuffer) {
+      const channel = audioBuffer.getChannelData(0);
+      let sum = 0;
+      for (let i = 0; i < channel.length; i++) {
+        const v = channel[i];
+        sum += v * v;
+      }
+      return Math.sqrt(sum / channel.length);
+    }
+
+    function computePeak(audioBuffer) {
+      const channel = audioBuffer.getChannelData(0);
+      let max = 0;
+      for (let i = 0; i < channel.length; i++) {
+        const v = Math.abs(channel[i]);
+        if (v > max) max = v;
+      }
+      return max;
+    }
+
+    // Enhanced loop analysis with seamless optimization
+    async function librosaLoopAnalysis(audioBuffer) {
+      console.log('🔬 Starting seamless loop analysis...');
+      
+      const rms = computeRMS(audioBuffer);
+      const peak = computePeak(audioBuffer);
+      const loopPoints = await analyzeSeamlessLoopPoints(audioBuffer);
+      
+      return {
+        ...loopPoints,
+        rms: rms,
+        peak: peak,
+        confidence: loopPoints.confidence
+      };
+    }
+
+    // Enhanced loop analysis optimized for seamless playback
+    async function analyzeSeamlessLoopPoints(audioBuffer) {
+      const channelData = audioBuffer.getChannelData(0);
+      const sampleRate = audioBuffer.sampleRate;
+      const totalSamples = channelData.length;
+      
+      // Use larger window for better seamless detection
+      const window = Math.min(Math.floor(sampleRate * 1.0), Math.floor(totalSamples / 2));
+      
+      console.log(`🔍 Seamless analysis: ${totalSamples} samples, window: ${window}`);
+      
+      const startSlice = applyHannWindow(channelData.subarray(0, window));
+      const endSlice = applyHannWindow(channelData.subarray(totalSamples - window));
+      
+      let bestOffset = 0;
+      let bestScore = -Infinity;
+      
+      // More precise correlation for seamless loops
+      for (let offset = 0; offset < window; offset++) {
+        let score = 0;
+        let weightedScore = 0;
+        
+        for (let i = 0; i < window - offset; i++) {
+          const correlation = startSlice[i] * endSlice[i + offset];
+          const weight = Math.cos(Math.PI * i / (window - offset)); // Weight center samples more
+          score += correlation;
+          weightedScore += correlation * weight;
+        }
+        
+        const combinedScore = score + weightedScore * 0.5;
+        
+        if (combinedScore > bestScore) {
+          bestScore = combinedScore;
+          bestOffset = offset;
+        }
+      }
+      
+      // Find precise zero crossings for ultra-clean cuts
+      const startIndex = findPreciseZeroCrossing(channelData, 0);
+      const endIndex = findPreciseZeroCrossing(channelData, totalSamples - window + bestOffset);
+      
+      return {
+        loopStart: startIndex / sampleRate,
+        loopEnd: endIndex / sampleRate,
+        confidence: bestScore / window,
+        bestOffset: bestOffset,
+        windowSize: window,
+        seamlessOptimized: true
+      };
+    }
+
+    function applyHannWindow(data) {
+      const windowed = new Float32Array(data.length);
+      for (let i = 0; i < data.length; i++) {
+        const window = 0.5 * (1 - Math.cos(2 * Math.PI * i / (data.length - 1)));
+        windowed[i] = data[i] * window;
+      }
+      return windowed;
+    }
+
+    function findPreciseZeroCrossing(data, startIndex) {
+      // Find the closest zero crossing with minimal amplitude
+      let bestIndex = startIndex;
+      let minAmplitude = Math.abs(data[startIndex]);
+      
+      const searchRange = Math.min(1000, data.length - startIndex - 1);
+      
+      for (let i = startIndex; i < startIndex + searchRange; i++) {
+        if (i < data.length - 1) {
+          // Check for zero crossing
+          if ((data[i] >= 0) !== (data[i + 1] >= 0)) {
+            const amplitude = Math.abs(data[i]) + Math.abs(data[i + 1]);
+            if (amplitude < minAmplitude) {
+              minAmplitude = amplitude;
+              bestIndex = i;
+            }
+          }
+        }
+      }
+      
+      return bestIndex;
+    }
+
+    // Interactive waveform editor (same as before)
+    class WaveformEditor {
+      constructor(canvas, audioBuffer, analysis) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.audioBuffer = audioBuffer;
+        this.analysis = analysis;
+        this.loopStart = analysis.loopStart;
+        this.loopEnd = analysis.loopEnd;
+        this.isDragging = false;
+        this.dragTarget = null;
+        
+        this.setupInteraction();
+        this.draw();
+      }
+      
+      setupInteraction() {
+        this.canvas.addEventListener('mousedown', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const time = (x / this.canvas.width) * this.audioBuffer.duration;
+          
+          const startX = (this.loopStart / this.audioBuffer.duration) * this.canvas.width;
+          const endX = (this.loopEnd / this.audioBuffer.duration) * this.canvas.width;
+          
+          if (Math.abs(x - startX) < 10) {
+            this.isDragging = true;
+            this.dragTarget = 'start';
+          } else if (Math.abs(x - endX) < 10) {
+            this.isDragging = true;
+            this.dragTarget = 'end';
+          } else {
+            if (Math.abs(x - startX) < Math.abs(x - endX)) {
+              this.loopStart = time;
+            } else {
+              this.loopEnd = time;
+            }
+            this.draw();
+            this.onLoopChange();
+          }
+        });
+        
+        this.canvas.addEventListener('mousemove', (e) => {
+          if (this.isDragging) {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const time = Math.max(0, Math.min(this.audioBuffer.duration, (x / this.canvas.width) * this.audioBuffer.duration));
+            
+            if (this.dragTarget === 'start') {
+              this.loopStart = Math.min(time, this.loopEnd - 0.1);
+            } else if (this.dragTarget === 'end') {
+              this.loopEnd = Math.max(time, this.loopStart + 0.1);
+            }
+            
+            this.draw();
+            this.onLoopChange();
+          }
+        });
+        
+        this.canvas.addEventListener('mouseup', () => {
+          this.isDragging = false;
+          this.dragTarget = null;
+        });
+      }
+      
+      draw() {
+        const data = this.audioBuffer.getChannelData(0);
+        const step = Math.ceil(data.length / this.canvas.width);
+        
+        this.ctx.fillStyle = '#000';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw waveform
+        this.ctx.strokeStyle = '#00ff00';
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        
+        for (let i = 0; i < this.canvas.width; i++) {
+          const slice = data.slice(i * step, (i + 1) * step);
+          const min = Math.min(...slice);
+          const max = Math.max(...slice);
+          
+          const yMin = (min + 1) * this.canvas.height / 2;
+          const yMax = (max + 1) * this.canvas.height / 2;
+          
+          this.ctx.moveTo(i, yMin);
+          this.ctx.lineTo(i, yMax);
+        }
+        
+        this.ctx.stroke();
+        
+        // Draw loop region
+        const startX = (this.loopStart / this.audioBuffer.duration) * this.canvas.width;
+        const endX = (this.loopEnd / this.audioBuffer.duration) * this.canvas.width;
+        
+        this.ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+        this.ctx.fillRect(startX, 0, endX - startX, this.canvas.height);
+        
+        // Draw loop markers
+        this.ctx.strokeStyle = '#44ff44';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.moveTo(startX, 0);
+        this.ctx.lineTo(startX, this.canvas.height);
+        this.ctx.stroke();
+        
+        this.ctx.strokeStyle = '#ff4444';
+        this.ctx.beginPath();
+        this.ctx.moveTo(endX, 0);
+        this.ctx.lineTo(endX, this.canvas.height);
+        this.ctx.stroke();
+      }
+      
+      onLoopChange() {
+        const event = new CustomEvent('loopChange', {
+          detail: {
+            loopStart: this.loopStart,
+            loopEnd: this.loopEnd,
+            duration: this.loopEnd - this.loopStart
+          }
+        });
+        this.canvas.dispatchEvent(event);
+      }
+    }
+
+    // Seamless loop player with crossfading
+    class SeamlessLoopPlayer {
+      constructor(audioBuffer) {
+        this.audioBuffer = audioBuffer;
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.masterGain = this.audioContext.createGain();
+        this.masterGain.connect(this.audioContext.destination);
+        
+        this.sources = [];
+        this.currentSourceIndex = 0;
+        this.isPlaying = false;
+        this.loopStart = 0;
+        this.loopEnd = audioBuffer.duration;
+        this.crossfadeDuration = 0.01; // 10ms crossfade
+        this.scheduleAheadTime = 0.1; // Schedule 100ms ahead
+        this.nextNoteTime = 0;
+        this.timerID = null;
+      }
+      
+      setLoopPoints(start, end) {
+        this.loopStart = start;
+        this.loopEnd = end;
+        console.log(`🔄 Seamless loop updated: ${start.toFixed(3)}s - ${end.toFixed(3)}s`);
+      }
+      
+      setCrossfade(duration) {
+        this.crossfadeDuration = Math.max(0.001, Math.min(0.1, duration));
+        console.log(`🎛️ Crossfade set to: ${this.crossfadeDuration * 1000}ms`);
+      }
+      
+      scheduleNote() {
+        while (this.nextNoteTime < this.audioContext.currentTime + this.scheduleAheadTime) {
+          this.playLoopSegment(this.nextNoteTime);
+          
+          const loopDuration = this.loopEnd - this.loopStart;
+          this.nextNoteTime += loopDuration - this.crossfadeDuration;
+        }
+      }
+      
+      playLoopSegment(when) {
+        const source = this.audioContext.createBufferSource();
+        const gainNode = this.audioContext.createGain();
+        
+        source.buffer = this.audioBuffer;
+        source.connect(gainNode);
+        gainNode.connect(this.masterGain);
+        
+        // Set up crossfade envelope
+        const loopDuration = this.loopEnd - this.loopStart;
+        const fadeTime = this.crossfadeDuration;
+        
+        // Fade in
+        gainNode.gain.setValueAtTime(0, when);
+        gainNode.gain.linearRampToValueAtTime(1, when + fadeTime);
+        
+        // Fade out
+        gainNode.gain.setValueAtTime(1, when + loopDuration - fadeTime);
+        gainNode.gain.linearRampToValueAtTime(0, when + loopDuration);
+        
+        // Play the loop segment
+        source.start(when, this.loopStart, loopDuration);
+        source.stop(when + loopDuration);
+        
+        this.sources.push({ source, gainNode, when });
+        
+        // Clean up old sources
+        source.addEventListener('ended', () => {
+          const index = this.sources.findIndex(s => s.source === source);
+          if (index !== -1) {
+            this.sources.splice(index, 1);
+          }
+        });
+      }
+      
+      play() {
+        if (this.isPlaying) return;
+        
+        console.log('🎵 Starting seamless loop playback...');
+        
+        this.isPlaying = true;
+        this.nextNoteTime = this.audioContext.currentTime;
+        this.scheduleNote();
+        
+        // Start the scheduler
+        this.timerID = setInterval(() => {
+          if (this.isPlaying) {
+            this.scheduleNote();
+          }
+        }, 25); // Check every 25ms
+      }
+      
+      stop() {
+        console.log('⏹️ Stopping seamless loop...');
+        
+        this.isPlaying = false;
+        
+        if (this.timerID) {
+          clearInterval(this.timerID);
+          this.timerID = null;
+        }
+        
+        // Stop all sources
+        this.sources.forEach(({ source }) => {
+          try {
+            source.stop();
+          } catch (e) {
+            // Source might already be stopped
+          }
+        });
+        
+        this.sources = [];
+      }
+      
+      setVolume(volume) {
+        this.masterGain.gain.setTargetAtTime(volume, this.audioContext.currentTime, 0.01);
+      }
+    }
+
+    async function processAudioFile(file) {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      try {
+        console.log('🎵 Processing for seamless looping:', file.name);
+        
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        
+        const analysis = await librosaLoopAnalysis(audioBuffer);
+        
+        const url = URL.createObjectURL(file);
+        
+        const track = {
+          url: url,
+          filename: file.name,
+          duration: audioBuffer.duration,
+          sampleRate: audioBuffer.sampleRate,
+          channels: audioBuffer.numberOfChannels,
+          buffer: audioBuffer,
+          analysis: analysis
+        };
+        
+        console.log('✅ Seamless loop analysis complete:', track);
+        return track;
+        
+      } catch (error) {
+        console.error('❌ Seamless processing error:', error);
+        throw error;
+      }
+    }
+
+    function createSeamlessTrackElement(track) {
+      const container = document.createElement('div');
+      container.className = 'track-item';
+      
+      const info = document.createElement('div');
+      info.className = 'track-info';
+      info.innerHTML = `
+        <h3>${track.filename}</h3>
+        <p>Duration: ${track.duration.toFixed(2)}s | Channels: ${track.channels} | Sample Rate: ${track.sampleRate} Hz</p>
+      `;
+      
+      // Interactive waveform canvas
+      const waveformContainer = document.createElement('div');
+      waveformContainer.className = 'waveform-container';
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 700;
+      canvas.height = 120;
+      canvas.className = 'waveform';
+      waveformContainer.appendChild(canvas);
+      
+      // Seamless controls
+      const controls = document.createElement('div');
+      controls.className = 'loop-controls';
+      
+      const playBtn = document.createElement('button');
+      playBtn.textContent = 'Play Seamless Loop';
+      
+      const stopBtn = document.createElement('button');
+      stopBtn.textContent = 'Stop';
+      
+      const findLoopBtn = document.createElement('button');
+      findLoopBtn.textContent = 'Find Loop Point';
+      findLoopBtn.style.background = '#006600';
+      findLoopBtn.title = 'Reset to algorithm-detected optimal loop points';
+      
+      const timeDisplay = document.createElement('div');
+      timeDisplay.className = 'time-display';
+      
+      // Volume and crossfade controls
+      const volumeContainer = document.createElement('div');
+      volumeContainer.className = 'slider-container';
+      volumeContainer.innerHTML = `
+        <label>Volume:</label>
+        <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="0.5">
+      `;
+      
+      const crossfadeContainer = document.createElement('div');
+      crossfadeContainer.className = 'slider-container';
+      crossfadeContainer.innerHTML = `
+        <label>Crossfade (ms):</label>
+        <input type="range" class="crossfade-slider" min="1" max="50" step="1" value="10">
+        <span class="crossfade-value">10ms</span>
+      `;
+      
+      controls.appendChild(playBtn);
+      controls.appendChild(stopBtn);
+      controls.appendChild(findLoopBtn);
+      controls.appendChild(timeDisplay);
+      controls.appendChild(volumeContainer);
+      controls.appendChild(crossfadeContainer);
+      
+      // Seamless info
+      const seamlessInfo = document.createElement('div');
+      seamlessInfo.className = 'seamless-info';
+      seamlessInfo.innerHTML = `
+        <strong>🔄 Seamless Loop Technology:</strong><br>
+        • Dual-buffer crossfade playback<br>
+        • Sample-accurate scheduling<br>
+        • Zero-gap loop transitions<br>
+        • Real-time crossfade adjustment
+      `;
+      
+      // Analysis display
+      const loopData = document.createElement('div');
+      loopData.className = 'analysis-data';
+      
+      function updateLoopData(start, end) {
+        loopData.innerHTML = `
+          <strong>🔄 Seamless Loop Points:</strong><br>
+          Start: ${start.toFixed(4)}s<br>
+          End: ${end.toFixed(4)}s<br>
+          Duration: ${(end - start).toFixed(4)}s<br>
+          Confidence: ${track.analysis.confidence.toFixed(6)}<br>
+          <em>Optimized for seamless playback</em>
+        `;
+      }
+      
+      updateLoopData(track.analysis.loopStart, track.analysis.loopEnd);
+      
+      // Initialize components
+      const editor = new WaveformEditor(canvas, track.buffer, track.analysis);
+      const player = new SeamlessLoopPlayer(track.buffer);
+      player.setLoopPoints(track.analysis.loopStart, track.analysis.loopEnd);
+      
+      // Event handlers
+      canvas.addEventListener('loopChange', (e) => {
+        const { loopStart, loopEnd } = e.detail;
+        player.setLoopPoints(loopStart, loopEnd);
+        updateLoopData(loopStart, loopEnd);
+        timeDisplay.textContent = `Seamless Loop: ${loopStart.toFixed(3)}s - ${loopEnd.toFixed(3)}s`;
+      });
+      
+      playBtn.addEventListener('click', () => {
+        player.play();
+        playBtn.classList.add('active');
+        stopBtn.classList.remove('active');
+      });
+      
+      stopBtn.addEventListener('click', () => {
+        player.stop();
+        stopBtn.classList.add('active');
+        playBtn.classList.remove('active');
+      });
+      
+      findLoopBtn.addEventListener('click', () => {
+        console.log('🎯 Resetting to optimal loop points...');
+        
+        // Reset editor to original algorithm-detected points
+        editor.loopStart = track.analysis.loopStart;
+        editor.loopEnd = track.analysis.loopEnd;
+        editor.draw();
+        
+        // Update player
+        player.setLoopPoints(track.analysis.loopStart, track.analysis.loopEnd);
+        
+        // Update displays
+        updateLoopData(track.analysis.loopStart, track.analysis.loopEnd);
+        timeDisplay.textContent = `Seamless Loop: ${track.analysis.loopStart.toFixed(3)}s - ${track.analysis.loopEnd.toFixed(3)}s`;
+        
+        console.log(`✅ Reset to optimal: ${track.analysis.loopStart.toFixed(3)}s - ${track.analysis.loopEnd.toFixed(3)}s`);
+      });
+      
+      volumeContainer.querySelector('.volume-slider').addEventListener('input', (e) => {
+        player.setVolume(parseFloat(e.target.value));
+      });
+      
+      crossfadeContainer.querySelector('.crossfade-slider').addEventListener('input', (e) => {
+        const ms = parseInt(e.target.value);
+        player.setCrossfade(ms / 1000);
+        crossfadeContainer.querySelector('.crossfade-value').textContent = `${ms}ms`;
+      });
+      
+      // Initial state
+      timeDisplay.textContent = `Seamless Loop: ${track.analysis.loopStart.toFixed(3)}s - ${track.analysis.loopEnd.toFixed(3)}s`;
+      
+      container.appendChild(info);
+      container.appendChild(waveformContainer);
+      container.appendChild(controls);
+      container.appendChild(seamlessInfo);
+      container.appendChild(loopData);
+      
+      return container;
+    }
+
+    // Handle file upload
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+      
+      if (!file) return;
+      
+      try {
+        console.log('🚀 Starting seamless loop creation...');
+        
+        const container = document.getElementById('tracks');
+        const loading = document.createElement('div');
+        loading.textContent = 'Creating seamless loop with crossfade technology...';
+        loading.className = 'loading';
+        container.appendChild(loading);
+        
+        const track = await processAudioFile(file);
+        const trackElement = createSeamlessTrackElement(track);
+        
+        loading.remove();
+        container.appendChild(trackElement);
+        
+        fileInput.value = '';
+        
+        console.log('✅ Seamless Loop Editor ready!');
+        
+      } catch (error) {
+        console.error('❌ Failed:', error);
+        alert('Failed to process: ' + error.message);
+        
+        const loading = document.querySelector('.loading');
+        if (loading) loading.remove();
+      }
+    });
+
+    console.log('🎵 Seamless Loop Editor Ready - Zero-Gap Technology');
+  </script>
+</body>
+</html>

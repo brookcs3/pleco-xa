@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beats - 12 Second Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Beats</h1>
+    <p>Upload up to three 12 second audio tracks and share your page.</p>
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept="audio/*" required>
+      <button type="submit">Upload</button>
+    </form>
+    <div id="tracks"></div>
+    <canvas id="visualizer"></canvas>
+    <button id="openModal">Show Proof of Concept</button>
+    <button id="openAmbition">Share Ambition</button>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h2>Proof of Concept</h2>
+      <p>This modal demonstrates interactive UI elements that can be built with modern libraries.</p>
+      <button id="closeModal" class="modal-close">Close</button>
+    </div>
+  </div>
+
+  <div id="ambitionBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h2>Your Ambition</h2>
+      <p>Describe your musical goal in one sentence.</p>
+      <input type="text" id="ambitionInput" maxlength="120" placeholder="My ambition is...">
+      <button id="saveAmbition" class="modal-close">Save</button>
+    </div>
+  </div>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
