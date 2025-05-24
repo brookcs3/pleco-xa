@@ -161,14 +161,11 @@
   </div>
 
   <script>
-    const DEBUG_ENABLED = Boolean(
-      (typeof process !== 'undefined' && process.env && process.env.PLECO_DEBUG) ||
-      (typeof window !== 'undefined' && window.PLECO_DEBUG)
-    );
-
+    const debugEnabled = window.PLECO_DEBUG || false;
     function debugLog(...args) {
-      if (DEBUG_ENABLED) {
-        debugLog(...args);
+      if (debugEnabled) {
+        console.log(...args);
+
       }
     }
 
