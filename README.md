@@ -72,6 +72,14 @@ Run `npm run build` to generate the distributable bundle in the `dist/`
 directory. This produces `dist/index.js` ready for use in the browser or with
 bundlers. The `prepublishOnly` script defined in `package.json` automatically
 runs this build step before the package is published.
+
+To create distributable bundles, run:
+
+```bash
+npm run build
+```
+
+This outputs `dist/pleco-xa.js` and `dist/pleco-xa.min.js`. The `prepublishOnly` script runs this build automatically before publishing.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
