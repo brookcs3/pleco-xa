@@ -285,12 +285,12 @@ npm run build
 npm publish
 ```
 
-Update the package version in `package.json` before publishing. The project is
-marked as `private`; remove that flag if releasing publicly.
+Update the package version in `package.json` before publishing. The package can
+be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
 
 ## Contributing
 
-This is a private repository. For access or questions, contact Cameron Brooks.
+Contributions are welcome! Feel free to open issues or pull requests on GitHub.
 
 ## License
 
