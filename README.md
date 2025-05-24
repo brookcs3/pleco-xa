@@ -65,6 +65,19 @@ const canvas = document.getElementById('waveform');
 const editor = new WaveformEditor(canvas, audioBuffer, analysis);
 ```
 
+## Astro Integration
+
+Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
+You can import these from the `pleco-xa/astro` entry point.
+
+```astro
+---
+import { PlecoAnalyzer } from 'pleco-xa/astro';
+---
+
+<PlecoAnalyzer src="/song.mp3" />
+```
+
 ## API Reference
 
 ### Core Analysis Functions
@@ -226,6 +239,21 @@ Pleco Xa works in all modern browsers that support:
 - **Efficient Analysis** - Optimized algorithms for real-time use
 - **Memory Conscious** - Designed for large audio files
 - **Client-side Only** - No server required
+
+## Building and Publishing
+
+Run `npm install` to install dependencies, then `npm run build` to produce the
+compiled files in `dist/`. During publishing the `prepublishOnly` script will
+automatically run the build step.
+
+```bash
+npm install
+npm run build
+npm publish
+```
+
+Update the package version in `package.json` before publishing. The project is
+marked as `private`; remove that flag if releasing publicly.
 
 ## Contributing
 
