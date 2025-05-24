@@ -282,6 +282,27 @@ See the `/examples` directory for complete working examples:
   progress bar and visual overlay. Place `loop1.mp3` and `loop2.mp3` in the
   `examples` directory to try it locally.
 
+The `examples/backend` and `examples/frontend` folders are included only as
+reference material used during development. They are not intended to be fully
+featured applications or starting points for production projects.
+
+## Deploying with Stripe Checkout
+
+Example serverless functions for integrating Pleco Xa with Stripe Checkout are provided in [deploying/railway-api](deploying/railway-api/). This example uses [Railway](https://railway.app/) to deploy two endpoints:
+- `createSession.js` – creates a Checkout session
+- `success.js` – verifies the payment and returns a signed token
+
+### Setup
+1. Install the Railway CLI and run `railway init` inside the `deploying/railway-api` folder.
+2. Configure these environment variables:
+   - `STRIPE_SECRET` – your Stripe secret key
+   - `PREMIUM_PRICE_ID` – the Stripe price ID
+   - `PREMIUM_TOKEN_SECRET` – secret used to sign tokens
+   - `BASE_URL` – public URL of your site
+
+Deploy with `railway up` and integrate the token with `paywall.js`. See [deploying/README.md](deploying/README.md) for more details.
+
+
 ## Browser Compatibility
 
 Pleco Xa works in all modern browsers that support:
