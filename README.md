@@ -272,6 +272,8 @@ See the `/examples` directory for complete working examples:
   demonstrates visual crossfade indicators, filter sweeps, and tempo-synced
   transitions as you scroll. Place `loop1.mp3` and `loop2.mp3` in the
   `examples` directory to try it locally.
+- **Railway Stripe API** - serverless example using Stripe Checkout in [`deploying/railway-api`](deploying/railway-api/)
+
 
 ## Deploying with Stripe Checkout
 
