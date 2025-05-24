@@ -90,6 +90,15 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 See `examples/demo.html` for a simple interactive page that detects BPM from an uploaded audio file.
 
+## Debugging
+
+Enable verbose logging by setting the `PLECO_DEBUG` flag. In Node.js you can run:
+
+```bash
+PLECO_DEBUG=true node your-script.js
+```
+
+In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa. When enabled, additional information is printed to the console.
 
 ## Testing
 
@@ -99,8 +108,8 @@ Run the Jest test suite with:
 npm test
 ```
 
-This command executes all tests configured in `jest.config.cjs`. Make sure to
-install dependencies with `npm ci` before running tests. The test script uses
+This command executes all tests configured in `jest.config.cjs`. Before running
+`npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
 Node's `--experimental-vm-modules` flag to enable ES modules.
 ## Astro Integration
 
@@ -269,8 +278,8 @@ See the `/examples` directory for complete working examples:
 - **Custom Visualizations** - Build spectrograms and frequency displays
 - **CDN Demo** - Quick online BPM detector using the unpkg build
 - **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
-  demonstrates visual crossfade indicators, filter sweeps, and tempo-synced
-  transitions as you scroll. Place `loop1.mp3` and `loop2.mp3` in the
+  showcases scroll-based crossfading and tempo-matched transitions with a
+  progress bar and visual overlay. Place `loop1.mp3` and `loop2.mp3` in the
   `examples` directory to try it locally.
 
 The `examples/backend` and `examples/frontend` folders are included only as
@@ -292,6 +301,7 @@ Example serverless functions for integrating Pleco Xa with Stripe Checkout are p
    - `BASE_URL` – public URL of your site
 
 Deploy with `railway up` and integrate the token with `paywall.js`. See [deploying/README.md](deploying/README.md) for more details.
+
 
 ## Browser Compatibility
 

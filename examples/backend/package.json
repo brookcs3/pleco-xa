@@ -1,11 +1,14 @@
 {
   "name": "beats-backend",
   "version": "0.2.0",
-  "description": "Backend for short audio loops social platform using Bun",
+  "description": "Node backend for short audio loops social platform",
   "main": "server.js",
   "scripts": {
-    "start": "bun server.js"
+    "start": "node server.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5"
+  }
 
 }
