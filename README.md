@@ -266,6 +266,10 @@ See the `/examples` directory for complete working examples:
 - **Batch Analysis** - Process multiple audio files
 - **Custom Visualizations** - Build spectrograms and frequency displays
 - **CDN Demo** - Quick online BPM detector using the unpkg build
+- **Astro Static Demo** - [`astro-site`](examples/astro-site) shows how to gate
+  premium features and deploy to GitHub Pages or Netlify
+- **Railway Stripe API** - [`deploying`](deploying) contains a minimal
+  serverless backend for Stripe Checkout and token generation
 
 ## Browser Compatibility
 
