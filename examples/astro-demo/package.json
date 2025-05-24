@@ -1,11 +1,8 @@
 {
   "name": "pleco-xa-astro-demo",
-  "private": true,
+  "private": false,
   "type": "module",
   "version": "1.0.0",
-  "name": "astro-scroll-demo",
-  "private": true,
-  "type": "module",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -14,6 +11,5 @@
   "dependencies": {
     "astro": "^4.0.0",
     "pleco-xa": "^1.0.1"
-
   }
 }
