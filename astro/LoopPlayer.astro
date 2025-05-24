@@ -1,0 +1,119 @@
+---
+/**
+ * LoopPlayer - Astro wrapper component for the LoopPlayer class
+ * Provides basic file upload and playback controls
+ */
+
+export interface Props {
+  autoPlay?: boolean;
+  class?: string;
+}
+
+const {
+  autoPlay = false,
+  class: className = ''
+} = Astro.props;
+---
+
+<div class={`pleco-loop-player ${className}`}>
+  <div class="loop-upload">
+    <input type="file" id="loopFileInput" accept="audio/*" />
+    <label for="loopFileInput">Load Loop</label>
+  </div>
+
+  <div class="loop-controls" id="loopControls" style="display: none;">
+    <button id="playLoop">Play</button>
+    <button id="stopLoop">Stop</button>
+  </div>
+
+  <slot />
+</div>
+
+<style>
+  .pleco-loop-player {
+    background: #111;
+    padding: 15px;
+    border-radius: 8px;
+    color: #fff;
+  }
+
+  .loop-upload input[type="file"] {
+    display: none;
+  }
+
+  .loop-upload label {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #0066cc;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  .loop-controls {
+    display: flex;
+    gap: 10px;
+  }
+
+  .loop-controls button {
+    padding: 8px 16px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .loop-controls button:hover {
+    background: #555;
+  }
+</style>
+
+<script>
+  import { LoopPlayer } from '../src/index.js';
+
+  let player = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('loopFileInput');
+    const controls = document.getElementById('loopControls');
+    const playBtn = document.getElementById('playLoop');
+    const stopBtn = document.getElementById('stopLoop');
+
+    if (fileInput) {
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const arrayBuffer = await file.arrayBuffer();
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+          player = new LoopPlayer(audioBuffer);
+          player.setLoopPoints(0, audioBuffer.duration);
+
+          controls.style.display = 'flex';
+          if (autoPlay) {
+            await player.play();
+          }
+        } catch (error) {
+          console.error('LoopPlayer component failed:', error);
+        }
+      });
+    }
+
+    playBtn?.addEventListener('click', async () => {
+      if (player) {
+        await player.play();
+      }
+    });
+
+    stopBtn?.addEventListener('click', () => {
+      if (player) {
+        player.stop();
+      }
+    });
+  });
+</script>
