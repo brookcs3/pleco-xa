@@ -266,6 +266,10 @@ See the `/examples` directory for complete working examples:
 - **Batch Analysis** - Process multiple audio files
 - **Custom Visualizations** - Build spectrograms and frequency displays
 - **CDN Demo** - Quick online BPM detector using the unpkg build
+- **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
+  demonstrates audio-only scroll transitions powered by Lenis smooth scrolling
+  and GSAP ScrollTrigger. Place `loop1.mp3` and `loop2.mp3` in the `examples`
+  directory to try it locally.
 
 ## Browser Compatibility
 
