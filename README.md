@@ -105,16 +105,15 @@ messages are suppressed unless `PLECO_DEBUG` is set.
 
 ## Testing
 
-Run the Jest test suite with:
+Install dependencies with `npm ci` (or `npm install`) and then run the Jest
+test suite:
 
 ```bash
 npm test
 ```
-Make sure to install dependencies first using `npm ci` (or `npm install`). The test script uses the `--experimental-vm-modules` flag so Jest can run ES modules.
 
-This command executes all tests configured in `jest.config.cjs`. Before running
-`npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
-Node's `--experimental-vm-modules` flag to enable ES modules.
+This command executes all tests configured in `jest.config.cjs` using Node's
+`--experimental-vm-modules` flag so Jest can run ES modules.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
