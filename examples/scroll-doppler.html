@@ -18,11 +18,13 @@
       height: 100vh;
       scroll-snap-align: start;
       display: flex;
+
       align-items: center;
       justify-content: center;
     }
     #page2 { background: #222; }
     .progress {
+
       position: fixed;
       top: 0;
       left: 0;
@@ -35,6 +37,7 @@
 </head>
 <body>
   <div class="progress"></div>
+
   <section id="page1"><h1>Loop 1</h1></section>
   <section id="page2"></section>
   <section id="page3"><h1>Loop 2</h1></section>
@@ -55,6 +58,7 @@
     requestAnimationFrame(raf);
 
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
 
     const loops = [
       { url: 'loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
@@ -107,6 +111,7 @@
     function updateAudio(ratio) {
       if (ratio < 0.5) {
         const t = ratio / 0.5;
+
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
         loops[1].filter.type = 'lowpass';
@@ -117,6 +122,7 @@
         loops[1].source.playbackRate.value = 1 + t * 0.05;
       } else {
         const t = (ratio - 0.5) / 0.5;
+
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
         loops[1].filter.type = 'lowpass';
@@ -127,6 +133,7 @@
         loops[1].source.playbackRate.value = 1;
       }
     }
+
   </script>
 </body>
 </html>
