@@ -278,7 +278,7 @@ navigator.mediaDevices.getUserMedia({ audio: true })
 
 ## Examples
 
-See the `/examples` directory for complete working examples:
+See the `/examples` directory for complete working examples. Sample loops for these demos should be placed in the top-level `audio/` folder:
 - **Demo** - [`demo.html`](examples/demo.html) loads Pleco Xa from the unpkg CDN
   for quick testing
 - **Basic Usage** - Simple BPM detection and loop finding
@@ -288,7 +288,7 @@ See the `/examples` directory for complete working examples:
 - **CDN Demo** - Quick online BPM detector using the unpkg build
 - **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
   showcases scroll-based crossfading and tempo-matched transitions. Place
-  `loop1.mp3` and `loop2.mp3` in the `examples/audio` directory to try it
+  `loop1.mp3` and `loop2.mp3` in the `audio` directory to try it
   locally.
 - **Astro Doppler Demo** - [`astro-doppler`](examples/astro-doppler) shows the
   same effect built with Astro. Put the loops in `astro-doppler/public` and run
