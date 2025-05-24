@@ -272,7 +272,7 @@ This is a private repository. For access or questions, contact Cameron Brooks.
 
 MIT License - See LICENSE file for details.
 
-Some parts of the code were inspired by Libra.
+Some audio analysis techniques were adapted from ideas in the Librosa library.
 ---
 
 **Pleco Xa** - Bringing musical intelligence to the browser.  
