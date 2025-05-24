@@ -3,7 +3,7 @@
 > Browser-native audio analysis engine for musical timing, BPM detection, and intelligent loop finding
 
 **Author:** Cameron Brooks  
-**Version:** 1.0.0  
+**Version:** 1.0.1
 **License:** MIT
 
 ## Overview
@@ -72,6 +72,18 @@ This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
 use in the browser or with bundlers. The `prepublishOnly` script defined in
 `package.json` automatically runs this build step before the package is
 published.
+## Astro Integration
+
+Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
+You can import these from the `pleco-xa/astro` entry point.
+
+```astro
+---
+import { PlecoAnalyzer } from 'pleco-xa/astro';
+---
+
+<PlecoAnalyzer src="/song.mp3" />
+```
 
 ## API Reference
 
@@ -235,6 +247,21 @@ Pleco Xa works in all modern browsers that support:
 - **Efficient Analysis** - Optimized algorithms for real-time use
 - **Memory Conscious** - Designed for large audio files
 - **Client-side Only** - No server required
+
+## Building and Publishing
+
+Run `npm install` to install dependencies, then `npm run build` to produce the
+compiled files in `dist/`. During publishing the `prepublishOnly` script will
+automatically run the build step.
+
+```bash
+npm install
+npm run build
+npm publish
+```
+
+Update the package version in `package.json` before publishing. The project is
+marked as `private`; remove that flag if releasing publicly.
 
 ## Contributing
 
