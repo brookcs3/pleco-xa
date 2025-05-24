@@ -288,6 +288,8 @@ See the `/examples` directory for complete working examples:
 - **Astro Doppler Demo** - [`astro-doppler`](examples/astro-doppler) shows the
   same effect built with Astro. Put the loops in `astro-doppler/public` and run
   `npm run dev` from that folder.
+- **Railway API Example** - [`deploying/railway-api`](deploying/README.md)
+  demonstrates deploying the paywall backend on Railway.
 
 
 
