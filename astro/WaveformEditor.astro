@@ -1,0 +1,217 @@
+---
+/**
+ * WaveformEditor - Interactive waveform component for Astro
+ * Provides visual waveform editing with loop points
+ */
+
+export interface Props {
+  width?: number;
+  height?: number;
+  showControls?: boolean;
+  class?: string;
+}
+
+const { 
+  width = 700,
+  height = 120,
+  showControls = true,
+  class: className = ''
+} = Astro.props;
+---
+
+<div class={`pleco-waveform-editor ${className}`}>
+  <div class="waveform-upload">
+    <input type="file" id="waveformFileInput" accept="audio/*" />
+    <label for="waveformFileInput">Load Audio</label>
+  </div>
+  
+  <div class="waveform-container" id="waveformContainer" style="display: none;">
+    <canvas 
+      id="waveformCanvas" 
+      width={width} 
+      height={height}
+      class="waveform-canvas"
+    ></canvas>
+    
+    {showControls && (
+      <div class="waveform-controls">
+        <button id="playWaveform">Play</button>
+        <button id="stopWaveform">Stop</button>
+        <button id="resetLoop">Reset Loop</button>
+        <span class="loop-info" id="loopInfo">--</span>
+      </div>
+    )}
+  </div>
+  
+  <slot />
+</div>
+
+<style>
+  .pleco-waveform-editor {
+    background: #111;
+    padding: 20px;
+    border-radius: 8px;
+    color: #fff;
+  }
+  
+  .waveform-upload input[type="file"] {
+    display: none;
+  }
+  
+  .waveform-upload label {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #0066cc;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 15px;
+  }
+  
+  .waveform-container {
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #000;
+  }
+  
+  .waveform-canvas {
+    display: block;
+    cursor: crosshair;
+  }
+  
+  .waveform-controls {
+    padding: 10px;
+    background: #222;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .waveform-controls button {
+    padding: 8px 16px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .waveform-controls button:hover {
+    background: #555;
+  }
+  
+  .waveform-controls button.active {
+    background: #0066cc;
+  }
+  
+  .loop-info {
+    font-family: monospace;
+    color: #00ff00;
+    margin-left: auto;
+  }
+</style>
+
+<script>
+  import { librosaLoopAnalysis, WaveformEditor, LoopPlayer } from '../src/index.js';
+
+  let editor = null;
+  let player = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('waveformFileInput');
+    const container = document.getElementById('waveformContainer');
+    const canvas = document.getElementById('waveformCanvas');
+    const loopInfo = document.getElementById('loopInfo');
+    const playBtn = document.getElementById('playWaveform');
+    const stopBtn = document.getElementById('stopWaveform');
+    const resetBtn = document.getElementById('resetLoop');
+
+    if (fileInput) {
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+          // Load audio
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const arrayBuffer = await file.arrayBuffer();
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+          // Analyze for optimal loop points
+          const analysis = await librosaLoopAnalysis(audioBuffer);
+
+          // Create editor
+          editor = new WaveformEditor(canvas, audioBuffer, analysis);
+          player = new LoopPlayer(audioBuffer);
+          player.setLoopPoints(analysis.loopStart, analysis.loopEnd);
+
+          // Update loop info
+          const updateLoopInfo = (start, end) => {
+            const duration = end - start;
+            loopInfo.textContent = `${start.toFixed(3)}s - ${end.toFixed(3)}s (${duration.toFixed(3)}s)`;
+          };
+          
+          updateLoopInfo(analysis.loopStart, analysis.loopEnd);
+
+          // Listen for loop changes
+          canvas.addEventListener('loopChange', (e) => {
+            const { loopStart, loopEnd } = e.detail;
+            player.setLoopPoints(loopStart, loopEnd);
+            updateLoopInfo(loopStart, loopEnd);
+            
+            // Dispatch event for parent components
+            const changeEvent = new CustomEvent('waveformLoopChange', {
+              detail: { loopStart, loopEnd, duration: loopEnd - loopStart }
+            });
+            document.dispatchEvent(changeEvent);
+          });
+
+          // Show container
+          container.style.display = 'block';
+
+        } catch (error) {
+          console.error('Waveform editor failed:', error);
+        }
+      });
+    }
+
+    // Controls
+    if (playBtn) {
+      playBtn.addEventListener('click', async () => {
+        if (player) {
+          await player.play();
+          playBtn.classList.add('active');
+          stopBtn?.classList.remove('active');
+        }
+      });
+    }
+
+    if (stopBtn) {
+      stopBtn.addEventListener('click', () => {
+        if (player) {
+          player.stop();
+          stopBtn.classList.add('active');
+          playBtn?.classList.remove('active');
+        }
+      });
+    }
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', async () => {
+        if (editor && player) {
+          // Re-run analysis to get fresh loop points
+          const analysis = await librosaLoopAnalysis(editor.audioBuffer);
+          editor.loopStart = analysis.loopStart;
+          editor.loopEnd = analysis.loopEnd;
+          editor.draw();
+          player.setLoopPoints(analysis.loopStart, analysis.loopEnd);
+          
+          if (loopInfo) {
+            const duration = analysis.loopEnd - analysis.loopStart;
+            loopInfo.textContent = `${analysis.loopStart.toFixed(3)}s - ${analysis.loopEnd.toFixed(3)}s (${duration.toFixed(3)}s)`;
+          }
+        }
+      });
+    }
+  });
+</script>
