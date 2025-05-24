@@ -268,6 +268,8 @@ See the `/examples` directory for complete working examples:
 - **CDN Demo** - Quick online BPM detector using the unpkg build
 - **Astro Static Demo** - [`astro-site`](examples/astro-site) shows how to gate
   premium features and deploy to GitHub Pages or Netlify
+- **Railway Stripe API** - [`deploying/railway-api`](deploying/README.md) shows
+  how to create a minimal backend that returns a token after payment
 - **Railway Stripe API** - [`deploying`](deploying) contains a minimal
   serverless backend for Stripe Checkout and token generation
 - **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
