@@ -273,6 +273,10 @@ See the `/examples` directory for complete working examples:
   transitions as you scroll. Place `loop1.mp3` and `loop2.mp3` in the
   `examples` directory to try it locally.
 
+The `examples/backend` and `examples/frontend` folders are included only as
+reference material used during development. They are not intended to be fully
+featured applications or starting points for production projects.
+
 ## Deploying with Stripe Checkout
 
 Example serverless functions for integrating Pleco Xa with Stripe Checkout are provided in [deploying/railway-api](deploying/railway-api/). This example uses [Railway](https://railway.app/) to deploy two endpoints:
