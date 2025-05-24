@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beats - 12 Second Profile (Local Upload)</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .track-item {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #333;
+      background: #111;
+      border-radius: 8px;
+    }
+    
+    .track-info h3 {
+      margin: 0 0 10px 0;
+      color: #fff;
+    }
+    
+    .track-info p {
+      margin: 5px 0;
+      color: #ccc;
+      font-size: 14px;
+    }
+    
+    .waveform {
+      margin: 10px 0;
+      border: 1px solid #333;
+      border-radius: 4px;
+    }
+    
+    .loading {
+      padding: 20px;
+      text-align: center;
+      color: #ccc;
+      font-style: italic;
+    }
+    
+    audio {
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    .upload-info {
+      background: #222;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    
+    .upload-info p {
+      margin: 5px 0;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Beats</h1>
+    <p>Upload up to three 12 second audio tracks and share your page.</p>
+    
+    <div class="upload-info">
+      <p>🎵 <strong>Audio Processing Features:</strong></p>
+      <p>• Automatic loop point detection using cross-correlation analysis</p>
+      <p>• Real-time waveform visualization</p>
+      <p>• Zero-crossing optimization for seamless loops</p>
+      <p>• Audio buffer analysis with 2023 research algorithms</p>
+    </div>
+    
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept="audio/*" required>
+      <button type="submit">Upload & Analyze</button>
+    </form>
+    
+    <div id="tracks"></div>
+    <canvas id="visualizer"></canvas>
+    <button id="openModal">Show Proof of Concept</button>
+    <button id="openAmbition">Share Ambition</button>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h2>Proof of Concept</h2>
+      <p>This demonstrates the 2023 audio processing research:</p>
+      <ul>
+        <li>Cross-correlation loop analysis</li>
+        <li>Hann windowing for smooth transitions</li>
+        <li>Zero-crossing detection</li>
+        <li>Real-time audio buffer processing</li>
+        <li>Web Audio API integration</li>
+      </ul>
+      <button id="closeModal" class="modal-close">Close</button>
+    </div>
+  </div>
+
+  <div id="ambitionBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h2>Your Ambition</h2>
+      <p>Describe your musical goal in one sentence.</p>
+      <input type="text" id="ambitionInput" maxlength="120" placeholder="My ambition is...">
+      <button id="saveAmbition" class="modal-close">Save</button>
+    </div>
+  </div>
+  
+  <script type="module" src="script-local.js"></script>
+</body>
+</html>
