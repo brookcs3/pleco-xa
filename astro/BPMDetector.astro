@@ -107,16 +107,16 @@ const {
           const result = detectBPM(audioData, audioBuffer.sampleRate);
           
           // Update display
-          bmpValue.textContent = `${result.bpm.toFixed(1)} BPM`;
+          bpmValue.textContent = `${result.bpm.toFixed(1)} BPM`;
           if (bpmConfidence) {
-            bmpConfidence.textContent = `${(result.confidence * 100).toFixed(1)}% confidence`;
+            bpmConfidence.textContent = `${(result.confidence * 100).toFixed(1)}% confidence`;
           }
           
           // Dispatch event
           const bpmEvent = new CustomEvent('bpmDetected', {
             detail: { bpm: result.bpm, confidence: result.confidence }
           });
-          document.dispatchEvent(bmpEvent);
+          document.dispatchEvent(bpmEvent);
           
         } catch (error) {
           console.error('BPM detection failed:', error);
