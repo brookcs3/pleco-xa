@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beats - Upload Test with 2023 Audio Analysis</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .track-item {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #333;
+      background: #111;
+      border-radius: 8px;
+    }
+    
+    .track-info h3 {
+      margin: 0 0 10px 0;
+      color: #fff;
+    }
+    
+    .track-info p {
+      margin: 5px 0;
+      color: #ccc;
+      font-size: 14px;
+    }
+    
+    .waveform {
+      margin: 10px 0;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: #000;
+    }
+    
+    .loading {
+      padding: 20px;
+      text-align: center;
+      color: #ccc;
+      font-style: italic;
+    }
+    
+    audio {
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    .upload-info {
+      background: #222;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    
+    .upload-info p {
+      margin: 5px 0;
+      color: #ccc;
+    }
+    
+    .analysis-data {
+      background: #001122;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Beats - Audio Upload Test</h1>
+    <p>Upload audio files and test the 2023 loop analysis algorithms.</p>
+    
+    <div class="upload-info">
+      <p>🎵 <strong>2023 Audio Processing Features:</strong></p>
+      <p>• Automatic loop point detection using cross-correlation analysis</p>
+      <p>• Real-time waveform visualization</p>
+      <p>• Zero-crossing optimization for seamless loops</p>
+      <p>• Audio buffer analysis with Hann windowing</p>
+    </div>
+    
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept="audio/*" required>
+      <button type="submit">Upload & Analyze</button>
+    </form>
+    
+    <div id="tracks">
+      <!-- Demo track -->
+      <div class="track-item">
+        <div class="track-info">
+          <h3>Bassline For Doppler Song - 11.aif (Demo)</h3>
+          <p>Demo track from 2023 research</p>
+        </div>
+        <audio controls loop>
+          <source src="audio/Bassline For Doppler Song - 11.aif" type="audio/aiff">
+        </audio>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let uploadedTracks = [];
+
+    // Loop analysis algorithm from 2023 research
+    async function analyzeLoopPoints(audioBuffer) {
+      const channelData = audioBuffer.getChannelData(0);
+      const sampleRate = audioBuffer.sampleRate;
+      const totalSamples = channelData.length;
+      
+      // Window size for analysis (0.5 seconds max)
+      const window = Math.min(Math.floor(sampleRate * 0.5), Math.floor(totalSamples / 2));
+      
+      console.log(`🔍 Analyzing ${totalSamples} samples, window size: ${window}`);
+      
+      // Get start and end slices
+      const startSlice = applyHannWindow(channelData.subarray(0, window));
+      const endSlice = applyHannWindow(channelData.subarray(totalSamples - window));
+      
+      // Cross-correlation analysis
+      let bestOffset = 0;
+      let bestScore = -Infinity;
+      
+      for (let offset = 0; offset < window; offset++) {
+        let score = 0;
+        for (let i = 0; i < window - offset; i++) {
+          score += startSlice[i] * endSlice[i + offset];
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          bestOffset = offset;
+        }
+      }
+      
+      // Find zero crossings for clean loop points
+      const startIndex = findZeroCrossing(channelData, 0);
+      const endIndex = findZeroCrossing(channelData, totalSamples - window + bestOffset);
+      
+      const result = {
+        loopStart: startIndex / sampleRate,
+        loopEnd: endIndex / sampleRate,
+        confidence: bestScore / window,
+        bestOffset: bestOffset,
+        windowSize: window
+      };
+      
+      console.log('📊 Loop analysis result:', result);
+      return result;
+    }
+
+    function applyHannWindow(data) {
+      const windowed = new Float32Array(data.length);
+      for (let i = 0; i < data.length; i++) {
+        const window = 0.5 * (1 - Math.cos(2 * Math.PI * i / (data.length - 1)));
+        windowed[i] = data[i] * window;
+      }
+      return windowed;
+    }
+
+    function findZeroCrossing(data, startIndex) {
+      for (let i = startIndex; i < data.length - 1; i++) {
+        if (data[i] >= 0 && data[i + 1] < 0) {
+          return i;
+        }
+      }
+      return startIndex;
+    }
+
+    function drawWaveform(canvas, audioBuffer) {
+      const ctx = canvas.getContext('2d');
+      const data = audioBuffer.getChannelData(0);
+      const step = Math.ceil(data.length / canvas.width);
+      
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      
+      for (let i = 0; i < canvas.width; i++) {
+        const slice = data.slice(i * step, (i + 1) * step);
+        const min = Math.min(...slice);
+        const max = Math.max(...slice);
+        
+        const yMin = (min + 1) * canvas.height / 2;
+        const yMax = (max + 1) * canvas.height / 2;
+        
+        ctx.moveTo(i, yMin);
+        ctx.lineTo(i, yMax);
+      }
+      
+      ctx.stroke();
+    }
+
+    async function processAudioFile(file) {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      try {
+        console.log('🎵 Processing file:', file.name, file.size, 'bytes');
+        
+        // Read file as array buffer
+        const arrayBuffer = await file.arrayBuffer();
+        console.log('📂 File loaded, decoding audio...');
+        
+        // Decode audio data
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        console.log('✅ Audio decoded:', audioBuffer.duration, 'seconds');
+        
+        // Apply loop analysis
+        const loopPoints = await analyzeLoopPoints(audioBuffer);
+        
+        // Create object URL for playback
+        const url = URL.createObjectURL(file);
+        
+        const track = {
+          url: url,
+          filename: file.name,
+          duration: audioBuffer.duration,
+          sampleRate: audioBuffer.sampleRate,
+          channels: audioBuffer.numberOfChannels,
+          loopStart: loopPoints.loopStart,
+          loopEnd: loopPoints.loopEnd,
+          confidence: loopPoints.confidence,
+          buffer: audioBuffer,
+          analysis: loopPoints
+        };
+        
+        console.log('🎯 Track processed successfully:', track);
+        return track;
+        
+      } catch (error) {
+        console.error('❌ Audio processing error:', error);
+        throw error;
+      }
+    }
+
+    function createTrackElement(track) {
+      const container = document.createElement('div');
+      container.className = 'track-item';
+      
+      const info = document.createElement('div');
+      info.className = 'track-info';
+      info.innerHTML = `
+        <h3>${track.filename}</h3>
+        <p>Duration: ${track.duration.toFixed(2)}s | Channels: ${track.channels} | Sample Rate: ${track.sampleRate} Hz</p>
+      `;
+      
+      const audio = document.createElement('audio');
+      audio.src = track.url;
+      audio.controls = true;
+      audio.loop = true;
+      audio.preload = 'metadata';
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 600;
+      canvas.height = 100;
+      canvas.className = 'waveform';
+      drawWaveform(canvas, track.buffer);
+      
+      const analysis = document.createElement('div');
+      analysis.className = 'analysis-data';
+      analysis.innerHTML = `
+        <strong>🔬 Loop Analysis:</strong><br>
+        Loop Start: ${track.loopStart.toFixed(4)}s<br>
+        Loop End: ${track.loopEnd.toFixed(4)}s<br>
+        Loop Duration: ${(track.loopEnd - track.loopStart).toFixed(4)}s<br>
+        Confidence: ${track.confidence.toFixed(6)}<br>
+        Best Offset: ${track.analysis.bestOffset} samples<br>
+        Analysis Window: ${track.analysis.windowSize} samples
+      `;
+      
+      container.appendChild(info);
+      container.appendChild(audio);
+      container.appendChild(canvas);
+      container.appendChild(analysis);
+      
+      return container;
+    }
+
+    // Handle file upload
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+      
+      if (!file) return;
+      
+      try {
+        console.log('🚀 Starting upload processing...');
+        
+        // Show loading
+        const container = document.getElementById('tracks');
+        const loading = document.createElement('div');
+        loading.textContent = 'Processing audio with 2023 algorithms...';
+        loading.className = 'loading';
+        container.appendChild(loading);
+        
+        // Process the audio file
+        const track = await processAudioFile(file);
+        uploadedTracks.push(track);
+        
+        // Remove loading and add track
+        loading.remove();
+        const trackElement = createTrackElement(track);
+        container.appendChild(trackElement);
+        
+        // Clear input
+        fileInput.value = '';
+        
+        console.log('✅ Upload completed successfully!');
+        
+      } catch (error) {
+        console.error('❌ Upload failed:', error);
+        alert('Failed to process audio file: ' + error.message);
+        
+        // Remove loading on error
+        const loading = document.querySelector('.loading');
+        if (loading) loading.remove();
+      }
+    });
+
+    console.log('🎵 Beats Upload Test Ready - 2023 Audio Analysis');
+  </script>
+</body>
+</html>
