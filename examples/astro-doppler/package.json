@@ -1,6 +1,6 @@
 {
   "name": "astro-doppler-demo",
-  "private": true,
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "astro dev",
