@@ -18,6 +18,7 @@
       height: 100vh;
       scroll-snap-align: start;
       display: flex;
+
       align-items: center;
       justify-content: center;
     }
@@ -52,6 +53,7 @@
   <section id="page1"><h1>Loop 1</h1></section>
   <section id="page2"></section>
   <section id="page3"><h1>Loop 2</h1></section>
+
 
   <script type="module">
     import { librosaLoopAnalysis } from '../src/index.js';
@@ -109,6 +111,7 @@
       let t;
       if (ratio < 0.5) {
         t = ratio / 0.5;
+
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
         loops[1].filter.type = 'lowpass';
@@ -119,6 +122,7 @@
         loops[1].source.playbackRate.value = 1 + t * 0.05;
       } else {
         t = (ratio - 0.5) / 0.5;
+
         loops[0].gain.gain.value = 1 - t;
         loops[1].gain.gain.value = t;
         loops[1].filter.type = 'lowpass';
@@ -131,6 +135,7 @@
 
       vis1.style.opacity = (1 - ratio).toFixed(3);
       vis2.style.opacity = ratio.toFixed(3);
+
     }
 
     window.addEventListener('scroll', updateScroll);

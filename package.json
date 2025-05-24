@@ -11,7 +11,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "prepublishOnly": "npm run build",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests src/__tests__"
   },
   "keywords": [
     "audio",
@@ -37,10 +37,13 @@
   },
   "private": false,
   "devDependencies": {
-    "rollup": "^4.0.0",
+    "@babel/preset-env": "^7.27.2",
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-terser": "^0.4.0",
+    "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
+    "rollup": "^4.0.0",
+    "ts-jest": "^29.3.4",
     "web-audio-test-api": "file:./web-audio-test-api"
   },
   "files": [
@@ -52,6 +55,8 @@
   ],
   "engines": {
     "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "terser": "^5.39.2"
   }
 }
-
