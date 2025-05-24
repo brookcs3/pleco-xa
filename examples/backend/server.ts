@@ -1,11 +1,12 @@
+import express from 'express';
+import multer from 'multer';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { analyzeLoop } from './loopAnalysis';
 
-const uploadDir = join(import.meta.dir, 'uploads');
+const uploadDir = join(__dirname, 'uploads');
 if (!existsSync(uploadDir)) {
-  mkdirSync(uploadDir);
-
+  mkdirSync(uploadDir, { recursive: true });
 }
 
 interface Track {
@@ -16,66 +17,46 @@ interface Track {
   loopEnd: number;
   createdAt: Date;
 }
+
+const upload = multer({ dest: uploadDir });
+const app = express();
+app.use(express.json());
+
 const tracks: Track[] = [];
 const analytics: { lib: string; ts: number }[] = [];
 
-export default {
-  port: process.env.PORT ? Number(process.env.PORT) : 3000,
-  fetch: async (req: Request) => {
-    const url = new URL(req.url);
+app.post('/api/upload', upload.single('audio'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  const { path: filePath, filename } = req.file;
+  const { loopStart, loopEnd } = await analyzeLoop(filePath);
+  const track: Track = {
+    id: tracks.length + 1,
+    filename,
+    url: `/uploads/${filename}`,
+    loopStart,
+    loopEnd,
+    createdAt: new Date(),
+  };
+  tracks.push(track);
+  res.json(track);
+});
 
-    if (req.method === 'POST' && url.pathname === '/api/upload') {
-      const form = await req.formData();
-      const file = form.get('audio');
-      if (!(file instanceof File)) {
-        return new Response(JSON.stringify({ error: 'No file uploaded' }), {
-          status: 400,
-        });
-      }
-      const filename = `${Date.now()}-${file.name}`;
-      const filePath = join(uploadDir, filename);
-      await Bun.write(filePath, file);
-      const { loopStart, loopEnd } = await analyzeLoop(filePath);
-      const track = {
-        id: tracks.length + 1,
-        filename,
-        url: `/uploads/${filename}`,
-        loopStart,
-        loopEnd,
-        createdAt: new Date(),
-      };
+app.get('/api/tracks', (req, res) => {
+  res.json(tracks);
+});
 
-      tracks.push(track);
-      return Response.json(track);
-    }
+app.post('/api/analytics', (req, res) => {
+  const data = req.body || {};
+  analytics.push({ lib: data.lib, ts: Date.now() });
+  res.json({ ok: true });
+});
 
-    if (url.pathname === '/api/tracks') {
-      return Response.json(tracks);
-    }
+app.use('/uploads', express.static(uploadDir));
+app.use(express.static(join(__dirname, '../frontend')));
 
-    if (req.method === 'POST' && url.pathname === '/api/analytics') {
-      const data = await req.json();
-      analytics.push({ lib: data.lib, ts: Date.now() });
-      return Response.json({ ok: true });
-    }
-
-    if (url.pathname.startsWith('/uploads/')) {
-      const file = Bun.file(join(uploadDir, url.pathname.slice('/uploads/'.length)));
-      if (await file.exists()) {
-        return new Response(file);
-      }
-      return new Response('Not found', { status: 404 });
-    }
-
-    // Serve frontend files
-    const frontendDir = join(import.meta.dir, '../frontend');
-    let filePath = join(frontendDir, url.pathname === '/' ? 'index.html' : url.pathname.slice(1));
-    const file = Bun.file(filePath);
-    if (await file.exists()) {
-      return new Response(file);
-    }
-
-    return new Response('Not found', { status: 404 });
-  },
-};
-
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});

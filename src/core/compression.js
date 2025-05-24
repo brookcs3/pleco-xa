@@ -1,7 +1,9 @@
 /**
  * Audio time compression and manipulation
  * Part of Pleco Xa audio analysis engine
- */
+*/
+
+import { debugLog } from '../utils/debug.js';
 
 /**
  * Pitch-based audio compression (changes both pitch and tempo)
@@ -51,6 +53,6 @@ export async function pitchBasedCompress(audioBuffer, ratio) {
 export async function tempoBasedCompress(audioBuffer, ratio) {
   // Placeholder for more complex pitch-preserving time stretch
   // This would require algorithms like PSOLA or phase vocoder
-  console.log('Tempo-based compression not fully implemented - falling back to pitch-based');
+  debugLog('Tempo-based compression not fully implemented - falling back to pitch-based');
   return await pitchBasedCompress(audioBuffer, ratio);
 }
