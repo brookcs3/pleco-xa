@@ -7,6 +7,7 @@
   <style>
     body { font-family: Arial, sans-serif; padding: 2rem; background: #222; color: #fff; }
     .upload { margin-top: 1rem; }
+
   </style>
 </head>
 <body>
@@ -20,9 +21,11 @@
     const fileInput = document.getElementById('fileInput');
     const bpmDisplay = document.getElementById('bpm');
 
+
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+
       const context = new (window.AudioContext || window.webkitAudioContext)();
       const arrayBuffer = await file.arrayBuffer();
       const audioBuffer = await context.decodeAudioData(arrayBuffer);

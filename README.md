@@ -259,6 +259,8 @@ navigator.mediaDevices.getUserMedia({ audio: true })
 ## Examples
 
 See the `/examples` directory for complete working examples:
+- **Demo** - [`demo.html`](examples/demo.html) loads Pleco Xa from the unpkg CDN
+  for quick testing
 - **Basic Usage** - Simple BPM detection and loop finding
 - **Interactive Editor** - Full waveform editor with loop controls
 - **Batch Analysis** - Process multiple audio files
