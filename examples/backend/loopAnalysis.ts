@@ -1,5 +1,8 @@
+import { promises as fs } from 'fs';
+
 export async function analyzeLoop(filePath: string) {
-  const buffer = await Bun.file(filePath).arrayBuffer();
+  const buf = await fs.readFile(filePath);
+  const buffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
   const { sampleRate, data: channelData } = decodeWav(buffer);
   const totalSamples = channelData.length;
   const window = Math.min(Math.floor(sampleRate * 0.5), Math.floor(totalSamples / 2));
