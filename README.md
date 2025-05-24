@@ -107,6 +107,7 @@ Run the Jest test suite with:
 ```bash
 npm test
 ```
+Make sure to install dependencies first using `npm ci` (or `npm install`). The test script uses the `--experimental-vm-modules` flag so Jest can run ES modules.
 
 This command executes all tests configured in `jest.config.cjs`. Before running
 `npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
@@ -281,9 +282,8 @@ See the `/examples` directory for complete working examples:
   uses Lenis for smooth scrolling and GSAP's ScrollTrigger to automate audio
   transitions. A progress bar at the top shows how far you've scrolled. Place
   `loop1.mp3` and `loop2.mp3` in the `examples` directory to try it locally.
-- **Astro Doppler Demo** - [`astro-doppler`](examples/astro-doppler) shows the
-  same effect built with Astro. Put the loops in `astro-doppler/public` and run
-  `npm run dev` from that folder.
+- **Astro Demo** - [`astro-demo`](examples/astro-demo) shows the `PlecoAnalyzer`
+  component inside a minimal Astro project.
 
 
 ## Browser Compatibility
@@ -317,6 +317,10 @@ npm publish
 
 Update the package version in `package.json` before publishing. The package can
 be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
+
+## Deploying the Paywall API
+
+A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
 
 ## Contributing
 
