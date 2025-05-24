@@ -19,6 +19,7 @@
     #bpmResult {
       font-size: 1.2rem;
       margin-top: 10px;
+
     }
   </style>
 </head>
@@ -34,6 +35,7 @@
     const fileInput = document.getElementById('fileInput');
     const bpmDiv = document.getElementById('bpmResult');
 
+
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -45,6 +47,7 @@
       const audioData = audioBuffer.getChannelData(0);
       const result = detectBPM(audioData, audioBuffer.sampleRate);
       bpmDiv.textContent = `Detected BPM: ${result.bpm.toFixed(2)} (confidence ${result.confidence.toFixed(3)})`;
+
     });
   </script>
 </body>
