@@ -83,7 +83,7 @@ const {
 </style>
 
 <script>
-  import { detectBPM } from 'pleco-xa/src/index.js';
+  import { detectBPM } from 'pleco-xa';
 
   document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('bpmFileInput');
@@ -113,7 +113,7 @@ const {
           }
           
           // Dispatch event
-          const bpmEvent = new CustomEvent('bpmDetected', {
+          const bpmEvent = new CustomEvent('bpmEvent', {
             detail: { bpm: result.bpm, confidence: result.confidence }
           });
           document.dispatchEvent(bpmEvent);
