@@ -270,6 +270,11 @@ See the `/examples` directory for complete working examples:
   premium features and deploy to GitHub Pages or Netlify
 - **Railway Stripe API** - [`deploying/railway-api`](deploying/README.md) shows
   how to create a minimal backend that returns a token after payment
+- **Railway Stripe API** - [`deploying`](deploying) contains a minimal
+  serverless backend for Stripe Checkout and token generation
+- **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
+  showcases scroll-based crossfading and tempo-matched transitions. Place
+  `loop1.mp3` and `loop2.mp3` in the `examples` directory to try it locally.
 
 ## Browser Compatibility
 
