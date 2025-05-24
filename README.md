@@ -3,7 +3,7 @@
 > Browser-native audio analysis engine for musical timing, BPM detection, and intelligent loop finding
 
 **Author:** Cameron Brooks  
-**Version:** 1.0.0  
+**Version:** 1.0.1
 **License:** MIT
 
 ## Overview
@@ -32,7 +32,7 @@ Pleco Xa is a comprehensive JavaScript audio analysis library that brings advanc
 
 ### 🎮 **Interactive Components**
 - **WaveformEditor** - Draggable loop point editor
-- **LoopPlayer** - Seamless loop playback with Web Audio API
+- **LoopPlayer** - Seamless loop playback with Web Audio API (Astro component available)
 
 ## Installation
 
@@ -65,6 +65,14 @@ const canvas = document.getElementById('waveform');
 const editor = new WaveformEditor(canvas, audioBuffer, analysis);
 ```
 
+
+## Build
+
+Run `npm run build` to generate distributable bundles in the `dist/` directory.
+This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
+use in the browser or with bundlers. The `prepublishOnly` script defined in
+`package.json` automatically runs this build step before the package is
+published.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
@@ -164,6 +172,7 @@ Seamless loop playback engine.
 - `stop()` - Stop playback
 - `setLoopPoints(start, end)` - Update loop boundaries
 - `setVolume(volume)` - Adjust playback volume
+- Also available as `<LoopPlayer>` in Astro projects.
 
 ## Advanced Usage
 

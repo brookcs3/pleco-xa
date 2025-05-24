@@ -58,9 +58,6 @@ examples/*.mp3
 examples/*.aiff
 examples/*.aif
 
-# Build tools
-rollup.config.js
-
 # Optional npm cache
 .npm
 
