@@ -31,7 +31,9 @@ Pleco Xa is a comprehensive JavaScript audio analysis library that brings advanc
 - **RMS/Peak Analysis** - Audio level and dynamics analysis
 
 ### 🎮 **Interactive Components**
+- **PlecoAnalyzer** - Full analysis interface with loop playback
 - **WaveformEditor** - Draggable loop point editor
+- **BPMDetector** - Quick BPM detection tool
 - **LoopPlayer** - Seamless loop playback with Web Audio API (Astro component available)
 
 ## Installation
@@ -70,9 +72,31 @@ const editor = new WaveformEditor(canvas, audioBuffer, analysis);
 
 Run `npm run build` to generate distributable bundles in the `dist/` directory.
 This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
-use in the browser or with bundlers. The `prepublishOnly` script defined in
+use in the browser or with bundlers. `dist/pleco-xa.js` is the main entry point
+referenced by `package.json`, while `dist/pleco-xa.min.js` is exposed via the
+`unpkg` field for direct CDN usage. The `prepublishOnly` script defined in
+
+Run `npm run build` to generate the distributable bundle in the `dist/`
+directory. The build outputs `dist/index.js`, which can be used directly in the
+browser or with bundlers. The `prepublishOnly` script defined in
+
 `package.json` automatically runs this build step before the package is
 published.
+
+You can try Pleco Xa immediately in your browser via the CDN build. Open
+[`demo.html`](./demo.html) from this repository or load
+<https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js> directly in a script tag
+on your page.
+
+## Testing
+
+Run the Jest test suite with:
+
+```bash
+npm test
+```
+
+This command executes all tests configured in `jest.config.js`.
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
@@ -80,7 +104,7 @@ You can import these from the `pleco-xa/astro` entry point.
 
 ```astro
 ---
-import { PlecoAnalyzer } from 'pleco-xa/astro';
+import { PlecoAnalyzer, WaveformEditor, BPMDetector, LoopPlayer } from 'pleco-xa/astro';
 ---
 
 <PlecoAnalyzer src="/song.mp3" />
@@ -165,6 +189,7 @@ Validate musical timing alignment.
 Interactive waveform with draggable loop points.
 - Emits `loopChange` events when points are modified
 - Visual feedback with loop region highlighting
+- Also available as `<WaveformEditor>` in Astro projects.
 
 #### `LoopPlayer(audioBuffer)`
 Seamless loop playback engine.
@@ -173,6 +198,10 @@ Seamless loop playback engine.
 - `setLoopPoints(start, end)` - Update loop boundaries
 - `setVolume(volume)` - Adjust playback volume
 - Also available as `<LoopPlayer>` in Astro projects.
+
+Additional Astro components:
+- `<BPMDetector>` for quick BPM analysis
+- `<PlecoAnalyzer>` for a full-featured interface
 
 ## Advanced Usage
 
@@ -261,18 +290,18 @@ npm run build
 npm publish
 ```
 
-Update the package version in `package.json` before publishing. The project is
-marked as `private`; remove that flag if releasing publicly.
+Update the package version in `package.json` before publishing. The package can
+be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
 
 ## Contributing
 
-This is a private repository. For access or questions, contact Cameron Brooks.
+Contributions are welcome! Feel free to open issues or pull requests on GitHub.
 
 ## License
 
 MIT License - See LICENSE file for details.
 
-Some parts of the code were inspired by Libra.
+Some audio analysis techniques were adapted from ideas in the Librosa library.
 ---
 
 **Pleco Xa** - Bringing musical intelligence to the browser.  
