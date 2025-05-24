@@ -345,7 +345,7 @@ A minimal Stripe Checkout backend is included in the [deploying/](deploying/READ
 
 ### Nixpacks configuration
 
-Railway reads the `.nixpacks.toml` file in `deploying/railway-api/` to set up the environment. It installs Node 20 automatically and then runs `npm ci` followed by `npm start`.
+Railway reads the `.nixpacks.toml` file in `deploying/railway-api/` to set up the environment. It installs Node 20 automatically and then runs `npm ci` followed by `npm start`. Using `npm ci` ensures the installed packages exactly match the `package-lock.json` for reproducible builds.
 
 For local testing you can run the same commands without Docker:
 
