@@ -73,6 +73,11 @@ This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
 use in the browser or with bundlers. The `prepublishOnly` script defined in
 `package.json` automatically runs this build step before the package is
 published.
+
+## Testing
+
+Run `npm test` to execute the Jest test suite.
+
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
