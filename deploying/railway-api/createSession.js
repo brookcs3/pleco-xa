@@ -11,9 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET, {
 export default async function handler(req, res) {
   try {
     const session = await stripe.checkout.sessions.create({
-      line_items: [
-        { price: process.env.PREMIUM_PRICE_ID, quantity: 1 },
-      ],
+      line_items: [{ price: process.env.PREMIUM_PRICE_ID, quantity: 1 }],
 
       mode: 'payment',
       success_url: `${process.env.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -22,6 +20,5 @@ export default async function handler(req, res) {
     res.json({ url: session.url });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create session' });
-
   }
 }
