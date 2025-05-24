@@ -90,6 +90,15 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 See `examples/demo.html` for a simple interactive page that detects BPM from an uploaded audio file.
 
+## Debugging
+
+Enable verbose logging by setting the `PLECO_DEBUG` flag. In Node.js you can run:
+
+```bash
+PLECO_DEBUG=true node your-script.js
+```
+
+In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa. When enabled, additional information is printed to the console.
 
 ## Testing
 
@@ -98,9 +107,10 @@ Run the Jest test suite with:
 ```bash
 npm test
 ```
+Make sure to install dependencies first using `npm ci` (or `npm install`). The test script uses the `--experimental-vm-modules` flag so Jest can run ES modules.
 
-This command executes all tests configured in `jest.config.cjs`. Make sure to
-install dependencies with `npm ci` before running tests. The test script uses
+This command executes all tests configured in `jest.config.cjs`. Before running
+`npm test`, install dependencies with `npm ci` or `npm install`. Tests run with
 Node's `--experimental-vm-modules` flag to enable ES modules.
 ## Astro Integration
 
@@ -275,21 +285,7 @@ See the `/examples` directory for complete working examples:
 - **Railway Stripe API** - serverless example using Stripe Checkout in [`deploying/railway-api`](deploying/railway-api/)
 
 
-## Deploying with Stripe Checkout
 
-Example serverless functions for integrating Pleco Xa with Stripe Checkout are provided in [deploying/railway-api](deploying/railway-api/). This example uses [Railway](https://railway.app/) to deploy two endpoints:
-- `createSession.js` – creates a Checkout session
-- `success.js` – verifies the payment and returns a signed token
-
-### Setup
-1. Install the Railway CLI and run `railway init` inside the `deploying/railway-api` folder.
-2. Configure these environment variables:
-   - `STRIPE_SECRET` – your Stripe secret key
-   - `PREMIUM_PRICE_ID` – the Stripe price ID
-   - `PREMIUM_TOKEN_SECRET` – secret used to sign tokens
-   - `BASE_URL` – public URL of your site
-
-Deploy with `railway up` and integrate the token with `paywall.js`. See [deploying/README.md](deploying/README.md) for more details.
 
 ## Browser Compatibility
 
@@ -322,6 +318,10 @@ npm publish
 
 Update the package version in `package.json` before publishing. The package can
 be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
+
+## Deploying the Paywall API
+
+A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
 
 ## Contributing
 
