@@ -42,6 +42,8 @@ These handlers are wired up by `server.js`, which starts an Express server when
 
 Run `railway up` from the same `railway-api` folder to deploy these functions.
 Railway will install the dependencies declared in `package.json` automatically.
+A `Dockerfile` is included so the service can be built and started without any
+additional configuration.
 
 ## 3. Integrate with the Paywall
 
