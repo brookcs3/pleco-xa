@@ -3,7 +3,7 @@
 > Browser-native audio analysis engine for musical timing, BPM detection, and intelligent loop finding
 
 **Author:** Cameron Brooks  
-**Version:** 1.0.0  
+**Version:** 1.0.1
 **License:** MIT
 
 ## Overview

@@ -31,6 +31,6 @@ export { WaveformEditor } from './classes/WaveformEditor.js';
 export { LoopPlayer } from './classes/LoopPlayer.js';
 
 // Version info
-export const version = '1.0.0';
+export const version = '1.0.1';
 export const name = 'Pleco Xa';
 export const author = 'Cameron Brooks';
