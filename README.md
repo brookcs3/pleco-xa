@@ -296,6 +296,15 @@ See the `/examples` directory for complete working examples. Sample loops for th
 - **Railway API Example** - [`deploying/railway-api`](deploying/README.md)
   demonstrates deploying the paywall backend on Railway.
 
+## Client-Side Web App & Premium Features
+
+Pleco Xa can power a fully client-side web app with optional premium upgrades.
+Use the free tools to showcase BPM detection and waveform editing, then unlock
+advanced analysis when a token is present in `localStorage`. The example Astro
+site includes a simple `paywall.js` script that hides premium components until a
+valid token is set. Pair it with the Stripe backend in `deploying/railway-api`
+to sell access while keeping the main app static.
+
 
 
 ## Browser Compatibility
