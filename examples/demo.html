@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pleco Xa Demo</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    input[type="file"] {
+      margin: 20px 0;
+    }
+    #bpmResult {
+      font-size: 1.2rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pleco Xa CDN Demo</h1>
+  <p>Select an audio file to detect its BPM using Pleco Xa loaded from the unpkg CDN.</p>
+  <input type="file" id="fileInput" accept="audio/*" />
+  <div id="bpmResult"></div>
+
+  <script type="module">
+    import { detectBPM } from "https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js";
+
+    const fileInput = document.getElementById('fileInput');
+    const bpmDiv = document.getElementById('bpmResult');
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      bpmDiv.textContent = 'Analyzing...';
+      const arrayBuffer = await file.arrayBuffer();
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const audioData = audioBuffer.getChannelData(0);
+      const result = detectBPM(audioData, audioBuffer.sampleRate);
+      bpmDiv.textContent = `Detected BPM: ${result.bpm.toFixed(2)} (confidence ${result.confidence.toFixed(3)})`;
+    });
+  </script>
+</body>
+</html>
