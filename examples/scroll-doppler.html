@@ -23,63 +23,49 @@
       justify-content: center;
     }
     #page2 { background: #222; }
-
-    /* visual crossfade indicator */
-    #crossfade {
-      width: 80%;
-      height: 20px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 20px;
-      display: flex;
-    }
-    #crossfade .bar {
-      height: 100%;
-      transition: width 0.2s ease;
-    }
-    #crossfade .bar1 { background: #42a5f5; }
-    #crossfade .bar2 { background: #ab47bc; }
-
     #progress {
       position: fixed;
-      bottom: 10px;
-      left: 50%;
-      width: 80%;
-      height: 6px;
-      background: rgba(255,255,255,0.2);
-      transform: translateX(-50%);
-      border-radius: 3px;
-      overflow: hidden;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 0%;
+      background: linear-gradient(to right, #09f, #f09);
+      z-index: 10;
     }
-    #progress div {
-      height: 100%;
-      transition: width 0.2s linear;
+    #visual {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      z-index: 1;
     }
-    #progress .fill1 { background: #42a5f5; }
-    #progress .fill2 { background: #ab47bc; }
-
+    #visual div {
+      flex: 1;
+      transition: opacity 0.1s linear;
+    }
+    #vis1 { background: rgba(0,150,255,0.15); }
+    #vis2 { background: rgba(255,0,150,0.15); }
   </style>
 </head>
 <body>
+  <div id="progress"></div>
+  <div id="visual"><div id="vis1"></div><div id="vis2"></div></div>
   <section id="page1"><h1>Loop 1</h1></section>
-  <section id="page2">
-    <div id="crossfade">
-      <div class="bar bar1" style="width:50%"></div>
-      <div class="bar bar2" style="width:50%"></div>
-    </div>
-  </section>
+  <section id="page2"></section>
   <section id="page3"><h1>Loop 2</h1></section>
-  <div id="progress">
-    <div class="fill1" style="width:50%"></div>
-    <div class="fill2" style="width:50%"></div>
-  </div>
 
 
   <script type="module">
     import { librosaLoopAnalysis } from '../src/index.js';
 
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const progressBar = document.getElementById('progress');
+    const vis1 = document.getElementById('vis1');
+    const vis2 = document.getElementById('vis2');
+
+    vis1.style.opacity = '1';
+    vis2.style.opacity = '0';
 
     const loops = [
       { url: 'loop1.mp3', buffer: null, source: null, gain: ctx.createGain(), filter: ctx.createBiquadFilter() },
@@ -117,13 +103,11 @@
 
     createSources();
 
-    const bar1 = document.querySelector('#crossfade .bar1');
-    const bar2 = document.querySelector('#crossfade .bar2');
-    const fill1 = document.querySelector('#progress .fill1');
-    const fill2 = document.querySelector('#progress .fill2');
-
     function updateScroll() {
       const ratio = window.scrollY / (document.body.scrollHeight - innerHeight);
+
+      progressBar.style.width = `${(ratio * 100).toFixed(2)}%`;
+
       let t;
       if (ratio < 0.5) {
         t = ratio / 0.5;
@@ -149,10 +133,9 @@
         loops[1].source.playbackRate.value = 1;
       }
 
-      bar1.style.width = `${(1 - t) * 100}%`;
-      bar2.style.width = `${t * 100}%`;
-      fill1.style.width = `${(1 - ratio) * 100}%`;
-      fill2.style.width = `${ratio * 100}%`;
+      vis1.style.opacity = (1 - ratio).toFixed(3);
+      vis2.style.opacity = ratio.toFixed(3);
+
     }
 
     window.addEventListener('scroll', updateScroll);
