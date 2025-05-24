@@ -1,9 +1,9 @@
-# Pins Node 20 and runs `npm ci` on Railway
+# Pins Node 20 and runs `npm install` on Railway
 [phases.setup]
 nixPkgs = ["nodejs-20_x"]
 
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["npm install"]
 
 [start]
 cmd = "npm start"
