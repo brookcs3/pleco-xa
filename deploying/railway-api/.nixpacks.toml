@@ -1,3 +1,4 @@
+# Pins Node 20 and runs `npm ci` on Railway
 [phases.setup]
 nixPkgs = ["nodejs-20_x"]
 
