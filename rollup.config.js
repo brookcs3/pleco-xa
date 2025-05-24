@@ -11,7 +11,7 @@ export default [
       format: 'esm',
       sourcemap: true,
     },
-    plugins: basePlugins,
+    plugins: [...basePlugins, terser()],
   },
   {
     input: 'src/index.js',
