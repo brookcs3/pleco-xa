@@ -1,3 +1,7 @@
+// createSession.js
+// Creates a Stripe Checkout session and returns the redirect URL.
+// Environment: STRIPE_SECRET, PREMIUM_PRICE_ID, BASE_URL
+
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET, {

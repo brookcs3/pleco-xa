@@ -8,14 +8,19 @@ serverless provider such as Vercel or Netlify.
 
 ## 1. Create a Railway Project
 
-1. Install the [Railway CLI](https://docs.railway.app/cli/install).
-2. From the `railway-api` folder run `railway init` and follow the prompts.
-3. Set these environment variables in the Railway dashboard:
-   - `STRIPE_SECRET` – your Stripe secret key
-   - `PREMIUM_PRICE_ID` – the Stripe price ID
-   - `PREMIUM_TOKEN_SECRET` – random string for signing tokens
 
-   - `BASE_URL` – public URL of your static site (e.g. `https://pleco-xa.com`)
+1. Install the [Railway CLI](https://docs.railway.app/cli/install).
+2. From this folder run `railway init` and follow the prompts.
+
+
+### Environment Variables
+
+Set these variables in the Railway dashboard or a local `.env` file:
+
+- `STRIPE_SECRET` – your Stripe secret key
+- `PREMIUM_PRICE_ID` – the Stripe price ID
+- `PREMIUM_TOKEN_SECRET` – random string for signing tokens
+- `BASE_URL` – public URL of your static site (e.g. `https://pleco-xa.com`)
 
 Example `.env` file:
 
