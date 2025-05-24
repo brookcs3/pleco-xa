@@ -32,7 +32,7 @@ Pleco Xa is a comprehensive JavaScript audio analysis library that brings advanc
 
 ### 🎮 **Interactive Components**
 - **WaveformEditor** - Draggable loop point editor
-- **LoopPlayer** - Seamless loop playback with Web Audio API
+- **LoopPlayer** - Seamless loop playback with Web Audio API (Astro component available)
 
 ## Installation
 
@@ -151,6 +151,7 @@ Seamless loop playback engine.
 - `stop()` - Stop playback
 - `setLoopPoints(start, end)` - Update loop boundaries
 - `setVolume(volume)` - Adjust playback volume
+- Also available as `<LoopPlayer>` in Astro projects.
 
 ## Advanced Usage
 
