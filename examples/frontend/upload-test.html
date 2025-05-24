@@ -99,6 +99,17 @@
   </div>
 
   <script>
+    const DEBUG_ENABLED = Boolean(
+      (typeof process !== 'undefined' && process.env && process.env.PLECO_DEBUG) ||
+      (typeof window !== 'undefined' && window.PLECO_DEBUG)
+    );
+
+    function debugLog(...args) {
+      if (DEBUG_ENABLED) {
+        console.log(...args);
+      }
+    }
+
     let uploadedTracks = [];
 
     // Loop analysis algorithm from 2023 research
@@ -110,7 +121,7 @@
       // Window size for analysis (0.5 seconds max)
       const window = Math.min(Math.floor(sampleRate * 0.5), Math.floor(totalSamples / 2));
       
-      console.log(`🔍 Analyzing ${totalSamples} samples, window size: ${window}`);
+      debugLog(`🔍 Analyzing ${totalSamples} samples, window size: ${window}`);
       
       // Get start and end slices
       const startSlice = applyHannWindow(channelData.subarray(0, window));
@@ -143,7 +154,7 @@
         windowSize: window
       };
       
-      console.log('📊 Loop analysis result:', result);
+      debugLog('📊 Loop analysis result:', result);
       return result;
     }
 
@@ -196,15 +207,15 @@
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
       try {
-        console.log('🎵 Processing file:', file.name, file.size, 'bytes');
+        debugLog('🎵 Processing file:', file.name, file.size, 'bytes');
         
         // Read file as array buffer
         const arrayBuffer = await file.arrayBuffer();
-        console.log('📂 File loaded, decoding audio...');
+        debugLog('📂 File loaded, decoding audio...');
         
         // Decode audio data
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        console.log('✅ Audio decoded:', audioBuffer.duration, 'seconds');
+        debugLog('✅ Audio decoded:', audioBuffer.duration, 'seconds');
         
         // Apply loop analysis
         const loopPoints = await analyzeLoopPoints(audioBuffer);
@@ -225,7 +236,7 @@
           analysis: loopPoints
         };
         
-        console.log('🎯 Track processed successfully:', track);
+        debugLog('🎯 Track processed successfully:', track);
         return track;
         
       } catch (error) {
@@ -287,7 +298,7 @@
       if (!file) return;
       
       try {
-        console.log('🚀 Starting upload processing...');
+        debugLog('🚀 Starting upload processing...');
         
         // Show loading
         const container = document.getElementById('tracks');
@@ -308,7 +319,7 @@
         // Clear input
         fileInput.value = '';
         
-        console.log('✅ Upload completed successfully!');
+        debugLog('✅ Upload completed successfully!');
         
       } catch (error) {
         console.error('❌ Upload failed:', error);
@@ -320,7 +331,7 @@
       }
     });
 
-    console.log('🎵 Beats Upload Test Ready - 2023 Audio Analysis');
+    debugLog('🎵 Beats Upload Test Ready - 2023 Audio Analysis');
   </script>
 </body>
 </html>
