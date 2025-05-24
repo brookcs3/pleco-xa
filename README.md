@@ -100,8 +100,13 @@ PLECO_DEBUG=true node your-script.js
 
 In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa or call `setDebug(true)`. When enabled, additional information is printed to the console.
 
-Most example scripts use a `debugLog()` helper that checks this flag. Verbose
-messages are suppressed unless `PLECO_DEBUG` is set.
+Most example scripts and the sample servers use a `debugLog()` helper that
+checks this flag. Verbose messages are suppressed unless `PLECO_DEBUG` is set.
+For example, to see server logs while developing you can run:
+
+```bash
+PLECO_DEBUG=true node deploying/railway-api/server.js
+```
 
 ## Testing
 
