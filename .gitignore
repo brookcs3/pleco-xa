@@ -66,5 +66,4 @@ examples/*.aif
 
 # Yarn Integrity file
 .yarn-integrity
-
-BeaatsLoops/
+/
