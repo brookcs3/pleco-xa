@@ -65,6 +65,7 @@ const canvas = document.getElementById('waveform');
 const editor = new WaveformEditor(canvas, audioBuffer, analysis);
 ```
 
+
 ## Build
 
 Run `npm run build` to generate distributable bundles in the `dist/` directory.
@@ -271,6 +272,7 @@ This is a private repository. For access or questions, contact Cameron Brooks.
 
 MIT License - See LICENSE file for details.
 
+Some parts of the code were inspired by Libra.
 ---
 
 **Pleco Xa** - Bringing musical intelligence to the browser.  
