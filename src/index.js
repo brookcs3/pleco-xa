@@ -34,6 +34,6 @@ export { LoopPlayer } from './classes/LoopPlayer.js';
 export { DEBUG_ENABLED, setDebug, debugLog } from './utils/debug.js';
 
 // Version info
-export const version = '1.0.1';
+export const version = '1.0.2';
 export const name = 'Pleco Xa';
 export const author = 'Cameron Brooks';
