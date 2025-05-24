@@ -1,6 +1,4 @@
-import { describe, it, expect } from "@jest/globals";
-
-export default {
+module.exports = {
   testEnvironment: "node",
   transform: {
     "^.+\\.[jt]sx?$": "babel-jest",
@@ -10,12 +8,3 @@ export default {
     "/node_modules/(?!dependency1|dependency2|dependency3)/"
   ]
 };
-
-{
-  "compilerOptions": {
-    "target": "ES6",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true
-  }
-}
