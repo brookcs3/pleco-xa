@@ -45,7 +45,7 @@ npm install pleco-xa
 ## Quick Start
 
 ```javascript
-import { detectBPM, librosaLoopAnalysis, WaveformEditor } from 'pleco-xa';
+import { detectBPM, librosaLoopAnalysis, WaveformEditor, debugLog } from 'pleco-xa';
 
 // Load audio file
 const audioContext = new AudioContext();
@@ -55,12 +55,12 @@ const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
 // Detect BPM
 const bpmResult = detectBPM(audioBuffer.getChannelData(0), audioBuffer.sampleRate);
-console.log(`Detected BPM: ${bpmResult.bpm}`);
+debugLog(`Detected BPM: ${bpmResult.bpm}`);
 
 // Find optimal loop points
 const analysis = await librosaLoopAnalysis(audioBuffer);
-console.log(`Loop: ${analysis.loopStart}s - ${analysis.loopEnd}s`);
-console.log(`Musical division: ${analysis.musicalDivision} bars`);
+debugLog(`Loop: ${analysis.loopStart}s - ${analysis.loopEnd}s`);
+debugLog(`Musical division: ${analysis.musicalDivision} bars`);
 
 // Create interactive waveform editor
 const canvas = document.getElementById('waveform');
@@ -92,7 +92,7 @@ See `examples/demo.html` for a simple interactive page that detects BPM from an 
 
 ## Debugging
 
-Enable verbose logging by setting the `PLECO_DEBUG` flag or by calling `setDebug(true)` from code. In Node.js you can run:
+Enable verbose logging by setting the `PLECO_DEBUG` flag or by calling `setDebug(true)` from code. Both `setDebug` and `debugLog` are exported from `pleco-xa`. In Node.js you can run:
 
 ```bash
 PLECO_DEBUG=true node your-script.js
