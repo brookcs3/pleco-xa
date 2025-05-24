@@ -10,6 +10,6 @@
   },
   "dependencies": {
     "astro": "^4.0.0",
-    "pleco-xa": "^1.0.1"
+    "pleco-xa": "^1.0.2"
   }
 }
