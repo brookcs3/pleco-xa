@@ -281,12 +281,8 @@ See the `/examples` directory for complete working examples:
 - **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
   showcases scroll-based crossfading and tempo-matched transitions. Place
   `loop1.mp3` and `loop2.mp3` in the `examples` directory to try it locally.
-- **Astro Doppler Demo** - [`astro-doppler`](examples/astro-doppler) shows the
-  same effect built with Astro. Put the loops in `astro-doppler/public` and run
-  `npm run dev` from that folder.
-- **Astro Scroll Demo** - [`astro-demo`](examples/astro-demo) is a minimal
-  project showcasing the scroll-driven doppler effect. Install dependencies and
-  run `npm run dev` inside that directory.
+- **Astro Demo** - [`astro-demo`](examples/astro-demo) shows the `PlecoAnalyzer`
+  component inside a minimal Astro project.
 
 
 ## Browser Compatibility
