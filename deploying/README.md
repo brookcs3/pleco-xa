@@ -42,8 +42,16 @@ These handlers are wired up by `server.js`, which starts an Express server when
 
 Run `railway up` from the same `railway-api` folder to deploy these functions.
 Railway will install the dependencies declared in `package.json` automatically.
-A `Dockerfile` is included so the service can be built and started without any
-additional configuration.
+The `.nixpacks.toml` in this directory pins **Node 20** and runs `npm ci` before
+starting the service. A `Dockerfile` is included so the service can be built and
+started without any additional configuration.
+
+When testing locally, use Node 20 and run the same commands:
+
+```bash
+npm ci
+npm start
+```
 
 ## 3. Integrate with the Paywall
 
