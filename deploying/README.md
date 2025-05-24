@@ -47,6 +47,7 @@ additional configuration.
 Note: the Nixpacks configuration runs `npm ci`, which requires a `package-lock.json`. This example does not include a lockfile, so Railway falls back to `npm install` during deployment. Generate a lock file first if you want to use `npm ci` for reproducible installs.
 
 
+
 ## 3. Integrate with the Paywall
 
 On your success page, call `/success?session_id=...` to obtain the token and save
