@@ -279,7 +279,8 @@ See the `/examples` directory for complete working examples:
 - **CDN Demo** - Quick online BPM detector using the unpkg build
 - **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
   showcases scroll-based crossfading and tempo-matched transitions. Place
-  `loop1.mp3` and `loop2.mp3` in the `examples` directory to try it locally.
+  `loop1.mp3` and `loop2.mp3` in the `examples/audio` directory to try it
+  locally.
 - **Astro Doppler Demo** - [`astro-doppler`](examples/astro-doppler) shows the
   same effect built with Astro. Put the loops in `astro-doppler/public` and run
   `npm run dev` from that folder.
