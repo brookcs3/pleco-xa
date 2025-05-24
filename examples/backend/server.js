@@ -1,74 +1,60 @@
-const { mkdirSync, existsSync } = require('fs');
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { spawnSync } = require('child_process');
-const Bun = require('bun');
 
-const uploadDir = Bun.path.join(__dirname, 'uploads');
-if (!existsSync(uploadDir)) {
-  mkdirSync(uploadDir);
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+const upload = multer({ dest: uploadDir });
+const app = express();
 const tracks = [];
 
-Bun.serve({
-  port: 3000,
-  async fetch(req) {
-    const url = new URL(req.url);
-
-    if (req.method === 'POST' && url.pathname === '/api/upload') {
-      const formData = await req.formData();
-      const file = formData.get('audio');
-      if (!file || !(file instanceof Blob)) {
-        return new Response(JSON.stringify({ error: 'No file uploaded' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      const filename = `${Date.now()}-${file.name}`;
-      const rawPath = Bun.path.join(uploadDir, filename);
-      await Bun.write(rawPath, file);
-
-      const processedName = `processed-${filename.replace(/\.[^/.]+$/, '')}.wav`;
-      const metaName = `metadata-${filename.replace(/\.[^/.]+$/, '')}.json`;
-      const processedPath = Bun.path.join(uploadDir, processedName);
-      const metaPath = Bun.path.join(uploadDir, metaName);
-
-      const proc = spawnSync('python3', [
-        Bun.path.join(__dirname, 'librosa_encoder.py'),
-        rawPath,
-        processedPath,
-        metaPath,
-      ]);
-      if (proc.status !== 0) {
-        console.error(proc.stderr.toString());
-        return new Response(JSON.stringify({ error: 'Audio processing failed' }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-
-      const track = {
-        id: tracks.length + 1,
-        filename: processedName,
-        url: `/uploads/${processedName}`,
-        metadataUrl: `/uploads/${metaName}`,
-        createdAt: new Date()
-      };
-      tracks.push(track);
-      return Response.json(track);
-    }
-
-    if (url.pathname === '/api/tracks') {
-      return Response.json(tracks);
-    }
-
-    if (url.pathname.startsWith('/uploads/')) {
-      const filePath = Bun.path.join('.', url.pathname);
-      return new Response(Bun.file(filePath));
-    }
-
-    return new Response('Not Found', { status: 404 });
+app.post('/api/upload', upload.single('audio'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
   }
+
+  const rawPath = req.file.path;
+  const baseName = path.parse(req.file.originalname).name;
+  const processedName = `processed-${baseName}.wav`;
+  const metaName = `metadata-${baseName}.json`;
+  const processedPath = path.join(uploadDir, processedName);
+  const metaPath = path.join(uploadDir, metaName);
+
+  const proc = spawnSync('python3', [
+    path.join(__dirname, 'librosa_encoder.py'),
+    rawPath,
+    processedPath,
+    metaPath,
+  ]);
+
+  if (proc.status !== 0) {
+    console.error(proc.stderr.toString());
+    return res.status(500).json({ error: 'Audio processing failed' });
+  }
+
+  const track = {
+    id: tracks.length + 1,
+    filename: processedName,
+    url: `/uploads/${processedName}`,
+    metadataUrl: `/uploads/${metaName}`,
+    createdAt: new Date(),
+  };
+  tracks.push(track);
+  res.json(track);
 });
 
-console.log('Bun server running on http://localhost:3000');
+app.get('/api/tracks', (req, res) => {
+  res.json(tracks);
+});
 
+app.use('/uploads', express.static(uploadDir));
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
