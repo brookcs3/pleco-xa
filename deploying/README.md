@@ -42,7 +42,7 @@ These handlers are wired up by `server.js`, which starts an Express server when
 
 Run `railway up` from the same `railway-api` folder to deploy these functions.
 Railway will install the dependencies declared in `package.json` automatically.
-The build uses `.nixpacks.toml`, which pins Node 20 and runs `npm ci`. Without a `package-lock.json` the build will fail. Either generate a lockfile or change the install command in `.nixpacks.toml` to `npm install` if you prefer not to use one.
+The build uses `.nixpacks.toml`, which pins Node 20 and runs `npm ci` for deterministic dependency installs. Without a `package-lock.json` the build will fail. Either generate a lockfile or change the install command in `.nixpacks.toml` to `npm install` if you prefer not to use one.
 
 
 
