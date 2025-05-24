@@ -70,11 +70,26 @@ const editor = new WaveformEditor(canvas, audioBuffer, analysis);
 
 ## Build
 
-Run `npm run build` to generate the distributable bundle in the `dist/`
-directory. The build outputs `dist/index.js`, which can be used directly in the
-browser or with bundlers. The `prepublishOnly` script defined in
+Run `npm run build` to generate distributable bundles in the `dist/` directory.
+This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
+use in the browser or with bundlers. `dist/pleco-xa.js` is the main entry point
+referenced by `package.json`, while `dist/pleco-xa.min.js` is exposed via the
+`unpkg` field for direct CDN usage. The `prepublishOnly` script defined in
 `package.json` automatically runs this build step before the package is
 published.
+
+### CDN Usage
+
+Load the minified bundle directly from the unpkg CDN:
+
+```html
+<script type="module">
+  import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js';
+</script>
+```
+
+See [`examples/demo.html`](examples/demo.html) for a working example.
+
 
 ## Testing
 
@@ -244,6 +259,8 @@ navigator.mediaDevices.getUserMedia({ audio: true })
 ## Examples
 
 See the `/examples` directory for complete working examples:
+- **Demo** - [`demo.html`](examples/demo.html) loads Pleco Xa from the unpkg CDN
+  for quick testing
 - **Basic Usage** - Simple BPM detection and loop finding
 - **Interactive Editor** - Full waveform editor with loop controls
 - **Batch Analysis** - Process multiple audio files
