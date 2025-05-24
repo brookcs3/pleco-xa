@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pleco Xa Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .controls button {
+      padding: 8px 16px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 4px;
+      background: #0066cc;
+      color: #fff;
+      cursor: pointer;
+    }
+    canvas {
+      display: block;
+      margin: 20px 0;
+      background: #000;
+      border: 1px solid #444;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pleco Xa Demo</h1>
+  <input type="file" id="fileInput" accept="audio/*">
+  <div id="info"></div>
+  <canvas id="waveform" width="700" height="120" style="display:none;"></canvas>
+  <div class="controls" id="controls" style="display:none;">
+    <button id="play">Play Loop</button>
+    <button id="stop">Stop</button>
+  </div>
+
+  <script type="module">
+    import { detectBPM, librosaLoopAnalysis, WaveformEditor, LoopPlayer } from 'https://unpkg.com/pleco-xa@1.0.1/dist/pleco-xa.min.js';
+
+    let editor = null;
+    let player = null;
+
+    const fileInput = document.getElementById('fileInput');
+    const info = document.getElementById('info');
+    const canvas = document.getElementById('waveform');
+    const controls = document.getElementById('controls');
+    const playBtn = document.getElementById('play');
+    const stopBtn = document.getElementById('stop');
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      const bpm = detectBPM(audioBuffer.getChannelData(0), audioBuffer.sampleRate);
+      info.textContent = `BPM: ${bpm.bpm.toFixed(2)}`;
+
+      const analysis = await librosaLoopAnalysis(audioBuffer);
+      editor = new WaveformEditor(canvas, audioBuffer, analysis);
+      player = new LoopPlayer(audioBuffer);
+      player.setLoopPoints(analysis.loopStart, analysis.loopEnd);
+
+      canvas.style.display = 'block';
+      controls.style.display = 'block';
+
+      canvas.addEventListener('loopChange', (ev) => {
+        const { loopStart, loopEnd } = ev.detail;
+        player.setLoopPoints(loopStart, loopEnd);
+      });
+    });
+
+    playBtn.addEventListener('click', async () => {
+      if (player) {
+        await player.play();
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (player) {
+        player.stop();
+      }
+    });
+  </script>
+</body>
+</html>
