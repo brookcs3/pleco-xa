@@ -18,3 +18,7 @@ export function debugLog(...args) {
     console.log(...args);
   }
 }
+
+export function isDebugEnabled() {
+  return DEBUG_ENABLED;
+}
