@@ -29,8 +29,8 @@
       const context = new (window.AudioContext || window.webkitAudioContext)();
       const arrayBuffer = await file.arrayBuffer();
       const audioBuffer = await context.decodeAudioData(arrayBuffer);
-      const bpm = await detectBPM(audioBuffer);
-      bpmDisplay.textContent = `Detected BPM: ${bpm.toFixed(2)}`;
+      const bpmResult = detectBPM(audioBuffer.getChannelData(0), audioBuffer.sampleRate);
+      bpmDisplay.textContent = `Detected BPM: ${bpmResult.bpm.toFixed(2)}`;
     });
   </script>
 </body>
