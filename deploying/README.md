@@ -3,7 +3,8 @@
 This folder contains a minimal example for running a Stripe Checkout backend on
 [Railway](https://railway.app/). After a successful payment the API returns a
 signed token that your client-side paywall script can store to unlock premium
-features.
+features. These handlers can also be deployed on any Node-compatible
+serverless provider such as Vercel or Netlify.
 
 ## 1. Create a Railway Project
 
@@ -18,7 +19,7 @@ features.
 
 ## 2. Deploy the API
 
-The `railway-api` directory defines two serverless endpoints:
+This folder provides two serverless handlers you can deploy anywhere:
 
 - `createSession.js` – creates a Checkout session and returns the redirect URL
 - `success.js` – verifies the session and returns a signed token
