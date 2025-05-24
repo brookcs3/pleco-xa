@@ -105,10 +105,11 @@ messages are suppressed unless `PLECO_DEBUG` is set.
 
 ## Testing
 
-Install dependencies with `npm ci` (or `npm install`) and then run the Jest
+Run `npm ci` to install all development dependencies before executing the Jest
 test suite:
 
 ```bash
+npm ci
 npm test
 ```
 
