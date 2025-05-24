@@ -58,8 +58,6 @@ examples/*.mp3
 examples/*.aiff
 examples/*.aif
 
-# Build tools
-
 # Optional npm cache
 .npm
 
