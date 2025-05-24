@@ -283,6 +283,9 @@ See the `/examples` directory for complete working examples:
 - **Astro Doppler Demo** - [`astro-doppler`](examples/astro-doppler) shows the
   same effect built with Astro. Put the loops in `astro-doppler/public` and run
   `npm run dev` from that folder.
+- **Astro Scroll Demo** - [`astro-demo`](examples/astro-demo) is a minimal
+  project showcasing the scroll-driven doppler effect. Install dependencies and
+  run `npm run dev` inside that directory.
 
 
 ## Browser Compatibility
