@@ -5,6 +5,7 @@
 
 import { detectBPM } from './bpm-detector.js';
 import { computeRMS, computePeak } from './audio-utils.js';
+import { computeZeroCrossingRate } from '../core/audio-utils.js';
 import { computeSpectrum, computeSpectralCentroid } from './spectral.js';
 import { calculateBeatAlignment } from './musical-timing.js';
 import { findZeroCrossing, findAudioStart, applyHannWindow } from '../utils/audio-utils.js';
@@ -309,18 +310,4 @@ export async function analyzeLoopPoints(audioBuffer) {
     bestOffset: bestOffset,
     windowSize: window
   };
-}
-
-// Import function for zero crossing rate
-function computeZeroCrossingRate(audioBuffer) {
-  const channelData = audioBuffer.getChannelData(0);
-  let crossings = 0;
-  
-  for (let i = 1; i < channelData.length; i++) {
-    if ((channelData[i] >= 0) !== (channelData[i - 1] >= 0)) {
-      crossings++;
-    }
-  }
-  
-  return crossings / channelData.length;
 }
