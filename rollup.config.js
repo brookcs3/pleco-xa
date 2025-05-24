@@ -1,11 +1,25 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-export default {
-  input: 'src/index.js',
-  output: {
-    file: 'dist/index.js',
-    format: 'esm',
-    sourcemap: true
+const basePlugins = [nodeResolve()];
+
+export default [
+  {
+    input: 'src/index.js',
+    output: {
+      file: 'dist/pleco-xa.js',
+      format: 'esm',
+      sourcemap: true,
+    },
+    plugins: basePlugins,
   },
-  plugins: [nodeResolve()]
-};
+  {
+    input: 'src/index.js',
+    output: {
+      file: 'dist/pleco-xa.min.js',
+      format: 'esm',
+      sourcemap: true,
+    },
+    plugins: [...basePlugins, terser()],
+  },
+];
+
