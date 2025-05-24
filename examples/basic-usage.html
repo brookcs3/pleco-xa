@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pleco Xa - Basic Usage Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #222;
+      color: #fff;
+    }
+    .upload-area {
+      border: 2px dashed #666;
+      padding: 40px;
+      text-align: center;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .results {
+      background: #333;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: monospace;
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0052a3;
+    }
+    .loading {
+      color: #ffaa00;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pleco Xa - Basic Usage</h1>
+  <p>Upload an audio file to see Pleco Xa's analysis capabilities:</p>
+  
+  <div class="upload-area">
+    <input type="file" id="fileInput" accept="audio/*">
+    <p>Choose an audio file (.wav, .mp3, .aiff)</p>
+  </div>
+  
+  <div id="results" class="results" style="display: none;">
+    <h3>Analysis Results:</h3>
+    <div id="analysisOutput"></div>
+    
+    <div style="margin-top: 20px;">
+      <button id="playLoop">Play Loop</button>
+      <button id="stopLoop">Stop</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { 
+      detectBPM, 
+      librosaLoopAnalysis, 
+      computeSpectralCentroid,
+      computeRMS,
+      computePeak,
+      LoopPlayer
+    } from '../src/index.js';
+
+    let currentPlayer = null;
+
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const resultsDiv = document.getElementById('results');
+      const outputDiv = document.getElementById('analysisOutput');
+      
+      resultsDiv.style.display = 'block';
+      outputDiv.innerHTML = '<div class="loading">Analyzing audio with Pleco Xa...</div>';
+
+      try {
+        // Load audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        console.log('Audio loaded, starting analysis...');
+
+        // Basic audio info
+        const duration = audioBuffer.duration;
+        const sampleRate = audioBuffer.sampleRate;
+        const channels = audioBuffer.numberOfChannels;
+
+        // Detect BPM
+        const audioData = audioBuffer.getChannelData(0);
+        const bpmResult = detectBPM(audioData, sampleRate);
+
+        // Full Librosa-style analysis
+        const analysis = await librosaLoopAnalysis(audioBuffer);
+
+        // Additional metrics
+        const rms = computeRMS(audioBuffer);
+        const peak = computePeak(audioBuffer);
+        const spectralCentroid = computeSpectralCentroid(audioBuffer);
+
+        // Display results
+        outputDiv.innerHTML = `
+          <h4>File: ${file.name}</h4>
+          <p><strong>Duration:</strong> ${duration.toFixed(3)}s</p>
+          <p><strong>Sample Rate:</strong> ${sampleRate} Hz</p>
+          <p><strong>Channels:</strong> ${channels}</p>
+          
+          <h4>BPM Detection:</h4>
+          <p><strong>BPM:</strong> ${bpmResult.bpm.toFixed(2)}</p>
+          <p><strong>Confidence:</strong> ${bpmResult.confidence.toFixed(4)}</p>
+          
+          <h4>Musical Loop Analysis:</h4>
+          <p><strong>Loop Start:</strong> ${analysis.loopStart.toFixed(3)}s</p>
+          <p><strong>Loop End:</strong> ${analysis.loopEnd.toFixed(3)}s</p>
+          <p><strong>Loop Duration:</strong> ${(analysis.loopEnd - analysis.loopStart).toFixed(3)}s</p>
+          <p><strong>Musical Division:</strong> ${analysis.musicalDivision.toFixed(2)} bars</p>
+          <p><strong>Confidence:</strong> ${analysis.confidence.toFixed(4)}</p>
+          
+          <h4>Audio Characteristics:</h4>
+          <p><strong>RMS Energy:</strong> ${rms.toFixed(6)}</p>
+          <p><strong>Peak Amplitude:</strong> ${peak.toFixed(6)}</p>
+          <p><strong>Spectral Centroid:</strong> ${spectralCentroid.toFixed(2)} Hz</p>
+          <p><strong>Zero Crossing Rate:</strong> ${analysis.zeroCrossingRate.toFixed(6)}</p>
+          
+          <h4>Alternative Loop Candidates:</h4>
+          ${analysis.allCandidates ? analysis.allCandidates.slice(0, 3).map((candidate, i) => `
+            <p><strong>Option ${i + 1}:</strong> ${candidate.loopStart.toFixed(3)}s - ${candidate.loopEnd.toFixed(3)}s 
+            (${candidate.musicalDivision.toFixed(1)} bars, confidence: ${candidate.confidence.toFixed(3)})</p>
+          `).join('') : ''}
+        `;
+
+        // Set up loop player
+        currentPlayer = new LoopPlayer(audioBuffer);
+        currentPlayer.setLoopPoints(analysis.loopStart, analysis.loopEnd);
+
+        console.log('Analysis complete!', analysis);
+
+      } catch (error) {
+        console.error('Analysis failed:', error);
+        outputDiv.innerHTML = `<div style="color: #ff4444;">Error: ${error.message}</div>`;
+      }
+    });
+
+    // Play/stop controls
+    document.getElementById('playLoop').addEventListener('click', async () => {
+      if (currentPlayer) {
+        await currentPlayer.play();
+        console.log('Playing loop...');
+      }
+    });
+
+    document.getElementById('stopLoop').addEventListener('click', () => {
+      if (currentPlayer) {
+        currentPlayer.stop();
+        console.log('Stopped playback');
+      }
+    });
+  </script>
+</body>
+</html>
