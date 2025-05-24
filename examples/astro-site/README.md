@@ -32,7 +32,24 @@ npm run build
 
 ### Sitemap Generation
 
-To generate a sitemap for better indexing, install the `@astrojs/sitemap`
-integration and define the `site` option in `astro.config.mjs`.
+To generate a sitemap for better indexing when you deploy:
 
-Deploy the `dist/` folder to your static hosting provider.
+1. Install the sitemap integration:
+   ```bash
+   npm install -D @astrojs/sitemap
+   ```
+2. Configure `astro.config.mjs` with your site URL and the integration:
+   ```javascript
+   import { defineConfig } from 'astro/config';
+   import sitemap from '@astrojs/sitemap';
+
+   export default defineConfig({
+     site: 'https://example.com', // replace with your domain
+     output: 'static',
+     integrations: [sitemap()],
+   });
+   ```
+3. Run `npm run build`. The sitemap will be generated in the `dist/` folder.
+
+Deploy the `dist/` directory to your hosting provider and your sitemap will be
+available alongside the site content.
