@@ -1,0 +1,1 @@
+- Lets remmeber where we are and our plane, so in the case of a crash we are on the same page still

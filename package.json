@@ -8,8 +8,9 @@
   "astro": "./astro/index.js",
   "type": "module",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "http-server -c-1 -p 3000 --cors",
+    "build": "rollup -c && astro build",
+    "dev": "astro dev --port 3000",
+    "preview": "astro preview",
     "prepublishOnly": "npm run build",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests src/__tests__"
   },
@@ -38,6 +39,7 @@
   "private": false,
   "devDependencies": {
     "@babel/preset-env": "^7.27.2",
+    "astro": "^5.7.13",
     "http-server": "^14.1.1",
     "@rollup/plugin-node-resolve": "^15.0.0",
     "babel-jest": "^29.7.0",

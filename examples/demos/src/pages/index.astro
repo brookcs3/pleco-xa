@@ -1,0 +1,149 @@
+---
+// Pleco-XA Feature Demos Index
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pleco-XA Feature Demos</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 3rem;
+      margin-bottom: 3rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .demos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .demo-card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .demo-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .demo-card h3 {
+      margin-top: 0;
+      font-size: 1.4rem;
+    }
+
+    .demo-card a {
+      color: #ffd700;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .tier {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .core {
+      background: #4ade80;
+      color: #065f46;
+    }
+
+    .premium {
+      background: #f59e0b;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 Pleco-XA Feature Demos</h1>
+    
+    <div class="demos-grid">
+      <!-- CORE FEATURES -->
+      <div class="demo-card">
+        <span class="tier core">CORE</span>
+        <h3>BPM Detection</h3>
+        <p>Real-time tempo analysis with animated visualizations</p>
+        <a href="/bpm-detection">View Demo →</a>
+      </div>
+
+      <div class="demo-card">
+        <span class="tier core">CORE</span>
+        <h3>Basic Loop Detection</h3>
+        <p>Find optimal loop points using cross-correlation</p>
+        <a href="/basic-loop-detection">View Demo →</a>
+      </div>
+
+      <div class="demo-card">
+        <span class="tier core">CORE</span>
+        <h3>Audio Loading & Playback</h3>
+        <p>Load audio files and control playback</p>
+        <a href="/audio-playback">View Demo →</a>
+      </div>
+
+      <div class="demo-card">
+        <span class="tier core">CORE</span>
+        <h3>Waveform Visualization</h3>
+        <p>Interactive waveform display with zoom controls</p>
+        <a href="/waveform-viz">View Demo →</a>
+      </div>
+
+      <!-- PREMIUM FEATURES -->
+      <div class="demo-card">
+        <span class="tier premium">PREMIUM</span>
+        <h3>Advanced Musical Analysis</h3>
+        <p>AI-powered musical intelligence with bar detection</p>
+        <a href="/musical-analysis">View Demo →</a>
+      </div>
+
+      <div class="demo-card">
+        <span class="tier premium">PREMIUM</span>
+        <h3>Interactive Waveform Editor</h3>
+        <p>Drag loop points with real-time feedback</p>
+        <a href="/waveform-editor">View Demo →</a>
+      </div>
+
+      <div class="demo-card">
+        <span class="tier premium">PREMIUM</span>
+        <h3>Spectral Analysis Suite</h3>
+        <p>FFT, spectral centroid, frequency analysis</p>
+        <a href="/spectral-analysis">View Demo →</a>
+      </div>
+
+      <div class="demo-card">
+        <span class="tier premium">PREMIUM</span>
+        <h3>Time Compression Engine</h3>
+        <p>Pitch/tempo manipulation with preview</p>
+        <a href="/time-compression">View Demo →</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
