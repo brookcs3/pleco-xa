@@ -368,3 +368,7 @@ Some audio analysis techniques were adapted from ideas in the Librosa library.
 
 **Pleco Xa** - Bringing musical intelligence to the browser.  
 *Built with ♪ by Cameron Brooks*
+
+
+![Hits](https://visitor-badge.laobi.icu/badge?page_id=brookcs3.pleco-xa)
+
