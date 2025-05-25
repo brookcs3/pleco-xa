@@ -64,7 +64,7 @@ examples/*.aif
 # Optional eslint cache
 .eslintcache
 jest.config.cjs
-
+babel.config.js
 
 # Yarn Integrity file
 .yarn-integrity
