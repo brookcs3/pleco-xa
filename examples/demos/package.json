@@ -1,0 +1,16 @@
+{
+  "name": "pleco-xa-demos",
+  "version": "1.0.2",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^4.0.0",
+    "gsap": "^3.12.2",
+    "@studio-freight/lenis": "^1.0.0",
+    "pleco-xa": "file:../../"
+  }
+}
