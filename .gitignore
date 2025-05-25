@@ -63,6 +63,8 @@ examples/*.aif
 
 # Optional eslint cache
 .eslintcache
+jest.config.cjs
+
 
 # Yarn Integrity file
 .yarn-integrity
