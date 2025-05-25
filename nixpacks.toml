@@ -1,0 +1,14 @@
+# nixpacks.toml  – Railway build config for BeaatsLoops
+# Uses Node 20 (LTS) so Astro 5 is happy.
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["astro build"]
+
+[start]
+cmd = "npm start"
