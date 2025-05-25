@@ -65,6 +65,7 @@ examples/*.aif
 .eslintcache
 jest.config.cjs
 babel.config.js
+rollup.config.js
 
 # Yarn Integrity file
 .yarn-integrity
