@@ -3,7 +3,8 @@
  * Part of Pleco Xa audio analysis engine
  */
 
-import { detectBPM } from './bpm-detector.js';
+// Only keep imports needed for the old functions (in case they're still used elsewhere)
+import { fastBPMDetect } from './librosa-beat.js';
 import { computeRMS, computePeak } from './audio-utils.js';
 import { computeZeroCrossingRate } from '../core/audio-utils.js';
 import { computeSpectrum, computeSpectralCentroid } from './spectral.js';
@@ -23,8 +24,8 @@ export async function librosaLoopAnalysis(audioBuffer, useReference = false) {
   const audioData = audioBuffer.getChannelData(0);
   const sampleRate = audioBuffer.sampleRate;
   
-  // First, detect BPM and musical timing
-  const bpmData = detectBPM(audioData, sampleRate);
+  // First, detect BPM and musical timing using fast librosa-style detection
+  const bpmData = fastBPMDetect(audioData, sampleRate);
   const beatsPerBar = 4; // Assume 4/4 time signature
   const barDuration = (60 / bpmData.bpm) * beatsPerBar;
   
@@ -35,8 +36,8 @@ export async function librosaLoopAnalysis(audioBuffer, useReference = false) {
   const peak = computePeak(audioBuffer);
   const spectrum = await computeSpectrum(audioBuffer);
   
-  // Always use musical boundary-aware loop detection
-  const loopPoints = await musicalLoopAnalysis(audioBuffer, bpmData);
+  // Use fast onset-based loop detection for better performance
+  const loopPoints = await fastOnsetLoopAnalysis(audioBuffer, bpmData);
   
   // Spectral analysis for better loop detection
   const spectralCentroid = computeSpectralCentroid(audioBuffer);
@@ -110,9 +111,10 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
     const startIndex = findZeroCrossing(channelData, audioStartSample);
     const endIndex = findZeroCrossing(channelData, audioStartSample + loopSamples);
     
-    // Musical timing confidence boost
+    // Musical timing confidence boost - normalize to 0-100%
     const beatAlignment = calculateBeatAlignment(loopLength, bpmData.bpm);
-    const musicalConfidence = Math.abs(correlation) * beatAlignment;
+    const rawConfidence = Math.abs(correlation) * beatAlignment;
+    const musicalConfidence = Math.min(100, rawConfidence * 100);
     
     results.push({
       loopStart: startIndex / sampleRate,
@@ -158,7 +160,7 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
         loopEnd: endIndex / sampleRate,
         loopLength: testLength,
         correlation: correlation,
-        confidence: Math.abs(correlation) * 0.9, // Slightly lower for non-exact musical boundaries
+        confidence: Math.min(100, Math.abs(correlation) * 90), // Normalize to 0-100%, slightly lower for non-exact boundaries
         musicalDivision: testLength / barDuration,
         bpm: bpmData.bpm,
         isMusicalBoundary: false
@@ -197,7 +199,8 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
       correlation /= segment1.length;
       
       const beatAlignment = calculateBeatAlignment(loopLength, bpmData.bpm);
-      const sequentialConfidence = Math.abs(correlation) * beatAlignment * 0.8; // Slightly lower for sequential
+      const rawSequentialConfidence = Math.abs(correlation) * beatAlignment * 0.8; // Slightly lower for sequential
+      const sequentialConfidence = Math.min(100, rawSequentialConfidence * 100); // Normalize to 0-100%
       
       results.push({
         loopStart: sequentialStart,
@@ -310,4 +313,143 @@ export async function analyzeLoopPoints(audioBuffer) {
     bestOffset: bestOffset,
     windowSize: window
   };
+}
+
+/**
+ * Simple energy calculation for onset detection
+ */
+function getEnergy(audioData, start, end) {
+  let energy = 0;
+  for (let i = start; i < end; i++) {
+    energy += audioData[i] * audioData[i];
+  }
+  return energy / (end - start);
+}
+
+/**
+ * Working BPM detection using autocorrelation on onset strength
+ * (From the librosa-loop-editor.html that was working)
+ */
+function simpleBPMDetect(audioData, sampleRate) {
+  console.log('Starting BPM detection using onset strength...');
+  
+  // Simple BPM detection using autocorrelation on onset strength
+  const frameSize = 2048;
+  const hopSize = 512;
+  const numFrames = Math.floor((audioData.length - frameSize) / hopSize);
+  
+  // Calculate onset strength
+  const onsetStrength = [];
+  for (let i = 1; i < numFrames; i++) {
+    const start = i * hopSize;
+    const frame = audioData.slice(start, start + frameSize);
+    
+    // RMS energy difference for onset detection
+    const currentRMS = Math.sqrt(frame.reduce((sum, s) => sum + s * s, 0) / frameSize);
+    const prevFrame = audioData.slice((i-1) * hopSize, start);
+    const prevRMS = Math.sqrt(prevFrame.reduce((sum, s) => sum + s * s, 0) / frameSize);
+    
+    onsetStrength.push(Math.max(0, currentRMS - prevRMS));
+  }
+  
+  console.log(`Created onset strength signal with ${onsetStrength.length} frames`);
+  
+  // Autocorrelation to find periodic patterns
+  const minBPM = 60;
+  const maxBPM = 180;
+  const minPeriod = Math.max(2, Math.floor((60 / maxBPM) * sampleRate / hopSize));
+  const maxPeriod = Math.min(onsetStrength.length / 3, Math.floor((60 / minBPM) * sampleRate / hopSize));
+  
+  let bestBPM = null;
+  let bestCorrelation = 0;
+  
+  for (let period = minPeriod; period <= maxPeriod && period < onsetStrength.length / 2; period++) {
+    let correlation = 0;
+    let count = 0;
+    
+    for (let i = 0; i < onsetStrength.length - period; i++) {
+      correlation += onsetStrength[i] * onsetStrength[i + period];
+      count++;
+    }
+    
+    correlation /= count;
+    
+    if (correlation > bestCorrelation) {
+      bestCorrelation = correlation;
+      const candidateBPM = 60 * sampleRate / (period * hopSize);
+      
+      // Sanity check - only accept reasonable BPM values
+      if (candidateBPM >= 60 && candidateBPM <= 180) {
+        bestBPM = candidateBPM;
+      }
+    }
+  }
+  
+  console.log(`Best BPM: ${bestBPM ? bestBPM.toFixed(1) : 'none'} with correlation ${bestCorrelation.toFixed(6)}`);
+  
+  if (bestBPM === null || bestCorrelation === 0) {
+    throw new Error('No BPM found - no periodic patterns detected');
+  }
+  
+  return { 
+    bpm: bestBPM, 
+    confidence: bestCorrelation 
+  };
+}
+
+/**
+ * Fast onset-based loop analysis - much faster than the slow musical analysis
+ */
+export async function fastOnsetLoopAnalysis(audioBuffer, bpmData = null) {
+  console.time('fast_onset_loop_analysis');
+  
+  try {
+    // Use librosa-style recurrence matrix for loop detection
+    const { recurrenceLoopDetection } = await import('./librosa-recurrence.js');
+    const result = await recurrenceLoopDetection(audioBuffer);
+    
+    console.timeEnd('fast_onset_loop_analysis');
+    console.log(`Recurrence detection: ${result.loopStart.toFixed(3)}s - ${result.loopEnd.toFixed(3)}s`);
+    
+    return result;
+    
+  } catch (error) {
+    console.error('Recurrence matrix failed, falling back:', error);
+    
+    // Fallback to simple method
+    const duration = audioBuffer.duration;
+    return {
+      loopStart: 0,
+      loopEnd: Math.min(5.0, duration),
+      confidence: 50,
+      bpm: 120,
+      musicalDivision: 2
+    };
+  }
+}
+
+/**
+ * Quick scoring of loop repetition
+ */
+function scoreLoopRepetition(audioData, sampleRate, startTime, endTime) {
+  const startSample = Math.floor(startTime * sampleRate);
+  const endSample = Math.floor(endTime * sampleRate);
+  const loopLength = endSample - startSample;
+  
+  // Check if we have enough audio to test repetition
+  if (endSample + loopLength > audioData.length) {
+    return 0;
+  }
+  
+  // Extract both segments
+  const segment1 = audioData.slice(startSample, endSample);
+  const segment2 = audioData.slice(endSample, endSample + loopLength);
+  
+  // Simple correlation
+  let correlation = 0;
+  for (let i = 0; i < loopLength; i++) {
+    correlation += segment1[i] * segment2[i];
+  }
+  
+  return Math.abs(correlation) / loopLength;
 }

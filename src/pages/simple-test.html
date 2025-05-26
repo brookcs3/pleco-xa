@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Loop Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+      color: white;
+      padding: 20px;
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .results {
+      background: #333;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simple Loop Test</h1>
+  
+  <button onclick="loadSample('ui.m4a')">UI Loop Test</button>
+  <button onclick="loadSample('12-8-Jazzy-Drumset-03.aif')">Jazz Drums</button>
+  <button onclick="loadSample('Drive Through Beat.aif')">Drive Beat</button>
+  
+  <div class="results" id="results" style="display: none;">
+    <h3>Results:</h3>
+    <div id="output"></div>
+    <button onclick="playLoop()">Play Loop</button>
+    <button onclick="stopLoop()">Stop</button>
+  </div>
+
+  <script>
+    let audioContext;
+    let currentBuffer = null;
+    let currentSource = null;
+    let currentLoop = { start: 2.8, end: 7.8 }; // Manual loop for ui.m4a
+    
+    async function loadSample(filename) {
+      try {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        document.getElementById('output').innerHTML = 'Loading...';
+        document.getElementById('results').style.display = 'block';
+        
+        const response = await fetch(`/audio/${filename}`);
+        const arrayBuffer = await response.arrayBuffer();
+        currentBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        
+        // Fine-tuned loop points based on your feedback
+        if (filename === 'ui.m4a') {
+          currentLoop = { start: 2.75, end: 7.75 }; // Start earlier (was too late at 2.85)
+        } else if (filename === '12-8-Jazzy-Drumset-03.aif') {
+          currentLoop = { start: 0, end: 4 }; // Perfect as-is
+        } else if (filename === 'Drive Through Beat.aif') {
+          currentLoop = { start: 0, end: 3.6 }; // End later (was too early at 3.2)
+        } else {
+          currentLoop = { start: 0, end: Math.min(4, currentBuffer.duration) }; // Default
+        }
+        
+        document.getElementById('output').innerHTML = `
+          <p>File: ${filename}</p>
+          <p>Duration: ${currentBuffer.duration.toFixed(1)}s</p>
+          <p>Loop: ${currentLoop.start}s - ${currentLoop.end}s</p>
+        `;
+        
+      } catch (error) {
+        document.getElementById('output').innerHTML = `Error: ${error.message}`;
+      }
+    }
+    
+    function playLoop() {
+      if (!currentBuffer) return;
+      
+      stopLoop();
+      
+      currentSource = audioContext.createBufferSource();
+      currentSource.buffer = currentBuffer;
+      currentSource.connect(audioContext.destination);
+      currentSource.loop = true;
+      currentSource.loopStart = currentLoop.start;
+      currentSource.loopEnd = currentLoop.end;
+      currentSource.start(0, currentLoop.start);
+    }
+    
+    function stopLoop() {
+      if (currentSource) {
+        currentSource.stop();
+        currentSource = null;
+      }
+    }
+  </script>
+</body>
+</html>
