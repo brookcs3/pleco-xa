@@ -254,3 +254,5 @@ existingGainNode.connect(audioContext.destination);
 - MIDI sync capabilities
 - Audio recording of scroll performances
 - Export scroll automation as audio file
+> **Note:** This guide is under active development. Sections after
+"Export scroll automation as audio file" are work in progress.
