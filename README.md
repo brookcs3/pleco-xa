@@ -355,6 +355,13 @@ npm ci
 npm start
 ```
 
+### Health Check Endpoint
+
+When deployed on services like Railway, the application exposes a `/health` route
+that returns `OK`. This file lives at `public/health`, so it works even when the
+app is served statically from the `dist/` folder. Automated systems can use this
+path to verify the server is up and running.
+
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or pull requests on GitHub.
