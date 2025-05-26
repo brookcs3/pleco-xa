@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "start": "serve -l 0.0.0.0:${PORT:-3000} dist",
+    "start": "serve -l tcp://0.0.0.0:${PORT} dist",
     "build": "ROLLUP_NO_BINARY=true astro build",
     "preview": "astro preview",
     "astro": "astro",
