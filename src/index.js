@@ -1,39 +1,15 @@
 /**
- * Pleco Xa - Browser-native audio analysis engine
- * Author: Cameron Brooks
- * 
- * Main exports for the Pleco Xa audio analysis library
+ * Pleco-XA: Professional Audio Analysis Toolkit
+ * Core audio processing features (no UI components)
  */
 
-// Core audio analysis functions
-export { detectBPM } from './core/bpm-detector.js';
-export { musicalLoopAnalysis, librosaLoopAnalysis, analyzeLoopPoints } from './core/loop-analyzer.js';
-export { computeSpectralCentroid, computeSpectrum, computeFFT } from './core/spectral.js';
-export { calculateBeatAlignment } from './core/musical-timing.js';
+export { BPMDetector } from './core/bpm-detector.js';
+export { LivePeakExtractor } from './core/live-peak-extractor.js';
+export { LoopController } from './core/loop-controller.js';
+export { VolumeAnalyzer } from './core/volume-analyzer.js';
+export { WaveformProcessor } from './core/waveform-processor.js';
+export { AudioLoader } from './core/audio-loader.js';
+export { DynamicZeroCrossing } from './core/dynamic-zero-crossing.js';
 
-// Basic audio processing
-export { loadAudioBuffer, computeRMS, computePeak, computeZeroCrossingRate } from './core/audio-utils.js';
-
-// Audio manipulation
-export { pitchBasedCompress, tempoBasedCompress } from './core/compression.js';
-
-// Utility functions
-export { 
-  findZeroCrossing, 
-  findAudioStart, 
-  applyHannWindow,
-  createReferenceTemplate,
-  analyzeWithReference
-} from './utils/audio-utils.js';
-
-// Interactive classes
-export { WaveformEditor } from './classes/WaveformEditor.js';
-export { LoopPlayer } from './classes/LoopPlayer.js';
-
-// Debugging flag
-export { DEBUG_ENABLED, setDebug, debugLog } from './utils/debug.js';
-
-// Version info
-export const version = '1.0.2';
-export const name = 'Pleco Xa';
-export const author = 'Cameron Brooks';
+// Main class that combines all audio analysis features
+export { PlecoXA } from './pleco-xa.js';
