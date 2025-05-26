@@ -16,7 +16,7 @@ if ! grep -q "output: 'static'" astro.config.mjs; then
 fi
 npm pkg set "scripts.dev=astro dev"
 npm pkg set "scripts.build=astro build"
-npm pkg set "scripts.start=serve -l 0.0.0.0:\${PORT:-3000} dist"
+npm pkg set "scripts.start=serve -l tcp://0.0.0.0:\${PORT} dist"
 npm pkg set "scripts.bundle=rollup -c"
 npm pkg set "prepublishOnly=npm run bundle"
 npm add -D serve rollup >/dev/null
