@@ -6,6 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig({
+    output: 'static',    server: { host: '0.0.0.0' },
   site: 'https://pleco-xa.com',
 
   scopedStyleStrategy: 'class',
