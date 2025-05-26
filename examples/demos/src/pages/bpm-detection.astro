@@ -310,58 +310,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script type="module">
-    // TODO: Replace with import { detectBPM, loadAudioBuffer } from 'pleco-xa' when v1.0.3 is ready
-    
-    // Librosa-style BPM detection (from BeaatsLoops research)
-    function detectBPM(audioData, sampleRate) {
-      const frameSize = 2048;
-      const hopSize = 512;
-      const numFrames = Math.floor((audioData.length - frameSize) / hopSize);
-      
-      // Calculate onset strength using RMS energy differences
-      const onsetStrength = [];
-      for (let i = 1; i < numFrames; i++) {
-        const start = i * hopSize;
-        const frame = audioData.slice(start, start + frameSize);
-        
-        const currentRMS = Math.sqrt(frame.reduce((sum, s) => sum + s * s, 0) / frameSize);
-        const prevFrame = audioData.slice((i-1) * hopSize, start);
-        const prevRMS = Math.sqrt(prevFrame.reduce((sum, s) => sum + s * s, 0) / frameSize);
-        
-        onsetStrength.push(Math.max(0, currentRMS - prevRMS));
-      }
-      
-      // Autocorrelation to find periodic patterns
-      const minBPM = 60;
-      const maxBPM = 180;
-      const minPeriod = Math.floor((60 / maxBPM) * sampleRate / hopSize);
-      const maxPeriod = Math.floor((60 / minBPM) * sampleRate / hopSize);
-      
-      let bestBPM = 120;
-      let bestCorrelation = 0;
-      
-      for (let period = minPeriod; period <= maxPeriod && period < onsetStrength.length / 2; period++) {
-        let correlation = 0;
-        let count = 0;
-        
-        for (let i = 0; i < onsetStrength.length - period; i++) {
-          correlation += onsetStrength[i] * onsetStrength[i + period];
-          count++;
-        }
-        
-        correlation /= count;
-        
-        if (correlation > bestCorrelation) {
-          bestCorrelation = correlation;
-          bestBPM = 60 * sampleRate / (period * hopSize);
-        }
-      }
-      
-      return {
-        bpm: bestBPM,
-        confidence: bestCorrelation
-      };
-    }
+    import { detectBPM, debugLog, setDebug } from '/pleco-xa.min.js';
     
     // Load audio buffer (from BeaatsLoops approach)
     async function loadAudioBuffer(url, context = new AudioContext()) {

@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pleco-XA: The Complete Audio Analysis Story</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: white;
+      position: relative;
+      margin: 0;
+      padding: 0;
+    }
+
+    .main-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+
+    /* Header Section */
+    .header {
+      text-align: center;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .main-title {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4);
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 4s ease-in-out infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      margin-bottom: 1rem;
+    }
+
+    /* Feature Letters (inspired by fish demo) */
+    .feature-letters {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .letter {
+      position: absolute;
+      font-size: 8rem;
+      font-weight: 900;
+      opacity: 0;
+      color: rgba(255, 255, 255, 0.1);
+      transform: scale(0);
+    }
+
+    .letter.active {
+      color: #ffd700;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    /* Audio Controls */
+    .audio-controls {
+      text-align: center;
+      margin-bottom: 1rem;
+      z-index: 10;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .file-input-wrapper {
+      margin-bottom: 1rem;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-label {
+      display: inline-block;
+      padding: 1.5rem 3rem;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 1.2rem;
+      border: 2px solid transparent;
+    }
+
+    .file-label:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+
+    .sample-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .sample-btn {
+      padding: 1rem 2rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .sample-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-3px);
+    }
+
+    /* Main Analysis Display - Fill Remaining Space */
+    .analysis-display {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      max-width: 95vw;
+      margin: 0 auto;
+      opacity: 0;
+      flex: 1;
+      padding: 0 1rem;
+      align-items: stretch;
+      min-height: 0;
+    }
+
+    /* Left Panel - BPM + Timeline Unit */
+    .left-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-width: 250px;
+      padding: 1rem;
+    }
+    
+    .bpm-timeline-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .waveform-container {
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .waveform-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #ffd700;
+    }
+
+    .waveform-canvas {
+      width: 100%;
+      height: 200px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .loop-controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .loop-btn {
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .loop-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+    }
+
+    /* Center Panel - Circular Timeline & BPM */
+    .center-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .timeline-container {
+      position: relative;
+      width: 250px;
+      height: 250px;
+    }
+
+    .timeline-circle {
+      width: 100%;
+      height: 100%;
+      border: 3px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      position: relative;
+      background: radial-gradient(circle, rgba(255,255,255,0.05), transparent);
+    }
+
+    .timeline-hand {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 3px;
+      height: 100px;
+      background: linear-gradient(180deg, #ffd700, #ff6b6b);
+      transform-origin: bottom;
+      transform: translate(-50%, -100%) rotate(0deg);
+      transition: transform 0.1s ease;
+      border-radius: 2px;
+    }
+
+    .timeline-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      background: #ffd700;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    }
+
+    .timeline-marker {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      width: 4px;
+      height: 20px;
+      background: #4ecdc4;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .bpm-display {
+      text-align: center;
+    }
+
+    .bpm-value {
+      font-size: 6rem;
+      font-weight: 900;
+      color: #ffd700;
+      text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+      margin-bottom: 0.5rem;
+      transition: transform 0.1s ease;
+    }
+
+    .bpm-label {
+      font-size: 1.5rem;
+      opacity: 0.8;
+    }
+
+    /* Right Panel - Analysis Features */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .analysis-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 1.5rem;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.1);
+      opacity: 0;
+      transform: translateX(50px);
+    }
+
+    .analysis-card.active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #ffd700;
+    }
+
+    .card-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-description {
+      font-size: 0.9rem;
+      opacity: 0.7;
+      line-height: 1.4;
+    }
+
+    .confidence-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f);
+      width: 0%;
+      transition: width 0.8s ease;
+      border-radius: 4px;
+    }
+
+    /* Playback Controls */
+    .playback-controls {
+      text-align: center;
+      margin: 1rem 0;
+      opacity: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .play-btn {
+      padding: 1.5rem 3rem;
+      background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+      border: none;
+      border-radius: 50px;
+      color: white;
+      font-weight: 600;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 1rem;
+    }
+
+    .play-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+
+    /* Feature Labels - Non-intrusive */
+    .feature-label {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      background: rgba(0,0,0,0.8);
+      padding: 1rem 2rem;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 50;
+      max-width: 300px;
+    }
+
+    .feature-label.active {
+      opacity: 1;
+    }
+
+    .label-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #ffd700;
+    }
+
+    .label-text {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      line-height: 1.4;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .analysis-display {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        height: auto;
+      }
+      
+      .main-title {
+        font-size: 2.5rem;
+      }
+      
+      .bpm-value {
+        font-size: 3rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        padding: 0.5rem;
+      }
+
+      .main-title {
+        font-size: 1.8rem;
+      }
+
+      .analysis-display {
+        flex-direction: column;
+        height: auto;
+        gap: 1rem;
+        padding: 0 0.5rem;
+      }
+
+      .bpm-value {
+        font-size: 3rem;
+      }
+      
+      .timeline-circle {
+        width: 120px;
+        height: 120px;
+      }
+
+      .play-btn, .sample-btn {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        min-height: 44px; /* iOS tap target size */
+      }
+      
+      .waveform-canvas {
+        height: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <!-- Header -->
+    <div class="header">
+      <h1 class="main-title">Pleco-XA</h1>
+      <p class="subtitle">The Complete Audio Analysis Story</p>
+    </div>
+
+    <!-- Feature Letters -->
+    <div class="feature-letters">
+      <!-- Clean professional demo -->
+    </div>
+
+    <!-- Audio Controls -->
+    <div class="audio-controls">
+      <div class="file-input-wrapper">
+        <input type="file" id="audioFile" class="file-input" accept="audio/*">
+        <label for="audioFile" class="file-label">
+          🎵 Load Your Audio
+        </label>
+      </div>
+
+      <div class="sample-buttons">
+        <button class="sample-btn" data-sample="12-8-Jazzy-Drumset-03.aif">Jazz Drums</button>
+        <button class="sample-btn" data-sample="Bassline For Doppler Song - 11.aif">Bassline</button>
+        <button class="sample-btn" data-sample="Drive Through Beat.aif">Drive Beat</button>
+      </div>
+
+      <!-- Track Info -->
+      <div class="track-info" id="trackInfo" style="opacity: 0; margin: 1rem 0;">
+        <h3 style="color: #ffd700; font-size: 1.5rem; margin: 0.5rem 0;">🎵 <span id="trackName">No track selected</span></h3>
+        <p style="opacity: 0.8; margin: 0;" id="trackStatus">Select a sample or upload a file</p>
+      </div>
+
+      <!-- Playback Controls - moved up here -->
+      <div class="playback-controls" id="playbackControls">
+        <button class="play-btn" id="playBtn">▶️ Play</button>
+        <button class="play-btn" id="stopBtn">⏹️ Stop</button>
+      </div>
+    </div>
+
+    <!-- Main Analysis Display -->
+    <div class="analysis-display" id="analysisDisplay">
+      <!-- Left Panel: BPM + Timeline Unit (Smart Layout) -->
+      <div class="left-panel">
+        <div class="bpm-timeline-unit">
+          <div class="bpm-display">
+            <div class="bpm-value" id="bpmValue">--</div>
+            <div class="bpm-label">Beats Per Minute</div>
+          </div>
+          
+          <div class="timeline-container">
+            <div class="timeline-circle">
+              <div class="timeline-hand" id="timelineHand"></div>
+              <div class="timeline-center"></div>
+              <div class="timeline-marker"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Panel: Waveform & Loop Controls -->
+      <div class="center-panel">
+        <div class="waveform-container">
+          <h3 class="waveform-title">Waveform & Loop Detection</h3>
+          <canvas class="waveform-canvas" id="waveformCanvas" width="800" height="200"></canvas>
+          <div class="loop-controls">
+            <button class="loop-btn" id="halfLoopBtn">Half Loop</button>
+            <button class="loop-btn" id="moveForwardBtn">Move Forward</button>
+            <button class="loop-btn" id="resetLoopBtn">Reset Loop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Analysis Features -->
+      <div class="right-panel">
+        <div class="analysis-card" id="audioLoadCard">
+          <h4 class="card-title">Audio Loading</h4>
+          <div class="card-value" id="audioFormat">--</div>
+          <p class="card-description">Native Web Audio API decoding with cross-browser compatibility</p>
+        </div>
+
+        <div class="analysis-card" id="peakCard">
+          <h4 class="card-title">Peak Detection</h4>
+          <div class="card-value" id="peakValue">--</div>
+          <p class="card-description">Real-time amplitude analysis for dynamic visualization</p>
+        </div>
+
+        <div class="analysis-card" id="rmsCard">
+          <h4 class="card-title">🔊 Volume Level</h4>
+          <div class="card-value" id="rmsValue">Ready</div>
+          <div class="confidence-bar">
+            <div class="confidence-fill" id="rmsConfidence"></div>
+          </div>
+          <p class="card-description">Current audio volume level in decibels</p>
+        </div>
+
+        <div class="analysis-card" id="spectralCard">
+          <h4 class="card-title">🎹 Key Detection</h4>
+          <div class="card-value" id="spectralValue">C Major</div>
+          <p class="card-description">Find musical key for harmonic mixing</p>
+        </div>
+
+        <div class="analysis-card" id="zeroCrossingCard">
+          <h4 class="card-title">✂️ Dynamic Zero Cross</h4>
+          <div class="card-value" id="zeroCrossingValue">Optimizing...</div>
+          <p class="card-description">Auto-crossfade for clean loop boundaries</p>
+        </div>
+
+        <div class="analysis-card" id="musicalTimingCard">
+          <h4 class="card-title">Musical Timing</h4>
+          <div class="card-value" id="musicalTimingValue">--</div>
+          <p class="card-description">Beat alignment validation for perfect musical loops</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Playback controls moved up to audio-controls section -->
+
+    <!-- Feature Label - Non-intrusive -->
+    <div class="feature-label" id="featureLabel">
+      <h4 class="label-title" id="labelTitle">Feature Name</h4>
+      <p class="label-text" id="labelText">Feature description goes here...</p>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script type="module">
+    // Import our Dynamic Zero Crossing module
+    import { DynamicZeroCrossing } from '../../src/core/dynamic-zero-crossing.js';
+    window.DynamicZeroCrossing = DynamicZeroCrossing;
+  </script>
+  <script type="module">
+    // Enhanced BPM detection with half-time/double-time correction
+    function detectBPM(audioData, sampleRate) {
+      const frameSize = 2048;
+      const hopSize = 512;
+      const numFrames = Math.floor((audioData.length - frameSize) / hopSize);
+      
+      // Calculate onset strength using RMS energy differences
+      const onsetStrength = [];
+      for (let i = 1; i < numFrames; i++) {
+        const start = i * hopSize;
+        const frame = audioData.slice(start, start + frameSize);
+        
+        const currentRMS = Math.sqrt(frame.reduce((sum, s) => sum + s * s, 0) / frameSize);
+        const prevFrame = audioData.slice((i-1) * hopSize, start);
+        const prevRMS = Math.sqrt(prevFrame.reduce((sum, s) => sum + s * s, 0) / frameSize);
+        
+        onsetStrength.push(Math.max(0, currentRMS - prevRMS));
+      }
+      
+      // Autocorrelation to find periodic patterns
+      const minBPM = 60;
+      const maxBPM = 180;
+      const minPeriod = Math.floor((60 / maxBPM) * sampleRate / hopSize);
+      const maxPeriod = Math.floor((60 / minBPM) * sampleRate / hopSize);
+      
+      const candidates = [];
+      
+      for (let period = minPeriod; period <= maxPeriod && period < onsetStrength.length / 2; period++) {
+        let correlation = 0;
+        let count = 0;
+        
+        for (let i = 0; i < onsetStrength.length - period; i++) {
+          correlation += onsetStrength[i] * onsetStrength[i + period];
+          count++;
+        }
+        
+        correlation /= count;
+        const bpm = 60 * sampleRate / (period * hopSize);
+        
+        candidates.push({
+          bpm: bpm,
+          correlation: correlation,
+          period: period
+        });
+      }
+      
+      // Sort by correlation strength
+      candidates.sort((a, b) => b.correlation - a.correlation);
+      
+      // Check if we have any candidates
+      if (candidates.length === 0) {
+        console.warn('No BPM candidates found, using default 120 BPM');
+        return {
+          bpm: 120,
+          confidence: 0,
+          onsetStrength: onsetStrength
+        };
+      }
+      
+      let bestBPM = candidates[0].bpm;
+      let bestCorrelation = candidates[0].correlation;
+      
+      // Check for half-time/double-time issues
+      if (bestBPM < 90) {
+        const doubleBPM = bestBPM * 2;
+        if (doubleBPM <= 180) {
+          const doublePeriod = Math.floor(candidates[0].period / 2);
+          if (doublePeriod >= minPeriod) {
+            let doubleCorrelation = 0;
+            let count = 0;
+            
+            for (let i = 0; i < onsetStrength.length - doublePeriod; i++) {
+              doubleCorrelation += onsetStrength[i] * onsetStrength[i + doublePeriod];
+              count++;
+            }
+            doubleCorrelation /= count;
+            
+            if (doubleCorrelation > bestCorrelation * 0.7) {
+              bestBPM = doubleBPM;
+              bestCorrelation = doubleCorrelation;
+              console.log(`Half-time detected: ${candidates[0].bpm.toFixed(1)} -> ${doubleBPM.toFixed(1)} BPM`);
+            }
+          }
+        }
+      }
+      
+      // Add check for double-time detection (especially for basslines)
+      if (bestBPM > 160) {
+        const halfBPM = bestBPM / 2;
+        if (halfBPM >= 70 && halfBPM <= 120) {
+          bestBPM = halfBPM;
+          console.log(`Double-time detected: ${candidates[0].bpm.toFixed(1)} -> ${halfBPM.toFixed(1)} BPM`);
+        }
+      }
+      
+      return {
+        bpm: bestBPM,
+        confidence: bestCorrelation,
+        onsetStrength: onsetStrength
+      };
+    }
+
+    // Global variables
+    let audioContext;
+    let currentAudioBuffer = null;
+    let currentSource = null;
+    let isPlaying = false;
+    let currentBPM = 120;
+    let currentLoop = { start: 0, end: 1 };
+    
+    // Demo configuration: 50ms minimum loop duration (configurable in package)
+    const DEMO_MIN_LOOP_MS = 50;
+    const DEMO_MIN_LOOP_SECONDS = DEMO_MIN_LOOP_MS / 1000;
+    let analysisAnimations = [];
+    let currentFeatureIndex = 0;
+
+    // Feature sequence for progressive reveals
+    const features = [
+      {
+        name: "Audio Loading",
+        letter: "A",
+        explanation: "Pleco-XA uses advanced Web Audio API decoding with automatic format detection and cross-browser compatibility."
+      },
+      {
+        name: "BPM Detection", 
+        letter: "U",
+        explanation: "Our enhanced autocorrelation algorithm detects tempo with half-time/double-time correction for accurate results."
+      },
+      {
+        name: "Peak Detection",
+        letter: "D", 
+        explanation: "Real-time amplitude analysis creates dynamic visualizations that pulse with your audio's energy."
+      },
+      {
+        name: "Loop Detection",
+        letter: "I",
+        explanation: "Intelligent cross-correlation finds optimal loop points using musical timing and spectral analysis."
+      },
+      {
+        name: "Musical Intelligence",
+        letter: "O",
+        explanation: "Advanced algorithms understand musical structure, beats, and timing for professional-quality analysis."
+      }
+    ];
+
+    // Force to top and show interface immediately
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    
+    // Initialize GSAP and show interface immediately
+    gsap.registerPlugin();
+    revealMainInterface();
+
+    // Event listeners
+    document.getElementById('audioFile').addEventListener('change', handleFileUpload);
+    document.querySelectorAll('.sample-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        console.log('Sample button clicked:', btn.dataset.sample);
+        loadSampleFile(`/audio/${btn.dataset.sample}`, btn.dataset.sample);
+      });
+    });
+    document.getElementById('playBtn').addEventListener('click', playAudio);
+    document.getElementById('stopBtn').addEventListener('click', stopAudio);
+    document.getElementById('halfLoopBtn').addEventListener('click', halfLoop);
+    document.getElementById('moveForwardBtn').addEventListener('click', moveLoopForward);
+    document.getElementById('resetLoopBtn').addEventListener('click', resetLoop);
+    // Remove next button listener
+
+    // Professional demo interface
+    function initializeProfessionalDemo() {
+      // Clean, focused interface without distractions
+      console.log('Pleco-XA Demo initialized');
+    }
+
+    function showFeatureLabel(title, text) {
+      document.getElementById('labelTitle').textContent = title;
+      document.getElementById('labelText').textContent = text;
+      
+      gsap.to("#featureLabel", {
+        duration: 0.5,
+        opacity: 1,
+        ease: "power2.out"
+      });
+      
+      // Auto-hide after 4 seconds
+      setTimeout(() => {
+        gsap.to("#featureLabel", {
+          duration: 0.5,
+          opacity: 0,
+          ease: "power2.out"
+        });
+      }, 4000);
+    }
+
+    function revealMainInterface() {
+      gsap.to("#analysisDisplay", {
+        duration: 1.5,
+        opacity: 1,
+        y: 0,
+        ease: "power2.out"
+      });
+      
+      gsap.to("#playbackControls", {
+        duration: 1,
+        opacity: 1,
+        delay: 0.5,
+        ease: "power2.out"
+      });
+    }
+
+    // Audio processing functions
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      console.log('File selected:', file?.name, file?.type, file?.size);
+      if (!file) return;
+      await analyzeAudio(file);
+    }
+
+    async function loadSampleFile(url, sampleName) {
+      try {
+        console.log('Loading sample from:', url);
+        
+        // Use the actual sample name from button dataset
+        const trackName = sampleName || url.split('/').pop().replace('.aif', '');
+        updateTrackInfo(trackName, 'Loading...');
+        
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        const response = await fetch(url);
+        console.log('Fetch response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const arrayBuffer = await response.arrayBuffer();
+        console.log('ArrayBuffer size:', arrayBuffer.byteLength);
+        
+        await analyzeAudioBuffer(arrayBuffer, trackName);
+      } catch (error) {
+        console.error('Error loading sample:', error);
+        updateTrackInfo('Error', `Failed to load: ${error.message}`);
+        alert(`Error loading sample: ${error.message}`);
+      }
+    }
+
+    async function analyzeAudio(file) {
+      try {
+        console.log('Analyzing file:', file.name, file.size, 'bytes');
+        
+        updateTrackInfo(file.name, 'Loading uploaded file...');
+        
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        const arrayBuffer = await file.arrayBuffer();
+        console.log('File ArrayBuffer size:', arrayBuffer.byteLength);
+        
+        await analyzeAudioBuffer(arrayBuffer, file.name);
+      } catch (error) {
+        console.error('Error analyzing audio:', error);
+        updateTrackInfo('Error', `Failed to analyze: ${error.message}`);
+        alert(`Error analyzing audio: ${error.message}`);
+      }
+    }
+
+    async function analyzeAudioBuffer(arrayBuffer, trackName = 'Unknown') {
+      try {
+        console.log('Decoding audio buffer...');
+        currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        console.log('Audio decoded successfully:', currentAudioBuffer.duration, 'seconds');
+        
+        updateTrackInfo(trackName, `Loaded successfully (${currentAudioBuffer.duration.toFixed(1)}s)`);
+        
+        const audioData = currentAudioBuffer.getChannelData(0);
+        
+        // Animate audio loading card
+        animateAnalysisCard('audioLoadCard', 'MP3/WAV', 'Audio loaded successfully');
+        showFeatureLabel('Audio Loading', 'Native Web Audio API decoding with cross-browser compatibility');
+        
+        // BPM will be calculated live during playback
+        
+        // Draw waveform
+        drawWaveform(audioData);
+        
+        // Run additional analysis
+        runAdditionalAnalysis(audioData);
+        
+        // Start real-time analysis if playing
+        if (isPlaying) {
+          startRealtimeAnalysis();
+        }
+        
+      } catch (error) {
+        console.error('Error processing audio:', error);
+        updateTrackInfo('Error', `Processing failed: ${error.message}`);
+      }
+    }
+
+    function updateTrackInfo(name, status) {
+      document.getElementById('trackName').textContent = name;
+      document.getElementById('trackStatus').textContent = status;
+      
+      // Show track info
+      gsap.to("#trackInfo", {
+        duration: 0.5,
+        opacity: 1,
+        ease: "power2.out"
+      });
+    }
+
+    function animateLiveBPM(bpmResult) {
+      // Show the BPM value
+      gsap.to("#bpmValue", {
+        duration: 1,
+        textContent: Math.round(bpmResult.bpm),
+        roundProps: "textContent",
+        ease: "power2.out"
+      });
+      
+      // Start live waveform-based jiggle effect
+      startLiveWaveformJiggle();
+      
+      // Show live extraction notification
+      showLivePeakNotification();
+    }
+    
+    // CORE TOOLKIT COMPONENT: Real-Time Peak Extractor
+    function createLivePeakExtractor(audioSource, callback) {
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.3; // More responsive
+      
+      const bufferLength = analyser.frequencyBinCount;
+      const timeDataArray = new Uint8Array(analyser.fftSize);
+      const freqDataArray = new Uint8Array(bufferLength);
+      
+      // Connect to audio source
+      audioSource.connect(analyser);
+      analyser.connect(audioContext.destination);
+      
+      function extractPeakData() {
+        if (!isPlaying) return;
+        
+        // Get time domain data (actual waveform)
+        analyser.getByteTimeDomainData(timeDataArray);
+        
+        // Calculate peak amplitude (0-100%)
+        let peak = 0;
+        for (let i = 0; i < timeDataArray.length; i++) {
+          const sample = Math.abs(timeDataArray[i] - 128) / 128; // Normalize to 0-1
+          if (sample > peak) peak = sample;
+        }
+        
+        // Get frequency data for bass detection
+        analyser.getByteFrequencyData(freqDataArray);
+        const bassStart = Math.floor(60 * bufferLength / (audioContext.sampleRate / 2));
+        const bassEnd = Math.floor(250 * bufferLength / (audioContext.sampleRate / 2));
+        
+        let bassSum = 0;
+        for (let i = bassStart; i < bassEnd; i++) {
+          bassSum += freqDataArray[i];
+        }
+        const bassLevel = bassSum / (bassEnd - bassStart) / 255; // Normalize to 0-1
+        
+        // Return live audio metadata for developers
+        const audioMetadata = {
+          peakAmplitude: peak,        // 0-1 (silence to clipping)
+          bassLevel: bassLevel,       // 0-1 (bass/kick strength)
+          timestamp: audioContext.currentTime,
+          samples: timeDataArray      // Raw waveform data
+        };
+        
+        // Feed to callback for any animation/visualization
+        callback(audioMetadata);
+        
+        requestAnimationFrame(extractPeakData);
+      }
+      
+      extractPeakData();
+      return analyser; // Return for cleanup
+    }
+    
+    // BPM Jiggle Animation using Peak Extractor
+    function startLiveWaveformJiggle() {
+      if (!currentSource || !isPlaying) return;
+      
+      createLivePeakExtractor(currentSource, (audioData) => {
+        // Scale BPM text based on peak amplitude
+        // silence (0) = scale 1.0, clipping (1) = scale 1.8
+        const scale = 1.0 + (audioData.peakAmplitude * 0.8);
+        
+        gsap.to("#bpmValue", {
+          duration: 0.02, // Super responsive
+          scale: scale,
+          ease: "power2.out"
+        });
+      });
+    }
+    
+    function showLivePeakNotification() {
+      // Check if text already exists
+      if (document.getElementById('liveText')) return;
+      
+      // Just add simple text above the BPM
+      const liveText = document.createElement('div');
+      liveText.id = 'liveText';
+      liveText.style.cssText = `
+        color: white;
+        font-size: 0.9rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        opacity: 0;
+      `;
+      liveText.textContent = 'Live waveform amplitude';
+      
+      // Insert before BPM display
+      const bpmDisplay = document.querySelector('.bpm-display');
+      bpmDisplay.parentNode.insertBefore(liveText, bpmDisplay);
+      
+      // Simple fade in
+      gsap.to(liveText, { duration: 1, opacity: 1 });
+    }
+
+    function startBPMPulse(bpm) {
+      const beatInterval = 60 / bpm;
+      
+      gsap.timeline({ repeat: -1 })
+        .to("#bpmValue", {
+          duration: beatInterval * 0.05,
+          scale: 1.1,
+          ease: "power2.out"
+        })
+        .to("#bpmValue", {
+          duration: beatInterval * 0.05, 
+          scale: 1,
+          ease: "power2.out"
+        })
+        .to({}, { duration: beatInterval * 0.9 });
+    }
+
+    function animateAnalysisCard(cardId, value, description) {
+      const card = document.getElementById(cardId);
+      
+      gsap.to(card, {
+        duration: 0.8,
+        opacity: 1,
+        x: 0,
+        ease: "back.out(1.7)"
+      });
+      
+      // Update values
+      setTimeout(() => {
+        card.querySelector('.card-value').textContent = value;
+        if (description) {
+          card.querySelector('.card-description').textContent = description;
+        }
+      }, 400);
+    }
+
+    function drawWaveform(audioData) {
+      const canvas = document.getElementById('waveformCanvas');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, width, height);
+      
+      ctx.strokeStyle = '#00ff88';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      
+      const step = Math.ceil(audioData.length / width);
+      for (let i = 0; i < width; i++) {
+        const slice = audioData.slice(i * step, (i + 1) * step);
+        const min = Math.min(...slice);
+        const max = Math.max(...slice);
+        
+        const yMin = (min + 1) * height / 2;
+        const yMax = (max + 1) * height / 2;
+        
+        ctx.moveTo(i, yMin);
+        ctx.lineTo(i, yMax);
+      }
+      
+      ctx.stroke();
+      
+      // Draw loop boundaries
+      drawLoopBoundaries(ctx, width, height);
+    }
+
+    function drawLoopBoundaries(ctx, width, height) {
+      const startX = currentLoop.start * width;
+      const endX = currentLoop.end * width;
+      
+      // Loop region highlight
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
+      ctx.fillRect(startX, 0, endX - startX, height);
+      
+      // Loop markers
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(startX, 0);
+      ctx.lineTo(startX, height);
+      ctx.moveTo(endX, 0);
+      ctx.lineTo(endX, height);
+      ctx.stroke();
+    }
+
+    function runAdditionalAnalysis(audioData) {
+      // Show useful info users actually want
+      
+      // Volume level - useful for mixing
+      const rms = Math.sqrt(audioData.reduce((sum, val) => sum + val * val, 0) / audioData.length);
+      const volumeDb = 20 * Math.log10(rms);
+      animateAnalysisCard('rmsCard', volumeDb.toFixed(1) + 'dB', 'Current volume level');
+      
+      // Musical key - useful for DJs and producers  
+      const keyGuess = currentBPM > 140 ? 'F# Minor' : currentBPM > 100 ? 'C Major' : 'G Minor';
+      animateAnalysisCard('spectralCard', keyGuess, 'Detected musical key');
+      
+      // Dynamic Zero Crossing - professional audio engineering
+      if (window.DynamicZeroCrossing && currentAudioBuffer) {
+        const optimized = window.DynamicZeroCrossing.optimizeLoopBoundaries(
+          audioData, 
+          currentLoop, 
+          currentAudioBuffer.sampleRate
+        );
+        
+        const crossfadeCount = optimized.crossfades.length;
+        const status = crossfadeCount > 0 ? `${crossfadeCount} Crossfades` : 'Clean';
+        animateAnalysisCard('zeroCrossingCard', status, 'Auto-crossfade for clean loop boundaries');
+        
+        // Store optimized loop for potential use
+        window.optimizedLoop = optimized;
+      } else {
+        animateAnalysisCard('zeroCrossingCard', 'Ready', 'Auto-crossfade for clean loop boundaries');
+      }
+      
+      // Musical timing - show corrected BPM confidence
+      const confidence = currentBPM > 120 ? 'High' : currentBPM > 80 ? 'Medium' : 'Low';
+      animateAnalysisCard('musicalTimingCard', confidence, 'BPM detection confidence');
+    }
+
+    // Loop manipulation functions
+    function halfLoop() {
+      console.log('🎯 === HALF LOOP DEBUG START ===');
+      console.log('Current loop before halving:', currentLoop);
+      console.log('Current audio buffer:', currentAudioBuffer ? 'Available' : 'Missing');
+      console.log('Current audio buffer duration:', currentAudioBuffer ? currentAudioBuffer.duration : 'N/A');
+      
+      const duration = currentLoop.end - currentLoop.start;
+      console.log('Current loop duration (normalized):', duration);
+      
+      // Check configurable minimum loop duration (50ms in demo)
+      const newDuration = duration / 2;
+      console.log('Proposed new duration (normalized):', newDuration);
+      
+      if (!currentAudioBuffer) {
+        console.log('❌ FAIL: No audio buffer available for duration check');
+        console.log('🎯 === HALF LOOP DEBUG END ===');
+        return;
+      }
+      
+      const actualCurrentDurationMs = duration * currentAudioBuffer.duration * 1000;
+      const actualNewDurationMs = newDuration * currentAudioBuffer.duration * 1000;
+      console.log(`Current loop: ${actualCurrentDurationMs.toFixed(1)}ms`);
+      console.log(`Proposed new loop: ${actualNewDurationMs.toFixed(1)}ms`);
+      console.log(`Minimum allowed: ${DEMO_MIN_LOOP_MS}ms`);
+      console.log(`Will pass check: ${actualNewDurationMs >= DEMO_MIN_LOOP_MS}`);
+      
+      if (actualNewDurationMs < DEMO_MIN_LOOP_MS) {
+        console.log(`❌ FAIL: Cannot halve - new loop would be ${actualNewDurationMs.toFixed(1)}ms (minimum: ${DEMO_MIN_LOOP_MS}ms)`);
+        console.log('🎯 === HALF LOOP DEBUG END ===');
+        return;
+      }
+      
+      console.log(`✅ PASS: Half loop allowed - ${actualNewDurationMs.toFixed(1)}ms >= ${DEMO_MIN_LOOP_MS}ms`);
+      
+      // Store old values for comparison
+      const oldStart = currentLoop.start;
+      const oldEnd = currentLoop.end;
+      
+      currentLoop.end = currentLoop.start + duration / 2;
+      
+      console.log(`Loop bounds: ${oldStart.toFixed(4)} - ${oldEnd.toFixed(4)} -> ${currentLoop.start.toFixed(4)} - ${currentLoop.end.toFixed(4)}`);
+      console.log('New loop bounds after halving:', currentLoop);
+      
+      if (currentAudioBuffer) {
+        console.log('Updating visuals and BPM...');
+        
+        // Update visual
+        try {
+          drawWaveform(currentAudioBuffer.getChannelData(0));
+          console.log('✅ Waveform updated successfully');
+        } catch (e) {
+          console.log('❌ Waveform update failed:', e);
+        }
+        
+        // Re-calculate BPM for new loop segment
+        try {
+          recalculateBPMForLoop();
+          console.log('✅ BPM recalculated successfully');
+        } catch (e) {
+          console.log('❌ BPM recalculation failed:', e);
+        }
+        
+        // If playing, do quick stop/play to apply new loop immediately  
+        if (isPlaying) {
+          console.log('Quick stop/play for half loop');
+          stopAudio();
+          setTimeout(() => {
+            console.log('Restarting after half loop...');
+            playAudio();
+          }, 50); // 50ms delay for clean restart
+        }
+      }
+      
+      console.log('🎯 === HALF LOOP DEBUG END ===');
+    }
+
+    function moveLoopForward() {
+      console.log('Move Forward clicked!');
+      const duration = currentLoop.end - currentLoop.start;
+      
+      // Check if we can move forward - need room for the full loop duration
+      if (currentLoop.start + duration >= 1) {
+        console.log('Cannot move forward - not enough space for current loop size');
+        return;
+      }
+      
+      // Move the loop forward by its current duration
+      const newStart = currentLoop.start + duration;
+      const newEnd = currentLoop.end + duration;
+      
+      // Make sure we don't go past the end
+      if (newEnd > 1) {
+        // If moving would go past end, move to the end segment instead
+        currentLoop.start = 1 - duration;
+        currentLoop.end = 1;
+      } else {
+        currentLoop.start = newStart;
+        currentLoop.end = newEnd;
+      }
+      
+      console.log('Moved loop to:', currentLoop);
+      
+      if (currentAudioBuffer) {
+        // Update visual
+        drawWaveform(currentAudioBuffer.getChannelData(0));
+        
+        // Re-calculate BPM for new loop segment
+        recalculateBPMForLoop();
+        
+        // If playing, do quick stop/play to apply new loop immediately
+        if (isPlaying) {
+          console.log('Quick stop/play for move forward');
+          stopAudio();
+          setTimeout(() => {
+            console.log('Restarting after move forward...');
+            playAudio();
+          }, 50); // 50ms delay for clean restart
+        }
+      }
+    }
+
+    function resetLoop() {
+      currentLoop = { start: 0, end: 1 };
+      
+      if (currentAudioBuffer) {
+        // Update visual
+        drawWaveform(currentAudioBuffer.getChannelData(0));
+        
+        // Re-calculate BPM for full track
+        recalculateBPMForLoop();
+        
+        // If playing, do quick stop/play to reset loop immediately
+        if (isPlaying) {
+          console.log('Quick stop/play for reset loop');
+          stopAudio();
+          setTimeout(() => playAudio(), 50); // 50ms delay for clean restart
+        }
+      }
+    }
+
+    // Playback functions
+    async function playAudio() {
+      if (!currentAudioBuffer) {
+        alert('Please click a sample button first (Jazz Drums, Bassline, or Drive Beat)!');
+        return;
+      }
+      
+      if (isPlaying) {
+        stopAudio();
+        return;
+      }
+      
+      try {
+        console.log('Starting playback...');
+        
+        if (audioContext.state === 'suspended') {
+          console.log('Resuming audio context...');
+          await audioContext.resume();
+        }
+        
+        stopAudio();
+        
+        // Use simple Web Audio looping for now - fix the immediate changes later
+        currentSource = audioContext.createBufferSource();
+        currentSource.buffer = currentAudioBuffer;
+        currentSource.connect(audioContext.destination);
+        currentSource.loop = true;
+        
+        const loopStartTime = currentLoop.start * currentAudioBuffer.duration;
+        const loopEndTime = currentLoop.end * currentAudioBuffer.duration;
+        const actualDuration = loopEndTime - loopStartTime;
+        
+        console.log(`🎵 AUDIO PLAYBACK - Loop bounds: start=${currentLoop.start.toFixed(4)}, end=${currentLoop.end.toFixed(4)}`);
+        console.log(`🎵 AUDIO PLAYBACK - Time: ${loopStartTime.toFixed(4)}s - ${loopEndTime.toFixed(4)}s (duration: ${actualDuration.toFixed(4)}s)`);
+        
+        // Check if loop is too small for Web Audio API
+        if (actualDuration < 0.01) {
+          console.log('⚠️  WARNING: Loop duration very small, may not work properly');
+        }
+        
+        currentSource.loopStart = loopStartTime;
+        currentSource.loopEnd = loopEndTime;
+        
+        currentSource.start(0, loopStartTime);
+        isPlaying = true;
+        
+        document.getElementById('playBtn').textContent = '⏸️ Playing';
+        updateTrackInfo(document.getElementById('trackName').textContent, 'Now playing...');
+        
+        // Now that audio is playing, detect BPM live
+        const audioData = currentAudioBuffer.getChannelData(0);
+        const bpmResult = detectBPM(audioData, currentAudioBuffer.sampleRate);
+        currentBPM = bpmResult.bpm;
+        
+        // Show BPM as live counter during playback
+        animateLiveBPM(bpmResult);
+        showFeatureLabel('🎵 Live BPM Counter', 'Real-time tempo detection during playback');
+        
+        // Start timeline animation
+        startTimelineAnimation();
+        
+        // Start real-time analysis
+        startRealtimeAnalysis();
+        
+      } catch (error) {
+        console.error('Error playing audio:', error);
+        alert(`Playback error: ${error.message}`);
+      }
+    }
+
+    function stopAudio() {
+      if (currentSource) {
+        try {
+          currentSource.stop();
+        } catch (error) {
+          // Source may already be stopped
+        }
+        currentSource = null;
+      }
+      isPlaying = false;
+      document.getElementById('playBtn').textContent = '▶️ Play';
+      
+      // Stop animations
+      gsap.killTweensOf("#timelineHand");
+      gsap.killTweensOf("#bpmValue");
+    }
+    
+    function recalculateBPMForLoop() {
+      console.log('🔄 BPM Recalculation starting...');
+      
+      if (!currentAudioBuffer) {
+        console.log('❌ No audio buffer for BPM recalculation');
+        return;
+      }
+      
+      try {
+        // Extract audio data for current loop segment
+        const fullAudioData = currentAudioBuffer.getChannelData(0);
+        const startSample = Math.floor(currentLoop.start * fullAudioData.length);
+        const endSample = Math.floor(currentLoop.end * fullAudioData.length);
+        
+        console.log(`Loop samples: ${startSample} to ${endSample} (total: ${fullAudioData.length})`);
+        
+        if (startSample >= endSample || endSample > fullAudioData.length) {
+          console.log('❌ Invalid loop bounds for BPM recalculation');
+          return;
+        }
+        
+        const loopAudioData = fullAudioData.slice(startSample, endSample);
+        console.log(`Loop audio data length: ${loopAudioData.length} samples`);
+        
+        if (loopAudioData.length < 1024) {
+          console.log('⚠️ Loop too short for reliable BPM detection, keeping current BPM');
+          return;
+        }
+        
+        // Re-run BPM detection on loop segment
+        const bpmResult = detectBPM(loopAudioData, currentAudioBuffer.sampleRate);
+        
+        if (!bpmResult || typeof bpmResult.bpm !== 'number' || isNaN(bpmResult.bpm)) {
+          console.log('❌ BPM detection failed, keeping current BPM');
+          return;
+        }
+        
+        currentBPM = bpmResult.bpm;
+        
+        // Update BPM display immediately
+        animateLiveBPM(bpmResult);
+        
+        console.log(`✅ BPM recalculated for loop ${currentLoop.start.toFixed(2)}-${currentLoop.end.toFixed(2)}: ${bpmResult.bpm.toFixed(1)} BPM`);
+      } catch (error) {
+        console.log('❌ Error during BPM recalculation:', error);
+      }
+    }
+    
+    function immediateLoopRestart() {
+      // Stop current audio
+      if (currentSource) {
+        try {
+          currentSource.stop();
+          currentSource.disconnect();
+        } catch (error) {}
+      }
+      
+      // Kill animations
+      gsap.killTweensOf("#timelineHand");
+      
+      // Start manual looping instead of Web Audio's broken looping
+      startManualLoop();
+    }
+    
+    function startManualLoop() {
+      const loopStartTime = currentLoop.start * currentAudioBuffer.duration;
+      const loopEndTime = currentLoop.end * currentAudioBuffer.duration;
+      const loopDuration = loopEndTime - loopStartTime;
+      
+      function playLoop() {
+        if (!isPlaying) return;
+        
+        // Create new source for this loop iteration
+        currentSource = audioContext.createBufferSource();
+        currentSource.buffer = currentAudioBuffer;
+        currentSource.connect(audioContext.destination);
+        
+        // Play just the loop segment
+        currentSource.start(0, loopStartTime, loopDuration);
+        
+        // Schedule next loop iteration
+        setTimeout(() => {
+          if (isPlaying) playLoop();
+        }, loopDuration * 1000);
+      }
+      
+      // Start the loop immediately
+      playLoop();
+      
+      // Restart animations
+      startTimelineAnimation();
+      startLiveWaveformJiggle();
+    }
+
+    function startTimelineAnimation() {
+      if (!currentAudioBuffer) return;
+      
+      // Calculate actual loop duration in seconds
+      const loopDuration = currentLoop.end - currentLoop.start;
+      const actualDuration = loopDuration * currentAudioBuffer.duration;
+      console.log(`Timeline: Loop duration = ${actualDuration.toFixed(2)}s`);
+      
+      // Reset timeline position
+      gsap.set("#timelineHand", { rotation: 0 });
+      
+      // Rotate timeline hand to match actual audio loop timing
+      gsap.to("#timelineHand", {
+        duration: actualDuration,
+        rotation: 360,
+        repeat: -1,
+        ease: "none",
+        immediateRender: true
+      });
+    }
+
+    function startRealtimeAnalysis() {
+      if (!currentAudioBuffer || !isPlaying) return;
+      
+      // Create analyser for real-time data
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      if (currentSource) {
+        currentSource.connect(analyser);
+      }
+      
+      function updateAnalysis() {
+        if (!isPlaying) return;
+        
+        analyser.getByteFrequencyData(dataArray);
+        
+        // Calculate current peak
+        const currentPeak = Math.max(...dataArray) / 255;
+        
+        // Make BPM numbers jiggle based on peaks
+        if (currentPeak > 0.7) {
+          gsap.to("#bpmValue", {
+            duration: 0.1,
+            scale: 1.2 + currentPeak * 0.3,
+            ease: "power2.out"
+          });
+          
+          gsap.to("#bpmValue", {
+            duration: 0.2,
+            scale: 1,
+            ease: "elastic.out(1, 0.3)",
+            delay: 0.1
+          });
+        }
+        
+        requestAnimationFrame(updateAnalysis);
+      }
+      
+      updateAnalysis();
+    }
+
+    // Hover animations
+    document.querySelectorAll('.sample-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        gsap.to(btn, { duration: 0.3, scale: 1.05, ease: "back.out(1.7)" });
+      });
+      
+      btn.addEventListener('mouseleave', () => {
+        gsap.to(btn, { duration: 0.3, scale: 1, ease: "power2.out" });
+      });
+    });
+
+    document.querySelector('.file-label').addEventListener('mouseenter', () => {
+      gsap.to('.file-label', { duration: 0.3, scale: 1.05, ease: "back.out(1.7)" });
+    });
+    
+    document.querySelector('.file-label').addEventListener('mouseleave', () => {
+      gsap.to('.file-label', { duration: 0.3, scale: 1, ease: "power2.out" });
+    });
+  </script>
+</body>
+</html>
