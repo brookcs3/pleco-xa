@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Beats - Librosa Loop Editor (2023 Research)</title>
+  <title>Beats - XA Loop Editor (2023 Research)</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .track-item {
@@ -90,7 +90,7 @@
       font-size: 12px;
     }
     
-    .librosa-analysis {
+    .xa-analysis {
       background: #220011;
       padding: 10px;
       border-radius: 4px;
@@ -133,18 +133,18 @@
 </head>
 <body>
   <div class="container">
-    <h1>Beats - Librosa Loop Editor</h1>
-    <p>Upload audio files and use 2023 Librosa research for advanced loop analysis and editing.</p>
+    <h1>Beats - XA Loop Editor</h1>
+    <p>Upload audio files and use advanced XA research for loop analysis and editing.</p>
     
     <div class="upload-info">
       <p><strong>Advanced Audio Analysis Features:</strong></p>
-      <p>• Librosa-powered spectral analysis • RMS and peak detection • Interactive loop point editing</p>
+      <p>• XA-powered spectral analysis • RMS and peak detection • Interactive loop point editing</p>
       <p>• Real-time loop playback • Mel-spectrogram visualization • Precise timing controls</p>
     </div>
     
     <form id="uploadForm">
       <input type="file" id="fileInput" accept="audio/*" required>
-      <button type="submit">Upload & Analyze with Librosa</button>
+      <button type="submit">Upload & Analyze with XA</button>
     </form>
     
     <div class="test-tracks">
@@ -169,7 +169,7 @@
       }
     }
 
-    // Import Librosa functions (inline to avoid module issues)
+    // Import XA functions (inline to avoid module issues)
     async function loadAudioBuffer(url, context = new AudioContext()) {
       const res = await fetch(url);
       const arr = await res.arrayBuffer();
@@ -215,7 +215,7 @@
     let referenceLoopTemplate = null;
 
     // Musical timing-aware loop analysis with BPM detection and phrase boundaries
-    async function librosaLoopAnalysis(audioBuffer, useReference = false) {
+    async function xaLoopAnalysis(audioBuffer, useReference = false) {
       debugLog('Starting Musical Timing-Aware Analysis...');
       
       const audioData = audioBuffer.getChannelData(0);
@@ -228,7 +228,7 @@
       
       debugLog(`Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
       
-      // Basic Librosa metrics
+      // Basic XA metrics
       const rms = computeRMS(audioBuffer);
       const peak = computePeak(audioBuffer);
       const spectrum = await computeSpectrum(audioBuffer);
@@ -1017,13 +1017,13 @@
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
       try {
-        debugLog('Processing with Librosa integration:', file.name);
+        debugLog('Processing with XA integration:', file.name);
         
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
         
-        // Enhanced Librosa analysis
-        const analysis = await librosaLoopAnalysis(audioBuffer);
+        // Enhanced XA analysis
+        const analysis = await xaLoopAnalysis(audioBuffer);
         
         const url = URL.createObjectURL(file);
         
@@ -1037,11 +1037,11 @@
           analysis: analysis
         };
         
-        debugLog('Librosa analysis complete:', track);
+        debugLog('XA analysis complete:', track);
         return track;
         
       } catch (error) {
-        console.error('Librosa processing error:', error);
+        console.error('XA processing error:', error);
         throw error;
       }
     }
@@ -1233,9 +1233,9 @@
       }
       
       // Analysis display
-      const librosaData = document.createElement('div');
-      librosaData.className = 'librosa-analysis';
-      librosaData.innerHTML = `
+      const xaData = document.createElement('div');
+      xaData.className = 'xa-analysis';
+      xaData.innerHTML = `
         ${getValidationStatus(track)}
         <strong>Musical Analysis:</strong><br>
         RMS: ${track.analysis.rms.toFixed(6)}<br>
@@ -1267,10 +1267,10 @@
           const durationMatch = Math.abs(track.duration - expectedDuration) < 1;
           validationUpdate = `<strong>Validation:</strong> Duration ${durationMatch ? 'PASS' : 'FAIL'} (${track.duration.toFixed(2)}s vs ~${expectedDuration}s), Compression ${needsCompression ? 'REQUIRED' : 'NOT NEEDED'} (Loop: ${loopDuration.toFixed(2)}s ${needsCompression ? '>' : '≤'} 12s limit)<br>`;
           
-          // Update the validation display in the librosa analysis section
-          const currentHTML = librosaData.innerHTML;
+          // Update the validation display in the xa analysis section
+          const currentHTML = xaData.innerHTML;
           const newHTML = currentHTML.replace(/<strong>Validation:<\/strong>.*?<br>/s, validationUpdate);
-          librosaData.innerHTML = newHTML;
+          xaData.innerHTML = newHTML;
         }
         
         loopData.innerHTML = `
@@ -1519,10 +1519,10 @@
           track.sampleRate = compressedBuffer.sampleRate;
           track.channels = compressedBuffer.numberOfChannels;
           
-          debugLog('Re-analyzing compressed audio with Librosa...');
+          debugLog('Re-analyzing compressed audio with XA...');
           
-          // Re-run full Librosa analysis on compressed audio
-          const newAnalysis = await librosaLoopAnalysis(compressedBuffer);
+          // Re-run full XA analysis on compressed audio
+          const newAnalysis = await xaLoopAnalysis(compressedBuffer);
           track.analysis = newAnalysis;
           
           // Use the new analysis results for optimal loop points
@@ -1541,7 +1541,7 @@
           
           // Update the analysis display with new data
           const newBars = (newAnalysis.loopEnd - newAnalysis.loopStart) / ((60 / newAnalysis.bpm) * 4);
-          librosaData.innerHTML = `
+          xaData.innerHTML = `
             <strong>Musical Analysis (COMPRESSED):</strong><br>
             RMS: ${newAnalysis.rms.toFixed(6)}<br>
             Peak: ${newAnalysis.peak.toFixed(6)}<br>
@@ -1604,7 +1604,7 @@
       container.appendChild(info);
       container.appendChild(waveformContainer);
       container.appendChild(controls);
-      container.appendChild(librosaData);
+      container.appendChild(xaData);
       container.appendChild(loopData);
       
       return container;
@@ -1620,11 +1620,11 @@
       if (!file) return;
       
       try {
-        debugLog('Starting Librosa analysis...');
+        debugLog('Starting XA analysis...');
         
         const container = document.getElementById('tracks');
         const loading = document.createElement('div');
-        loading.textContent = 'Analyzing with Librosa algorithms...';
+        loading.textContent = 'Analyzing with XA algorithms...';
         loading.className = 'loading';
         container.appendChild(loading);
         
@@ -1636,7 +1636,7 @@
         
         fileInput.value = '';
         
-        debugLog('Librosa Loop Editor ready!');
+        debugLog('XA Loop Editor ready!');
         
       } catch (error) {
         console.error('Failed:', error);
@@ -1682,7 +1682,7 @@
         const audioBuffer = await loadAudioBuffer('audio/Bassline For Doppler Song - 11.aif', audioContext);
         
         // Analyze it first
-        const analysis = await librosaLoopAnalysis(audioBuffer, false);
+        const analysis = await xaLoopAnalysis(audioBuffer, false);
         
         // Create reference template from this perfect loop
         referenceLoopTemplate = await createReferenceTemplate(audioBuffer, analysis.loopStart, analysis.loopEnd);
@@ -1730,7 +1730,7 @@
         const audioBuffer = await loadAudioBuffer(url, audioContext);
         
         // Use reference-guided analysis if requested
-        const analysis = await librosaLoopAnalysis(audioBuffer, useReference);
+        const analysis = await xaLoopAnalysis(audioBuffer, useReference);
         
         const track = {
           url: url,
@@ -1892,7 +1892,7 @@
       });
     }
 
-    debugLog('Librosa Loop Editor Ready - 2023 Research Integration');
+    debugLog('XA Loop Editor Ready - 2023 Research Integration');
   </script>
 </body>
 </html>
