@@ -66,7 +66,7 @@
   <script type="module">
     import {
       detectBPM,
-      librosaLoopAnalysis,
+      loopAnalysis,
       computeSpectralCentroid,
       computeRMS,
       computePeak,
@@ -114,8 +114,8 @@
         const audioData = audioBuffer.getChannelData(0);
         const bpmResult = detectBPM(audioData, sampleRate);
 
-        // Full Librosa-style analysis
-        const analysis = await librosaLoopAnalysis(audioBuffer);
+        // Full loop analysis
+        const analysis = await loopAnalysis(audioBuffer);
 
         // Additional metrics
         const rms = computeRMS(audioBuffer);

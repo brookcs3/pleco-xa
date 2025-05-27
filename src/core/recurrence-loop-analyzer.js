@@ -10,8 +10,8 @@ export async function recurrenceLoopAnalysis(audioBuffer) {
   console.time('recurrence_loop_analysis');
   
   try {
-    // Use librosa-style recurrence matrix for loop detection
-    const { recurrenceLoopDetection } = await import('./librosa-recurrence.js');
+    // Use xa-style recurrence matrix for loop detection
+    const { recurrenceLoopDetection } = await import('./xa-recurrence.js');
     const result = await recurrenceLoopDetection(audioBuffer);
     
     console.timeEnd('recurrence_loop_analysis');

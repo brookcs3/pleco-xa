@@ -11,7 +11,7 @@ export class EnhancedDopplerScroll extends DopplerScroll {
   constructor(options = {}) {
     super(options);
     
-    // Additional options for librosa-inspired analysis
+    // Additional options for xa-inspired analysis
     this.analysisOptions = {
       fftSize: 2048,
       hopSize: 512,

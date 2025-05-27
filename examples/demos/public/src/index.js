@@ -7,7 +7,7 @@
 
 // Core audio analysis functions
 export { detectBPM } from './core/bpm-detector.js';
-export { musicalLoopAnalysis, librosaLoopAnalysis, analyzeLoopPoints } from './core/loop-analyzer.js';
+export { musicalLoopAnalysis, loopAnalysis, analyzeLoopPoints } from './core/loop-analyzer.js';
 export { computeSpectralCentroid, computeSpectrum, computeFFT } from './core/spectral.js';
 export { calculateBeatAlignment } from './core/musical-timing.js';
 

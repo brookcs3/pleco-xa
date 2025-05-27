@@ -1,9 +1,9 @@
 /**
- * Librosa-style chroma feature extraction for JavaScript
+ * Chroma feature extraction for JavaScript
  * Pitch class profiles for harmonic analysis and key detection
  */
 
-import { fft } from './librosa-onset.js';
+import { fft } from './xa-onset.js';
 
 /**
  * Compute chroma features using Constant-Q Transform

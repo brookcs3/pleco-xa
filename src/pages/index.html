@@ -373,27 +373,27 @@
     // ===== CORE IMPORTS =====
     // Main audio player and file handling
     import { AudioPlayer } from '/src/core/audio/AudioPlayer.js';
-    import { loadFile, example, exampleBuffer } from '/src/core/librosa-file.js';
+    import { loadFile, example, exampleBuffer } from '/src/core/xa-file.js';
     
     // Advanced BPM Detection
     import { detectBPM, fastBPMDetect } from '/src/core/analysis/BPMDetector.js';
     
     // Advanced beat tracking with phase detection
-    import { BeatTracker } from '/src/core/librosa-beat-tracker.js';
+    import { BeatTracker } from '/src/core/xa-beat-tracker.js';
     
     // Onset detection for transients
-    import { onsetDetect, computeSpectralFlux } from '/src/core/librosa-onset.js';
+    import { onsetDetect, computeSpectralFlux } from '/src/core/xa-onset.js';
     
     // Spectral features with RMS energy
-    import { spectralCentroid, spectralRolloff, spectralBandwidth, zeroCrossingRate, rms } from '/src/core/librosa-spectral.js';
+    import { spectralCentroid, spectralRolloff, spectralBandwidth, zeroCrossingRate, rms } from '/src/core/xa-spectral.js';
     
     // Chroma features for harmonic analysis
-    import { chroma_stft, enhance_chroma } from '/src/core/librosa-chroma.js';
+    import { chroma_stft, enhance_chroma } from '/src/core/xa-chroma.js';
     
     // Loop detection algorithms
-    import { fastLoopAnalysis } from '/src/core/librosa-loop.js';
-    import { findPreciseLoop } from '/src/core/librosa-precise-loop.js';
-    import { findMusicalLoop, findDownbeatPhase } from '/src/core/librosa-downbeat.js';
+    import { fastLoopAnalysis } from '/src/core/xa-loop.js';
+    import { findPreciseLoop } from '/src/core/xa-precise-loop.js';
+    import { findMusicalLoop, findDownbeatPhase } from '/src/core/xa-downbeat.js';
     
     // Audio utilities
     import { computeRMS, computePeak, computeZeroCrossingRate } from '/src/utils/audio-utils.js';
@@ -1187,7 +1187,7 @@
            beatTracker = new BeatTracker();
          }
          
-         // Use the loadFile utility from librosa-file.js
+         // Use the loadFile utility from xa-file.js
          currentAudioBuffer = await loadFile(audioFile, audioContext);
          
          updateTrackInfo(audioFile.name, `${currentAudioBuffer.duration.toFixed(1)}s`);
