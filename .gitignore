@@ -71,4 +71,6 @@ test-worker.cjs
 
 # Yarn Integrity file
 .yarn-integrity
-/
+
+# Exclude large npm package files
+pleco-xa-*.tgz
