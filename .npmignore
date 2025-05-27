@@ -1,0 +1,19 @@
+# Exclude test files
+__tests__/
+tests/
+
+# Exclude examples and demos
+examples/
+
+# Exclude documentation
+docs/
+
+# Exclude audio files from other directories
+public/audio/
+examples/frontend/audio/
+examples/demos/public/audio/
+
+# Exclude other unnecessary files
+*.tgz
+*.zip
+src.zip
