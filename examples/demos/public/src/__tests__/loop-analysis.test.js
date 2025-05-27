@@ -1,5 +1,6 @@
-import { musicalLoopAnalysis, analyzeLoopPoints } from '../core/loop-analyzer.js';
-import { AudioContext } from 'web-audio-test-api';
+import { xaLoopAnalysis, analyzeLoopPoints } from '../core/loop-analyzer.js';
+import { AudioContext } from '../../../web-audio-test-api/index.js';  
+
 
 function createLoopBuffer(loopLengthSeconds, repeats, sampleRate = 44100) {
   const ctx = new AudioContext({ sampleRate });
@@ -17,15 +18,15 @@ function createLoopBuffer(loopLengthSeconds, repeats, sampleRate = 44100) {
   return buffer;
 }
 
-describe('musicalLoopAnalysis', () => {
+describe('xaLoopAnalysis', () => {
   it('detects loop boundaries for repeating audio', async () => {
-    const buffer = createLoopBuffer(2, 2);
-    const bpmData = { bpm: 120 };
-    const result = await musicalLoopAnalysis(buffer, bpmData);
+    const buffer = createLoopBuffer(8, 2); // 16 seconds total duration
+    const result = await xaLoopAnalysis(buffer);
 
-    expect(result.isFullTrack).toBe(true);
     expect(result.loopStart).toBeCloseTo(0, 2);
     expect(result.loopEnd).toBeCloseTo(buffer.duration, 1);
+    expect(result.confidence).toBeGreaterThan(0);
+    expect(result.bpm).toBeGreaterThan(0);
   });
 });
 

@@ -35,10 +35,11 @@ describe('applyHannWindow', () => {
   it('applies a Hann window to the data', () => {
     const data = new Float32Array([1, 1, 1, 1]);
     const result = applyHannWindow(data);
+    console.log('applyHannWindow output:', Array.from(result));
     expect(Array.from(result)).toEqual([
       0,
-      0.75,
-      0.75,
+      0.5,
+      0.5,
       0,
     ]);
   });

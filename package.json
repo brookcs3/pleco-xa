@@ -1,7 +1,7 @@
 {
   "name": "pleco-xa",
   "type": "module",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "node": ">=18.20.8"
   },
@@ -39,7 +39,7 @@
     "serve": "^14.2.4",
     "terser": "^5.39.2",
     "ts-jest": "^29.3.4",
-    "web-audio-test-api": "file:./web-audio-test-api"
+    "web-audio-test-api": "file:web-audio-test-api"
   },
   "prepublishOnly": "npm run bundle"
 }

@@ -1,12 +1,12 @@
 /**
- * Librosa-style beat tracking - JavaScript port
+ * xa-style beat tracking - JavaScript port
  * High-performance beat detection using onset analysis
  */
 
-import { onsetDetect, computeSTFT } from './librosa-onset.js'
+import { onsetDetect, computeSTFT } from './xa-onset.js'
 
 /**
- * Port of librosa.beat.beat_track()
+ * Port of xa.beat.beat_track()
  * Much faster and more accurate than our basic BPM detector
  */
 export function beatTrack(
@@ -61,7 +61,7 @@ export function beatTrack(
 }
 
 /**
- * Alias matching the original librosa.beat.beat_track() API.
+ * Alias matching the original xa.beat.beat_track() API.
  * Delegates directly to beatTrack() so other ports can import { beat_track }.
  *
  * @param {Float32Array} audioData
@@ -160,7 +160,7 @@ export function estimateTempo(
 }
 
 /**
- * Alias for estimateTempo() to match librosa.beat.tempo().
+ * Alias for estimateTempo() to match xa.beat.tempo().
  */
 export function tempo(
   onsetStrength,
@@ -173,7 +173,7 @@ export function tempo(
 
 /**
  * Dynamic programming beat tracker
- * Simplified version of librosa's beat tracking
+ * Simplified version of xa's beat tracking
  */
 export function trackBeats(
   onsetStrength,

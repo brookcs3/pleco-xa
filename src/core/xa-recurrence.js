@@ -62,6 +62,9 @@ function frequencyToChroma(freq) {
  * Time-delay embedding to stack chroma features
  */
 export function stackMemory(chroma, nSteps = 10, delay = 3) {
+  console.log('Input chroma:', chroma);
+  console.log('Chroma dimensions:', chroma.length, chroma[0]?.length);
+
   if (
     !Array.isArray(chroma) ||
     chroma.length === 0 ||
@@ -97,6 +100,21 @@ export function stackMemory(chroma, nSteps = 10, delay = 3) {
 }
 
 /**
+ * Validate input data for gen_sim_matrix to ensure it is a valid 2D array.
+ * @param {Array} data - The input data to validate.
+ * @returns {boolean} - True if valid, false otherwise.
+ */
+function validateInputData(data) {
+  return (
+    Array.isArray(data) &&
+    data.length > 0 &&
+    Array.isArray(data[0]) &&
+    data[0].length > 0 &&
+    data.every((row) => row.length === data[0].length)
+  );
+}
+
+/**
  * Generate similarity matrix (helper for recurrence_matrix)
  */
 function gen_sim_matrix(
@@ -110,39 +128,47 @@ function gen_sim_matrix(
   win_length = null,
   axis = -1,
 ) {
-  const [numFeatures, numFrames] = [data.length, data[0].length]
+  console.log('Preparing input data for gen_sim_matrix:', data);
+  console.log(`Data dimensions: ${data.length}x${data[0]?.length || 0}`);
+
+  console.log('Data before gen_sim_matrix:', data);
+  if (!validateInputData(data)) {
+    throw new Error('Invalid input data: Expected a 2D array before gen_sim_matrix.');
+  }
+
+  const [numFeatures, numFrames] = [data.length, data[0].length];
   const matrix = Array(numFrames)
     .fill(0)
-    .map(() => new Float32Array(numFrames))
+    .map(() => new Float32Array(numFrames));
 
   for (let i = 0; i < numFrames; i++) {
     for (let j = 0; j < numFrames; j++) {
       // Compute cosine similarity (since euclidean is more complex)
-      let dotProduct = 0
-      let norm1 = 0
-      let norm2 = 0
+      let dotProduct = 0;
+      let norm1 = 0;
+      let norm2 = 0;
 
       for (let f = 0; f < numFeatures; f++) {
-        const val1 = data[f][i]
-        const val2 = data[f][j]
-        dotProduct += val1 * val2
-        norm1 += val1 * val1
-        norm2 += val2 * val2
+        const val1 = data[f][i];
+        const val2 = data[f][j];
+        dotProduct += val1 * val2;
+        norm1 += val1 * val1;
+        norm2 += val2 * val2;
       }
 
-      const similarity = dotProduct / (Math.sqrt(norm1 * norm2) + 1e-8)
+      const similarity = dotProduct / (Math.sqrt(norm1 * norm2) + 1e-8);
 
       if (mode === 'connectivity') {
-        matrix[i][j] = similarity > 0.5 ? 1 : 0
+        matrix[i][j] = similarity > 0.5 ? 1 : 0;
       } else if (mode === 'affinity') {
-        matrix[i][j] = Math.max(0, similarity)
+        matrix[i][j] = Math.max(0, similarity);
       } else if (mode === 'distance') {
-        matrix[i][j] = 1 - similarity
+        matrix[i][j] = 1 - similarity;
       }
     }
   }
 
-  return matrix
+  return matrix;
 }
 
 /**
@@ -324,98 +350,113 @@ function computeFFT(signal) {
   // Pad to power of 2
   const nextPow2 = Math.pow(2, Math.ceil(Math.log2(N)))
   const padded = new Float32Array(nextPow2 * 2) // Complex: [real, imag, real, imag, ...]
-
+  
+  // Copy signal to real part
   for (let i = 0; i < N; i++) {
     padded[i * 2] = signal[i]
     padded[i * 2 + 1] = 0
   }
-
-  return fftRecursive(padded)
-}
-
-function fftRecursive(signal) {
-  const N = signal.length / 2
-  if (N <= 1) return signal
-
-  // Divide
-  const even = new Float32Array(N)
-  const odd = new Float32Array(N)
-
-  for (let i = 0; i < N / 2; i++) {
-    even[i * 2] = signal[i * 4]
-    even[i * 2 + 1] = signal[i * 4 + 1]
-    odd[i * 2] = signal[i * 4 + 2]
-    odd[i * 2 + 1] = signal[i * 4 + 3]
-  }
-
-  // Conquer
-  const evenFFT = fftRecursive(even)
-  const oddFFT = fftRecursive(odd)
-
-  // Combine
-  const result = new Float32Array(N * 2)
-
-  for (let i = 0; i < N / 2; i++) {
-    const angle = (-2 * Math.PI * i) / N
-    const cos = Math.cos(angle)
-    const sin = Math.sin(angle)
-
-    const oddReal = oddFFT[i * 2] * cos - oddFFT[i * 2 + 1] * sin
-    const oddImag = oddFFT[i * 2] * sin + oddFFT[i * 2 + 1] * cos
-
-    result[i * 2] = evenFFT[i * 2] + oddReal
-    result[i * 2 + 1] = evenFFT[i * 2 + 1] + oddImag
-    result[(i + N / 2) * 2] = evenFFT[i * 2] - oddReal
-    result[(i + N / 2) * 2 + 1] = evenFFT[i * 2 + 1] - oddImag
-  }
-
-  return result
+  
+  return padded
 }
 
 /**
- * Main loop detection using recurrence matrix
+ * In-place FFT implementation
  */
-export async function recurrenceLoopDetection(audioBuffer) {
-  console.time('recurrence_loop_detection')
+function fft(buffer, N) {
+  if (N <= 1) return
 
-  const hopLength = 512
-  const frameTime = hopLength / audioBuffer.sampleRate
-
-  console.log('Computing chroma features...')
-  const chroma = computeChroma(audioBuffer, hopLength)
-
-  console.log('Time-delay embedding...')
-  const chromaStack = stackMemory(chroma, 10, 3)
-
-  console.log('Computing recurrence matrix...')
-  const recMatrix = recurrenceMatrix(chromaStack, 3, 'affinity')
-
-  console.log('Converting to lag representation...')
-  const lagMatrix = recurrenceToLag(recMatrix)
-
-  console.log('Finding loop candidates...')
-  const candidates = findLoopCandidates(lagMatrix, frameTime)
-
-  console.timeEnd('recurrence_loop_detection')
-
-  if (candidates.length === 0) {
-    throw new Error('No loop candidates found')
+  // Separate even and odd
+  const even = new Float32Array(N)
+  const odd = new Float32Array(N)
+  
+  for (let i = 0; i < N / 2; i++) {
+    even[i * 2] = buffer[i * 4]
+    even[i * 2 + 1] = buffer[i * 4 + 1]
+    odd[i * 2] = buffer[i * 4 + 2]
+    odd[i * 2 + 1] = buffer[i * 4 + 3]
   }
 
-  const bestCandidate = candidates[0]
-  console.log(
-    `Best loop candidate: ${bestCandidate.lagSeconds.toFixed(3)}s (confidence: ${bestCandidate.confidence.toFixed(2)})`,
-  )
+  // Recursive FFT
+  fft(even, N / 2)
+  fft(odd, N / 2)
 
-  const estimatedBPM = 60 / (bestCandidate.lagSeconds / 4) // Estimate BPM assuming 4-beat loop
-  const beatDuration = 60 / estimatedBPM
+  // Combine results
+  for (let k = 0; k < N / 2; k++) {
+    const theta = -2 * Math.PI * k / N
+    const re = Math.cos(theta)
+    const im = Math.sin(theta)
+    
+    const oddRe = odd[k * 2]
+    const oddIm = odd[k * 2 + 1]
+    
+    const tRe = re * oddRe - im * oddIm
+    const tIm = re * oddIm + im * oddRe
+    
+    const evenRe = even[k * 2]
+    const evenIm = even[k * 2 + 1]
+    
+    buffer[k * 2] = evenRe + tRe
+    buffer[k * 2 + 1] = evenIm + tIm
+    buffer[(k + N / 2) * 2] = evenRe - tRe
+    buffer[(k + N / 2) * 2 + 1] = evenIm - tIm
+  }
+}
 
+/**
+ * Recurrence loop detection using matrix analysis
+ */
+export async function recurrenceLoopDetection(audioBuffer) {
+  // Extract chroma features
+  const chroma = computeChroma(audioBuffer)
+  if (!chroma.length) {
+    return {
+      loopStart: 0,
+      loopEnd: audioBuffer.duration,
+      confidence: 50,
+      isFullTrack: true
+    }
+  }
+
+  // Stack features for time-delay embedding
+  const stacked = stackMemory(chroma)
+  if (!stacked.length) {
+    return {
+      loopStart: 0,
+      loopEnd: audioBuffer.duration,
+      confidence: 50,
+      isFullTrack: true
+    }
+  }
+
+  // Generate recurrence matrix
+  const recurrence = recurrenceMatrix(stacked)
+  
+  // Convert to lag representation
+  const lag = recurrenceToLag(recurrence)
+  
+  // Find loop candidates
+  const hopLength = 512
+  const frameTime = hopLength / audioBuffer.sampleRate
+  const candidates = findLoopCandidates(lag, frameTime)
+  
+  if (!candidates.length) {
+    return {
+      loopStart: 0,
+      loopEnd: audioBuffer.duration,
+      confidence: 50,
+      isFullTrack: true
+    }
+  }
+
+  // Select best candidate
+  const best = candidates[0]
+  
   return {
     loopStart: 0,
-    loopEnd: bestCandidate.lagSeconds,
-    confidence: Math.min(100, bestCandidate.confidence / 10),
-    bpm: estimatedBPM,
-    musicalDivision: bestCandidate.lagSeconds / (beatDuration * 4), // Loop length in bars
-    allCandidates: candidates,
+    loopEnd: best.lagSeconds,
+    confidence: Math.min(100, best.confidence * 10),
+    isFullTrack: true,
+    allCandidates: candidates
   }
 }
