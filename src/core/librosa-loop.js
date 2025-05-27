@@ -5,7 +5,7 @@
 
 import { onsetDetect, computeSTFT } from './librosa-onset.js';
 import { beatTrack, estimateTempo } from './librosa-beat.js';
-import { extractSpectralFeatures } from './librosa-spectral.js';
+import { spectralCentroid, rms } from './librosa-spectral.js';
 import { findMusicalLoop, findDownbeatPhase } from './librosa-downbeat.js';
 import { findPreciseLoop } from './librosa-precise-loop.js';
 

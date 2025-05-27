@@ -71,7 +71,6 @@ export * as AudioMath from './utils/AudioMath.js';
 // Legacy API compatibility (for existing projects)
 export { DynamicZeroCrossing } from './dynamic-zero-crossing.js';
 export { recurrenceLoopAnalysis } from './recurrence-loop-analyzer.js';
-export { detectBPM as detectBPMLegacy } from './bmp-detector.js';
 
 /**
  * Complete PlecoXA namespace for convenience
@@ -131,8 +130,7 @@ export const PlecoXA = {
   // Legacy compatibility
   Legacy: {
     DynamicZeroCrossing,
-    recurrenceLoopAnalysis,
-    detectBPM: detectBPMLegacy
+    recurrenceLoopAnalysis
   }
 };
 
