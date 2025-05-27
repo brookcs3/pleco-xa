@@ -36,10 +36,23 @@ export {
     mel_to_hz,
     mel_frequencies,
     power_to_db,
-    db_to_power,
-    amplitude_to_db,
-    db_to_amplitude
+    db_to_power
 } from './librosa-mel.js';
+
+export {
+    amplitude_to_db,
+    db_to_amplitude,
+    frames_to_samples,
+    frames_to_time,
+    samples_to_frames,
+    time_to_frames,
+    normalize_audio,
+    apply_fade,
+    zero_crossing_rate,
+    find_peaks,
+    moving_average,
+    rms_energy
+} from '../utils/audio-utils.js';
 
 // ============= SPECTRAL FEATURES =============
 export {
