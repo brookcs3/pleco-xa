@@ -3,7 +3,7 @@
  * Finds the TRUE beat 1 by analyzing musical patterns
  */
 
-import { onsetDetect } from './librosa-onset.js'
+import { onsetDetect } from './xa-onset.js'
 
 /**
  * Find the true downbeat phase by analyzing onset patterns

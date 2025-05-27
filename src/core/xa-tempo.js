@@ -3,7 +3,7 @@
  * BPM estimation and rhythmic analysis for DJ applications
  */
 
-import * as onsetLib from './librosa-onset.js'
+import * as onsetLib from './xa-onset.js'
 
 // Resolve the correct onset-strength helper regardless of which name
 // the onset module actually exports.

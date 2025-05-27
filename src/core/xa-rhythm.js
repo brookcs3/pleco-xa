@@ -3,7 +3,7 @@
  * Fixes phase/alignment issues in loop detection
  */
 
-import { computeSTFT, fft } from './librosa-onset.js'
+import { computeSTFT, fft } from './xa-onset.js'
 
 /**
  * Port of librosa.beat.plp() - Predominant Local Pulse

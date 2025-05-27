@@ -4,7 +4,7 @@
  *
  */
 
-import { fft, ifft } from 'src/core/librosa-fft.js'
+import { fft, ifft } from 'src/core/xa-fft.js'
 
 let globalAudioContext = null
 let currentAudioBuffer = null

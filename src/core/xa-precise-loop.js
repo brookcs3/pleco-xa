@@ -3,7 +3,7 @@
  * Designed for tracks with intro/outro sections
  */
 
-import { onsetDetect } from './librosa-onset.js'
+import { onsetDetect } from './xa-onset.js'
 import { findKickSnareHit } from './kick-snare-detector.js'
 
 /**
