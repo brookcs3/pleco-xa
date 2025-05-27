@@ -306,6 +306,7 @@ export function normalize_audio(y, peak = 1.0) {
  * @param {number} fade_in_samples
  * @param {number} fade_out_samples
  * @returns {Float32Array}
+
  */
 export function apply_fade(y, fade_in_samples = 0, fade_out_samples = 0) {
   const result = new Float32Array(y);
@@ -315,6 +316,7 @@ export function apply_fade(y, fade_in_samples = 0, fade_out_samples = 0) {
   for (let i = 0; i < Math.min(fade_out_samples, y.length); i++) {
     const alpha = i / fade_out_samples;
     result[y.length - 1 - i] *= alpha;
+
   }
   return result;
 }
@@ -325,6 +327,7 @@ export function apply_fade(y, fade_in_samples = 0, fade_out_samples = 0) {
  * @param {number} frame_length
  * @param {number} hop_length
  * @returns {Array<number>}
+
  */
 export function zero_crossing_rate(y, frame_length = 2048, hop_length = 512) {
   const zcr = [];
@@ -347,6 +350,7 @@ export function zero_crossing_rate(y, frame_length = 2048, hop_length = 512) {
  * @param {number} threshold
  * @param {number} min_distance
  * @returns {Array<number>}
+
  */
 export function find_peaks(signal, threshold = 0.1, min_distance = 10) {
   const peaks = [];
@@ -372,6 +376,7 @@ export function find_peaks(signal, threshold = 0.1, min_distance = 10) {
  */
 export function moving_average(signal, window_size = 5) {
   const out = new Array(signal.length);
+
   const half = Math.floor(window_size / 2);
   for (let i = 0; i < signal.length; i++) {
     let sum = 0;
@@ -387,4 +392,5 @@ export function moving_average(signal, window_size = 5) {
     out[i] = sum / count;
   }
   return out;
+
 }
