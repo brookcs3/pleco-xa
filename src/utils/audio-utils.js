@@ -6,6 +6,53 @@
 import { debugLog } from './debug.js';
 
 /**
+ * Compute RMS (Root Mean Square) energy of an audio buffer
+ * @param {AudioBuffer} audioBuffer - Web Audio API buffer
+ * @returns {number} RMS value
+ */
+export function computeRMS(audioBuffer) {
+  const channel = audioBuffer.getChannelData(0);
+  let sum = 0;
+  for (let i = 0; i < channel.length; i++) {
+    const v = channel[i];
+    sum += v * v;
+  }
+  return Math.sqrt(sum / channel.length);
+}
+
+/**
+ * Compute peak amplitude of an audio buffer
+ * @param {AudioBuffer} audioBuffer - Web Audio API buffer
+ * @returns {number} Peak amplitude value
+ */
+export function computePeak(audioBuffer) {
+  const channel = audioBuffer.getChannelData(0);
+  let max = 0;
+  for (let i = 0; i < channel.length; i++) {
+    const v = Math.abs(channel[i]);
+    if (v > max) max = v;
+  }
+  return max;
+}
+
+/**
+ * Compute zero crossing rate of an audio buffer
+ * Indicates how often the signal changes sign
+ * @param {AudioBuffer} audioBuffer - Web Audio API buffer
+ * @returns {number} Zero crossing rate
+ */
+export function computeZeroCrossingRate(audioBuffer) {
+  const channelData = audioBuffer.getChannelData(0);
+  let crossings = 0;
+  for (let i = 1; i < channelData.length; i++) {
+    if ((channelData[i] >= 0) !== (channelData[i - 1] >= 0)) {
+      crossings++;
+    }
+  }
+  return crossings / channelData.length;
+}
+
+/**
  * Find zero crossing point in audio data for clean boundaries
  * @param {Float32Array} data - Audio data
  * @param {number} startIndex - Starting index to search from
@@ -74,8 +121,7 @@ export async function createReferenceTemplate(audioBuffer, loopStart, loopEnd) {
   // Extract the reference loop segment
   const loopSegment = channelData.slice(startSample, endSample);
   
-  // Import functions we need
-  const { computeRMS, computePeak, computeZeroCrossingRate } = await import('../core/audio-utils.js');
+  // Import heavy spectral helper lazily
   const { computeSpectralCentroid } = await import('../core/spectral.js');
   
   // Compute reference characteristics
