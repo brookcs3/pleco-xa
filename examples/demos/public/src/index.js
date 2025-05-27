@@ -12,7 +12,7 @@ export { computeSpectralCentroid, computeSpectrum, computeFFT } from './core/spe
 export { calculateBeatAlignment } from './core/musical-timing.js';
 
 // Basic audio processing
-export { loadAudioBuffer, computeRMS, computePeak, computeZeroCrossingRate } from './utils/audio-utils.js';
+export { loadAudioBuffer, computeRMS, computePeak, computeZeroCrossingRate } from '../../../../src/utils/audio-utils.js';
 
 // Audio manipulation
 export { pitchBasedCompress, tempoBasedCompress } from './core/compression.js';
@@ -24,14 +24,14 @@ export {
   applyHannWindow,
   createReferenceTemplate,
   analyzeWithReference
-} from './utils/audio-utils.js';
+} from '../../../../src/utils/audio-utils.js';
 
 // Interactive classes
 export { WaveformEditor } from './classes/WaveformEditor.js';
 export { LoopPlayer } from './classes/LoopPlayer.js';
 
 // Debugging flag
-export { DEBUG_ENABLED, setDebug, debugLog } from './utils/debug.js';
+export { DEBUG_ENABLED, setDebug, debugLog } from '../../../../src/utils/debug.js';
 
 // Version info
 export const version = '1.0.2';
