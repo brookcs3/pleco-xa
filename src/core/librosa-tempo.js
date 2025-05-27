@@ -3,7 +3,14 @@
  * BPM estimation and rhythmic analysis for DJ applications
  */
 
-import { onset_strength } from './librosa-onset.js';
+import * as onsetLib from './librosa-onset.js';
+
+// Resolve the correct onset-strength helper regardless of which name
+// the onset module actually exports.
+const onset_strength =
+      onsetLib.onset_strength   // snake_case alias (preferred)
+   || onsetLib.onsetStrength    // camelCase version, if present
+   || onsetLib.computeSpectralFlux; // raw helper used as fallback
 
 /**
  * Estimate tempo (BPM) from audio

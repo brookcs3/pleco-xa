@@ -844,3 +844,27 @@ export class BeatTrackingUI {
         }
     }
 }
+
+/**
+ * Alias matching librosa.beat.beat_track() – convenience wrapper.
+ * Usage:
+ *   import { beat_track } from './librosa-beat-tracker.js';
+ *   const { tempo, beats } = beat_track(y, 44100, { hopLength: 512 });
+ *
+ * It internally instantiates a BeatTracker and forwards the call.
+ */
+// eslint-disable-next-line camelcase
+export function beat_track(y, sr = 22050, opts = {}) {
+  const tracker = new BeatTracker();
+  return tracker.beatTrack({ y, sr, ...opts });
+}
+
+/**
+ * Alias matching librosa.beat.tempo().
+ * Computes a single global tempo estimate from an onset envelope.
+ */
+// eslint-disable-next-line camelcase
+export function tempo(onsetEnvelope, sr = 22050, hopLength = 512, startBpm = 120) {
+  const tracker = new BeatTracker();
+  return tracker.tempoEstimation(onsetEnvelope, sr, hopLength, startBpm);
+}

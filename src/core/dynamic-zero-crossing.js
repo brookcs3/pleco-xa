@@ -108,4 +108,28 @@ export class DynamicZeroCrossing {
     
     return { fadeIn, fadeOut, length: fadeLength };
   }
+  /**
+   * Simple wrapper used by higher-level modules (e.g. loop-smart.js).
+   * Given raw start/end sample indices, it snaps each edge to the nearest
+   * zero‑crossing within ±searchWindow samples and returns the two indices.
+   *
+   * @param {Float32Array} audioData
+   * @param {number} startSample    initial start index (samples)
+   * @param {number} endSample      initial end index   (samples)
+   * @param {number} [searchWindow=441] window half‑width in samples (≈10 ms @44.1 kHz)
+   * @returns {[number, number]}    [snappedStart, snappedEnd] sample indices
+   */
+  static snap(audioData, startSample, endSample, searchWindow = 441) {
+    const startZero = this.findNearestZeroCrossing(
+        audioData,
+        Math.floor(startSample),
+        searchWindow
+    );
+    const endZero   = this.findNearestZeroCrossing(
+        audioData,
+        Math.floor(endSample),
+        searchWindow
+    );
+    return [startZero.sample, endZero.sample];
+  }
 }

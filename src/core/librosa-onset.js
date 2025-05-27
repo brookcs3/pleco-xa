@@ -157,6 +157,37 @@ export function computeSpectralFlux(stft) {
 }
 
 /**
+ * Python‑style onset_strength() wrapper.
+ * Accepts either a pre‑computed STFT **or** a 1‑D audio signal.
+ *
+ * @param {Float32Array|Array} y_or_stft  1‑D PCM signal **or** STFT array
+ * @param {Object} [opts]
+ *   @param {number} [opts.sr=22050]            sample‑rate (Hz) if y is audio
+ *   @param {number} [opts.hop_length=512]      hop‑length used for STFT
+ *   @param {number} [opts.frame_length=2048]   frame length for STFT
+ * @returns {Float32Array}  onset strength envelope
+ */
+// eslint-disable-next-line camelcase
+export function onset_strength(y_or_stft, opts = {}) {
+  const {
+    sr = 22050,
+    hop_length = 512,
+    frame_length = 2048
+  } = opts;
+
+  // Detect whether we were given a 1‑D Float32Array (raw audio)
+  const isAudio =
+    (typeof Float32Array !== 'undefined' && y_or_stft instanceof Float32Array) ||
+    (Array.isArray(y_or_stft) && typeof y_or_stft[0] === 'number');
+
+  const stft = isAudio
+    ? computeSTFT(y_or_stft, frame_length, hop_length)   // raw audio → STFT
+    : y_or_stft;                                         // already an STFT
+
+  return computeSpectralFlux(stft);
+}
+
+/**
  * Peak picking for onset detection
  * Port of librosa's peak picking algorithm
  */
