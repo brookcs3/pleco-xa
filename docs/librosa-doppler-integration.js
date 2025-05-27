@@ -21,7 +21,7 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
   constructor(options = {}) {
     super(options);
     
-    // Additional options for librosa-based morphing
+    // Additional options for xa-based morphing
     this.morphOptions = {
       windowFunction: 'hann', // Use Hann window from your implementation
       confidenceThreshold: 0.7,
@@ -86,7 +86,7 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
   }
 
   /**
-   * Musical loop analysis from your librosa-loop-editor
+   * Musical loop analysis from your xa-loop-editor
    */
   async musicalLoopAnalysis(audioBuffer, loopId) {
     const audioData = audioBuffer.getChannelData(0);

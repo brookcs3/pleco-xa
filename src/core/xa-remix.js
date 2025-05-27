@@ -1,5 +1,5 @@
 /**
- * Librosa-style remix functionality for JavaScript
+ * Remix functionality for JavaScript
  * Re-order time intervals in audio with zero-crossing alignment
  */
 

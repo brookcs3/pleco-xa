@@ -18,7 +18,7 @@ import { computeSpectrum, computeSpectralCentroid } from './spectral.js';
 import { calculateBeatAlignment } from './musical-timing.js';
 import { debugLog } from '../../../../../src/utils/debug.js';
 
-export async function librosaLoopAnalysis(audioBuffer) {
+export async function loopAnalysis(audioBuffer) {
   debugLog('Starting Musical Timing-Aware Analysis');
 
   const audioData = audioBuffer.getChannelData(0);

@@ -1,7 +1,7 @@
-import { stft as fftStft, fft_frequencies } from './librosa-fft.js';
-import { normalize } from './librosa-util.js';
+import { stft as fftStft, fft_frequencies } from './xa-fft.js';
+import { normalize } from './xa-util.js';
 /**
- * Web-ready JavaScript port of librosa spectral feature extraction
+ * Web-ready JavaScript spectral feature extraction
  * 
  * This module provides functions for extracting various spectral features from audio:
  * - Spectral characteristics (centroid, bandwidth, contrast, rolloff, flatness)
@@ -1001,7 +1001,7 @@ function mean(arr, options = {}) {
 }
 
 function stft(y, options) {
-    // Use the real STFT implementation from librosa-fft.js
+    // Use the real STFT implementation from xa-fft.js
     const { n_fft = 2048, hop_length = 512, window = 'hann', center = true } = options;
     return fftStft(y, n_fft, hop_length, window, center);
 }

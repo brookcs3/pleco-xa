@@ -25,7 +25,7 @@ export {
     polar_to_complex,
     fft_frequencies,
     spectrogram
-} from './librosa-fft.js';
+} from './xa-fft.js';
 
 // ============= MEL-SCALE AND MFCC FEATURES =============
 export {
@@ -39,7 +39,7 @@ export {
     db_to_power,
     amplitude_to_db,
     db_to_amplitude
-} from './librosa-mel.js';
+} from './xa-mel.js';
 
 // ============= SPECTRAL FEATURES =============
 export {
@@ -52,7 +52,7 @@ export {
     tonnetz,
     poly_features,
     zero_crossing_rate as zcr_spectral
-} from './librosa-spectral.js';
+} from './xa-spectral.js';
 
 // ============= CHROMA AND HARMONIC ANALYSIS =============
 export {
@@ -63,7 +63,7 @@ export {
     spectrum_to_chroma,
     estimate_tuning,
     pitch_tuning
-} from './librosa-chroma.js';
+} from './xa-chroma.js';
 
 // ============= BEAT AND TEMPO DETECTION =============
 export {
@@ -76,7 +76,7 @@ export {
     plp,
     fourier_tempogram,
     autocorr_tempogram
-} from './librosa-beat.js';
+} from './xa-beat.js';
 
 // ============= ADVANCED PROCESSING =============
 export {
@@ -91,7 +91,7 @@ export {
     polyfit,
     linspace,
     find_peaks
-} from './librosa-advanced.js';
+} from './xa-advanced.js';
 
 // ============= UTILITY FUNCTIONS =============
 export {
@@ -111,7 +111,7 @@ export {
     valid_audio,
     frame as util_frame,
     peak_pick as util_peak_pick
-} from './librosa-util.js';
+} from './xa-util.js';
 
 // ============= ONSET DETECTION =============
 export {
@@ -120,7 +120,7 @@ export {
     onsetBacktrack,
     spectralFlux,
     complexFlux
-} from './librosa-onset.js';
+} from './xa-onset.js';
 
 // ============= TEMPORAL ANALYSIS =============
 export {
@@ -130,7 +130,7 @@ export {
     lagToRecurrence,
     agglomerative,
     pathEnhance
-} from './librosa-temporal.js';
+} from './xa-temporal.js';
 
 // ============= PATTERN MATCHING =============
 export {
@@ -138,7 +138,7 @@ export {
     dtwKMeans,
     matchIntervals,
     matchEvents
-} from './librosa-matching.js';
+} from './xa-matching.js';
 
 // ============= MUSICAL INTERVALS =============
 export {
@@ -146,7 +146,7 @@ export {
     intervalFrequencies,
     pythagoreanIntervals,
     plimitIntervals
-} from './librosa-intervals.js';
+} from './xa-intervals.js';
 
 // ============= FILE UTILITIES =============
 export {
@@ -161,7 +161,7 @@ export {
     createVisualization,
     isWebAudioSupported,
     createAudioContext
-} from './librosa-file.js';
+} from './xa-file.js';
 
 // ============= WEB AUDIO ANALYSIS CLASS =============
 
@@ -607,7 +607,7 @@ export default defaultAnalyzer;
 // Usage Examples - Modern Web Audio API Patterns:
 /*
 // === BASIC USAGE ===
-import analyzer from './librosa-complete.js';
+import analyzer from './xa-complete.js';
 
 // Load and analyze audio file
 const audioBuffer = await analyzer.loadAudio('song.mp3');

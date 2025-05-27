@@ -6,7 +6,7 @@
 // Only keep imports needed for the old functions (in case they're still used elsewhere)
 import { fastBPMDetect } from './librosa-beat.js';
 import { computeRMS, computePeak, computeZeroCrossingRate } from '../utils/audio-utils.js';
-import { spectralCentroid } from './librosa-spectral.js';
+import { spectralCentroid } from './xa-spectral.js';
 import { spectrogram } from './librosa-fft.js';
 import { calculateBeatAlignment } from './musical-timing.js';
 import { findZeroCrossing, findAudioStart, applyHannWindow } from '../utils/audio-utils.js';
@@ -18,7 +18,7 @@ import { debugLog } from '../utils/debug.js';
  * @param {boolean} useReference - Whether to use reference template
  * @returns {Promise<Object>} Complete analysis results
  */
-export async function librosaLoopAnalysis(audioBuffer, useReference = false) {
+export async function loopAnalysis(audioBuffer, useReference = false) {
   debugLog('Starting Musical Timing-Aware Analysis...');
   
   const audioData = audioBuffer.getChannelData(0);

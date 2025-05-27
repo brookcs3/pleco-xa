@@ -45,7 +45,7 @@ npm install pleco-xa
 ## Quick Start
 
 ```javascript
-import { detectBPM, librosaLoopAnalysis, WaveformEditor, debugLog } from 'pleco-xa';
+import { detectBPM, loopAnalysis, WaveformEditor, debugLog } from 'pleco-xa';
 
 // Load audio file
 const audioContext = new AudioContext();
@@ -58,7 +58,7 @@ const bpmResult = detectBPM(audioBuffer.getChannelData(0), audioBuffer.sampleRat
 debugLog(`Detected BPM: ${bpmResult.bpm}`);
 
 // Find optimal loop points
-const analysis = await librosaLoopAnalysis(audioBuffer);
+const analysis = await loopAnalysis(audioBuffer);
 debugLog(`Loop: ${analysis.loopStart}s - ${analysis.loopEnd}s`);
 debugLog(`Musical division: ${analysis.musicalDivision} bars`);
 
@@ -143,7 +143,7 @@ Detect tempo using autocorrelation on onset strength.
 - **sampleRate**: `number` - Sample rate in Hz
 - **Returns**: `{bpm: number, confidence: number}`
 
-#### `librosaLoopAnalysis(audioBuffer, useReference)`
+#### `loopAnalysis(audioBuffer, useReference)`
 Main analysis engine with musical timing awareness.
 - **audioBuffer**: `AudioBuffer` - Web Audio API buffer
 - **useReference**: `boolean` - Use reference template matching
@@ -240,7 +240,7 @@ import {
 
 // Step 1: Analyze a known-good loop
 const referenceBuffer = await loadAudio('perfect-loop.wav');
-const referenceAnalysis = await librosaLoopAnalysis(referenceBuffer);
+const referenceAnalysis = await loopAnalysis(referenceBuffer);
 const template = await createReferenceTemplate(
   referenceBuffer, 
   referenceAnalysis.loopStart, 
@@ -370,7 +370,7 @@ Contributions are welcome! Feel free to open issues or pull requests on GitHub.
 
 MIT License - See LICENSE file for details.
 
-Some audio analysis techniques were adapted from ideas in the Librosa library.
+Some audio analysis techniques were inspired by open-source audio DSP research.
 ---
 
 **Pleco Xa** - Bringing musical intelligence to the browser.  

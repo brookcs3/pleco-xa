@@ -1,5 +1,5 @@
 /**
- * Librosa-style audio filters for JavaScript
+ * Audio filters for JavaScript
  * Preemphasis and deemphasis filtering
  */
 

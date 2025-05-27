@@ -63,12 +63,12 @@
   
   try {
     // Test basic import that should work
-    const { quick_tempo } = await import('/src/core/librosa-tempo.js');
+    const { quick_tempo } = await import('/src/core/xa-tempo.js');
     addLog('✅ quick_tempo imported successfully');
     
     // Test recurrence imports
-    const recurrence = await import('/src/core/librosa-recurrence.js');
-    addLog('✅ librosa-recurrence imported');
+    const recurrence = await import('/src/core/xa-recurrence.js');
+    addLog('✅ xa-recurrence imported');
     addLog(`Available exports: ${Object.keys(recurrence).join(', ')}`);
     
   } catch (error) {
@@ -121,7 +121,7 @@
     try {
       addLog('🥁 Testing BPM detection...');
       
-      const { quick_tempo } = await import('/src/core/librosa-tempo.js');
+      const { quick_tempo } = await import('/src/core/xa-tempo.js');
       const audioData = buffer.getChannelData(0);
       const sampleRate = buffer.sampleRate;
       

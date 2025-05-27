@@ -40,7 +40,7 @@
   <section id="page3"><h1>Loop 2</h1></section>
 
   <script type="module">
-    import { librosaLoopAnalysis } from '../src/index.js';
+    import { loopAnalysis } from '../src/index.js';
     import Lenis from 'https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.6/dist/lenis.min.js';
     import gsap from 'https://cdn.jsdelivr.net/npm/gsap@3.12.2/index.js';
     import { ScrollTrigger } from 'https://cdn.jsdelivr.net/npm/gsap@3.12.2/ScrollTrigger.js';
@@ -65,7 +65,7 @@
       const res = await fetch(loop.url);
       const arrayBuffer = await res.arrayBuffer();
       loop.buffer = await ctx.decodeAudioData(arrayBuffer);
-      const analysis = await librosaLoopAnalysis(loop.buffer);
+      const analysis = await loopAnalysis(loop.buffer);
       loop.loopStart = analysis.loopStart;
       loop.loopEnd = analysis.loopEnd;
     }

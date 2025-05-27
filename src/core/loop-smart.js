@@ -3,7 +3,7 @@
  */
 import {
   recurrenceMatrix, recurrenceToLag, pathEnhance
-} from './librosa-temporal.js';
+} from './xa-temporal.js';
 import { DynamicZeroCrossing }                from './dynamic-zero-crossing.js';
 
 /* ------------------------------------------------------------------

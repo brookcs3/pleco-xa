@@ -1,5 +1,5 @@
 /**
- * JavaScript port of librosa.segment.recurrence_matrix()
+ * JavaScript recurrence matrix and loop structure analysis
  * For finding loop structures in audio
  */
 
@@ -125,7 +125,7 @@ function gen_sim_matrix(data, k = null, metric = "euclidean", sparse = false, mo
 }
 
 /**
- * Proper librosa-style recurrence matrix
+ * Proper recurrence matrix (xa-style)
  */
 export function recurrenceMatrix(data, k = null, width = 1, metric = "euclidean", sym = false, axis = -1, sparse = false, mode = "connectivity", bandwidth = null, hop_length = 1, win_length = null) {
   let S = gen_sim_matrix(data, k, metric, sparse, mode, bandwidth, hop_length, win_length, axis);
@@ -172,7 +172,7 @@ export function recurrenceMatrix(data, k = null, width = 1, metric = "euclidean"
 }
 
 /**
- * Convert recurrence matrix to lag representation (proper librosa port)
+ * Convert recurrence matrix to lag representation (xa-style)
  */
 export function recurrenceToLag(recurrence, pad = true, axis = -1) {
   if (axis !== 0 && axis !== 1 && axis !== -1) {
@@ -214,7 +214,7 @@ export function recurrenceToLag(recurrence, pad = true, axis = -1) {
 }
 
 /**
- * Convert frames to time (librosa port)
+ * Convert frames to time (xa-style)
  */
 export function framesToTime(frames, hopLength = 512, sr = 22050) {
   if (Array.isArray(frames)) {
