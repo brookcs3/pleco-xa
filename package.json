@@ -24,12 +24,6 @@
     "modern-normalize": "^3.0.1",
     "sass": "^1.89.0"
   },
-  "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": [
-      "@testing-library/jest-dom"
-    ]
-  },
   "devDependencies": {
     "@babel/preset-env": "^7.27.2",
     "@rollup/plugin-node-resolve": "^15.0.0",
@@ -43,6 +37,7 @@
     "prettier-plugin-astro": "^0.14.1",
     "rollup": "^4.41.1",
     "serve": "^14.2.4",
+    "terser": "^5.39.2",
     "ts-jest": "^29.3.4",
     "web-audio-test-api": "file:./web-audio-test-api"
   },
