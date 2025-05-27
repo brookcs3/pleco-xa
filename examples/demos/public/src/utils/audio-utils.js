@@ -5,6 +5,37 @@
 
 import { debugLog } from './debug.js';
 
+export function computeRMS(audioBuffer) {
+  const channel = audioBuffer.getChannelData(0);
+  let sum = 0;
+  for (let i = 0; i < channel.length; i++) {
+    const v = channel[i];
+    sum += v * v;
+  }
+  return Math.sqrt(sum / channel.length);
+}
+
+export function computePeak(audioBuffer) {
+  const channel = audioBuffer.getChannelData(0);
+  let max = 0;
+  for (let i = 0; i < channel.length; i++) {
+    const v = Math.abs(channel[i]);
+    if (v > max) max = v;
+  }
+  return max;
+}
+
+export function computeZeroCrossingRate(audioBuffer) {
+  const data = audioBuffer.getChannelData(0);
+  let crossings = 0;
+  for (let i = 1; i < data.length; i++) {
+    if ((data[i] >= 0) !== (data[i - 1] >= 0)) {
+      crossings++;
+    }
+  }
+  return crossings / data.length;
+}
+
 /**
  * Find zero crossing point in audio data for clean boundaries
  * @param {Float32Array} data - Audio data
@@ -74,8 +105,7 @@ export async function createReferenceTemplate(audioBuffer, loopStart, loopEnd) {
   // Extract the reference loop segment
   const loopSegment = channelData.slice(startSample, endSample);
   
-  // Import functions we need
-  const { computeRMS, computePeak, computeZeroCrossingRate } = await import('../core/audio-utils.js');
+  // Import heavy spectral helper lazily
   const { computeSpectralCentroid } = await import('../core/spectral.js');
   
   // Compute reference characteristics

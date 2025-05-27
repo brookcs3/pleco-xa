@@ -5,8 +5,7 @@
 
 // Only keep imports needed for the old functions (in case they're still used elsewhere)
 import { fastBPMDetect } from './librosa-beat.js';
-import { computeRMS, computePeak } from './audio-utils.js';
-import { computeZeroCrossingRate } from '../core/audio-utils.js';
+import { computeRMS, computePeak, computeZeroCrossingRate } from '../utils/audio-utils.js';
 import { computeSpectrum, computeSpectralCentroid } from './spectral.js';
 import { calculateBeatAlignment } from './musical-timing.js';
 import { findZeroCrossing, findAudioStart, applyHannWindow } from '../utils/audio-utils.js';
