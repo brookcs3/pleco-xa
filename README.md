@@ -13,24 +13,28 @@ Pleco Xa is a comprehensive JavaScript audio analysis library that brings advanc
 ## Features
 
 ### 🎵 **Musical Intelligence**
+
 - **BPM Detection** - Autocorrelation-based tempo analysis
 - **Musical Boundary Detection** - Find natural loop points based on musical structure
 - **Beat Alignment** - Validate loop timing against musical divisions
 - **Spectral Analysis** - Frequency content and brightness analysis
 
 ### 🔄 **Loop Analysis**
+
 - **Intelligent Loop Detection** - Find optimal loop points using musical timing
 - **Sequential Window Navigation** - Browse through audio segments systematically
 - **Reference Template Matching** - Use known-good loops to find similar segments
 - **Multi-candidate Analysis** - Get multiple loop options ranked by confidence
 
 ### 🎛️ **Audio Processing**
+
 - **Time Compression** - Compress audio to fit time constraints
 - **Waveform Visualization** - Interactive waveform editor
 - **Zero-crossing Detection** - Clean audio boundaries
 - **RMS/Peak Analysis** - Audio level and dynamics analysis
 
 ### 🎮 **Interactive Components**
+
 - **PlecoAnalyzer** - Full analysis interface with loop playback
 - **WaveformEditor** - Draggable loop point editor
 - **BPMDetector** - Quick BPM detection tool
@@ -45,7 +49,7 @@ npm install pleco-xa
 ## Quick Start
 
 ```javascript
-import { detectBPM, librosaLoopAnalysis, WaveformEditor, debugLog } from 'pleco-xa';
+import { detectBPM, loopAnalysis, WaveformEditor, debugLog } from 'pleco-xa';
 
 // Load audio file
 const audioContext = new AudioContext();
@@ -58,7 +62,7 @@ const bpmResult = detectBPM(audioBuffer.getChannelData(0), audioBuffer.sampleRat
 debugLog(`Detected BPM: ${bpmResult.bpm}`);
 
 // Find optimal loop points
-const analysis = await librosaLoopAnalysis(audioBuffer);
+const analysis = await loopAnalysis(audioBuffer);
 debugLog(`Loop: ${analysis.loopStart}s - ${analysis.loopEnd}s`);
 debugLog(`Musical division: ${analysis.musicalDivision} bars`);
 
@@ -66,7 +70,6 @@ debugLog(`Musical division: ${analysis.musicalDivision} bars`);
 const canvas = document.getElementById('waveform');
 const editor = new WaveformEditor(canvas, audioBuffer, analysis);
 ```
-
 
 ## Build
 
@@ -120,6 +123,7 @@ npm test
 
 This command executes all tests configured in `jest.config.cjs` using Node's
 `--experimental-vm-modules` flag so Jest can run ES modules.
+
 ## Astro Integration
 
 Pleco Xa ships with prebuilt Astro components for easy integration into Astro projects.
@@ -138,19 +142,25 @@ import { PlecoAnalyzer, WaveformEditor, BPMDetector, LoopPlayer } from 'pleco-xa
 ### Core Analysis Functions
 
 #### `detectBPM(audioData, sampleRate)`
+
 Detect tempo using autocorrelation on onset strength.
+
 - **audioData**: `Float32Array` - Raw audio samples
 - **sampleRate**: `number` - Sample rate in Hz
 - **Returns**: `{bpm: number, confidence: number}`
 
-#### `librosaLoopAnalysis(audioBuffer, useReference)`
+#### `loopAnalysis(audioBuffer, useReference)`
+
 Main analysis engine with musical timing awareness.
+
 - **audioBuffer**: `AudioBuffer` - Web Audio API buffer
 - **useReference**: `boolean` - Use reference template matching
 - **Returns**: Complete analysis object with loop points, BPM, musical info
 
 #### `musicalLoopAnalysis(audioBuffer, bpmData)`
+
 Musical boundary-aware loop detection.
+
 - **audioBuffer**: `AudioBuffer` - Audio to analyze
 - **bpmData**: `Object` - BPM detection results
 - **Returns**: Loop candidates with musical timing confidence
@@ -158,64 +168,84 @@ Musical boundary-aware loop detection.
 ### Spectral Analysis
 
 #### `computeSpectralCentroid(audioBuffer)`
+
 Calculate frequency content brightness.
+
 - **Returns**: `number` - Spectral centroid in Hz
 
 #### `computeSpectrum(audioBuffer, fftSize)`
+
 FFT-based spectrum analysis.
+
 - **fftSize**: `number` - FFT size (default 2048)
 - **Returns**: `Array<number>` - Frequency domain data
 
 #### `computeFFT(frame)`
+
 Direct FFT computation for custom analysis.
+
 - **frame**: `Float32Array` - Audio frame
 - **Returns**: `Float32Array` - Interleaved real/imaginary FFT result
 
 ### Audio Processing
 
 #### `computeRMS(audioBuffer)`
+
 Root mean square energy calculation.
 
 #### `computePeak(audioBuffer)`
+
 Peak amplitude detection.
 
 #### `computeZeroCrossingRate(audioBuffer)`
+
 Audio texture analysis via zero crossings.
 
 ### Audio Compression
 
 #### `pitchBasedCompress(audioBuffer, ratio)`
+
 Time compression that changes pitch and tempo.
+
 - **ratio**: `number` - Compression ratio (0.8 = 20% faster)
 - **Returns**: `Promise<AudioBuffer>` - Compressed audio
 
 #### `tempoBasedCompress(audioBuffer, ratio)`
+
 Pitch-preserving time compression (placeholder).
 
 ### Utility Functions
 
 #### `findZeroCrossing(data, startIndex)`
+
 Find clean audio boundaries.
 
 #### `findAudioStart(channelData, sampleRate, threshold)`
+
 Skip silence at beginning of audio.
 
 #### `applyHannWindow(data)`
+
 Apply windowing for spectral analysis.
 
 #### `calculateBeatAlignment(loopLength, bpm)`
+
 Validate musical timing alignment.
 
 ### Interactive Classes
 
 #### `WaveformEditor(canvas, audioBuffer, analysis)`
+
 Interactive waveform with draggable loop points.
+
 - Emits `loopChange` events when points are modified
 - Visual feedback with loop region highlighting
 - Also available as `<WaveformEditor>` in Astro projects.
 
 #### `LoopPlayer(audioBuffer)`
+
 Seamless loop playback engine.
+
 - `play()` - Start looped playback
 - `stop()` - Stop playback
 - `setLoopPoints(start, end)` - Update loop boundaries
@@ -223,6 +253,7 @@ Seamless loop playback engine.
 - Also available as `<LoopPlayer>` in Astro projects.
 
 Additional Astro components:
+
 - `<BPMDetector>` for quick BPM analysis
 - `<PlecoAnalyzer>` for a full-featured interface
 
@@ -240,7 +271,7 @@ import {
 
 // Step 1: Analyze a known-good loop
 const referenceBuffer = await loadAudio('perfect-loop.wav');
-const referenceAnalysis = await librosaLoopAnalysis(referenceBuffer);
+const referenceAnalysis = await loopAnalysis(referenceBuffer);
 const template = await createReferenceTemplate(
   referenceBuffer, 
   referenceAnalysis.loopStart, 
@@ -279,6 +310,7 @@ navigator.mediaDevices.getUserMedia({ audio: true })
 ## Examples
 
 See the `/examples` directory for complete working examples. Sample loops for these demos should be placed in the top-level `audio/` folder:
+
 - **Demo** - [`demo.html`](examples/demo.html) loads Pleco Xa from the unpkg CDN
   for quick testing
 - **Basic Usage** - Simple BPM detection and loop finding
@@ -305,11 +337,10 @@ site includes a simple `paywall.js` script that hides premium components until a
 valid token is set. Pair it with the Stripe backend in `deploying/railway-api`
 to sell access while keeping the main app static.
 
-
-
 ## Browser Compatibility
 
 Pleco Xa works in all modern browsers that support:
+
 - Web Audio API
 - ES6 Modules
 - Canvas API
@@ -349,7 +380,6 @@ Railway reads the `.nixpacks.toml` file in `deploying/railway-api/` to set up th
 
 For local testing you can run the same commands without Docker:
 
-
 ```bash
 npm ci
 npm start
@@ -370,12 +400,11 @@ Contributions are welcome! Feel free to open issues or pull requests on GitHub.
 
 MIT License - See LICENSE file for details.
 
-Some audio analysis techniques were adapted from ideas in the Librosa library.
----
+Some audio analysis techniques were inspired by open-source audio DSP research
+
+## Credits
 
 **Pleco Xa** - Bringing musical intelligence to the browser.  
 *Built with ♪ by Cameron Brooks*
 
-
 ![Hits](https://visitor-badge.laobi.icu/badge?page_id=brookcs3.pleco-xa)
-

@@ -6,7 +6,8 @@
 // Only keep imports needed for the old functions (in case they're still used elsewhere)
 import { fastBPMDetect } from './librosa-beat.js';
 import { computeRMS, computePeak, computeZeroCrossingRate } from '../utils/audio-utils.js';
-import { computeSpectrum, computeSpectralCentroid } from './spectral.js';
+import { spectralCentroid } from './xa-spectral.js';
+import { spectrogram } from './librosa-fft.js';
 import { calculateBeatAlignment } from './musical-timing.js';
 import { findZeroCrossing, findAudioStart, applyHannWindow } from '../utils/audio-utils.js';
 import { debugLog } from '../utils/debug.js';
@@ -17,7 +18,7 @@ import { debugLog } from '../utils/debug.js';
  * @param {boolean} useReference - Whether to use reference template
  * @returns {Promise<Object>} Complete analysis results
  */
-export async function librosaLoopAnalysis(audioBuffer, useReference = false) {
+export async function loopAnalysis(audioBuffer, useReference = false) {
   debugLog('Starting Musical Timing-Aware Analysis...');
   
   const audioData = audioBuffer.getChannelData(0);
@@ -33,13 +34,14 @@ export async function librosaLoopAnalysis(audioBuffer, useReference = false) {
   // Basic Librosa metrics
   const rms = computeRMS(audioBuffer);
   const peak = computePeak(audioBuffer);
-  const spectrum = await computeSpectrum(audioBuffer);
+  const audioDataArray = Array.from(audioBuffer.getChannelData(0));
+  const spectrum = spectrogram(audioDataArray);
   
   // Use fast onset-based loop detection for better performance
   const loopPoints = await fastOnsetLoopAnalysis(audioBuffer, bpmData);
   
   // Spectral analysis for better loop detection
-  const spectralCentroid = computeSpectralCentroid(audioBuffer);
+  const spectralCentroidData = spectralCentroid({ y: audioData, sr: sampleRate });
   const zeroCrossingRate = computeZeroCrossingRate(audioBuffer);
   
   return {
@@ -70,51 +72,55 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
   const channelData = audioBuffer.getChannelData(0);
   const sampleRate = audioBuffer.sampleRate;
   const totalSamples = channelData.length;
-  
+
   // Skip silence at the beginning for long tracks
   const isLongTrack = audioBuffer.duration > 15;
   const audioStartSample = isLongTrack ? findAudioStart(channelData, sampleRate) : 0;
   const audioStartTime = audioStartSample / sampleRate;
-  
+
   debugLog(`Musical Analysis: Audio starts at ${audioStartTime.toFixed(3)}s`);
-  
+
   const beatsPerBar = 4;
   const barDuration = (60 / bpmData.bpm) * beatsPerBar;
   const beatDuration = 60 / bpmData.bpm;
-  
+
   debugLog(`Musical Analysis: Bar=${barDuration.toFixed(3)}s, Beat=${beatDuration.toFixed(3)}s`);
-  
-  // Test musical divisions: 1/2 bar, 1 bar, 2 bars, 4 bars
+
   const musicalDivisions = [0.5, 1, 2, 4, 8].map(div => div * barDuration);
   const results = [];
-  
-  for (const loopLength of musicalDivisions) {
-    // Don't test loops longer than 12 seconds or longer than half the track
-    if (loopLength > 12.0 || loopLength > audioBuffer.duration / 2) continue;
-    
-    const loopSamples = Math.floor(loopLength * sampleRate);
-    if (audioStartSample + loopSamples * 2 > totalSamples) continue;
-    
-    // Extract segments starting from actual audio content, not silence
-    const segment1 = applyHannWindow(channelData.slice(audioStartSample, audioStartSample + loopSamples));
-    const segment2 = applyHannWindow(channelData.slice(audioStartSample + loopSamples, audioStartSample + loopSamples * 2));
-    
-    // Cross-correlation for similarity
+
+  // Helper function to calculate cross-correlation between two segments
+  function calculateCorrelation(segment1, segment2) {
     let correlation = 0;
     for (let i = 0; i < segment1.length; i++) {
       correlation += segment1[i] * segment2[i];
     }
-    correlation /= segment1.length;
-    
-    // Find zero-crossings for clean loop boundaries, starting from audio content
+    return correlation / segment1.length;
+  }
+
+  // Helper function to extract and window audio segments
+  function extractWindowedSegment(channelData, startSample, endSample) {
+    return applyHannWindow(channelData.slice(startSample, endSample));
+  }
+
+  for (const loopLength of musicalDivisions) {
+    if (loopLength > 12.0 || loopLength > audioBuffer.duration / 2) continue;
+
+    const loopSamples = Math.floor(loopLength * sampleRate);
+    if (audioStartSample + loopSamples * 2 > totalSamples) continue;
+
+    const segment1 = extractWindowedSegment(channelData, audioStartSample, audioStartSample + loopSamples);
+    const segment2 = extractWindowedSegment(channelData, audioStartSample + loopSamples, audioStartSample + loopSamples * 2);
+
+    const correlation = calculateCorrelation(segment1, segment2);
+
     const startIndex = findZeroCrossing(channelData, audioStartSample);
     const endIndex = findZeroCrossing(channelData, audioStartSample + loopSamples);
-    
-    // Musical timing confidence boost - normalize to 0-100%
+
     const beatAlignment = calculateBeatAlignment(loopLength, bpmData.bpm);
     const rawConfidence = Math.abs(correlation) * beatAlignment;
     const musicalConfidence = Math.min(100, rawConfidence * 100);
-    
+
     results.push({
       loopStart: startIndex / sampleRate,
       loopEnd: endIndex / sampleRate,
@@ -125,8 +131,8 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
       bpm: bpmData.bpm,
       isMusicalBoundary: true
     });
-    
-    debugLog(`Testing ${(loopLength/barDuration).toFixed(1)} bars (${loopLength.toFixed(3)}s): correlation=${correlation.toFixed(4)}, confidence=${musicalConfidence.toFixed(4)}`);
+
+    debugLog(`Testing ${(loopLength / barDuration).toFixed(1)} bars (${loopLength.toFixed(3)}s): correlation=${correlation.toFixed(4)}, confidence=${musicalConfidence.toFixed(4)}`);
   }
   
   // Add fine-grained analysis around promising musical divisions
@@ -142,8 +148,8 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
       const loopSamples = Math.floor(testLength * sampleRate);
       if (loopSamples * 2 > totalSamples) continue;
       
-      const segment1 = applyHannWindow(channelData.slice(0, loopSamples));
-      const segment2 = applyHannWindow(channelData.slice(loopSamples, loopSamples * 2));
+      const segment1 = extractWindowedSegment(channelData, 0, loopSamples);
+      const segment2 = extractWindowedSegment(channelData, loopSamples, loopSamples * 2);
       
       let correlation = 0;
       for (let i = 0; i < segment1.length; i++) {
@@ -186,8 +192,8 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
       const loopSamples = endSample - startSample;
       
       // Test this sequential segment
-      const segment1 = applyHannWindow(channelData.slice(startSample, endSample));
-      const segment2 = applyHannWindow(channelData.slice(endSample, endSample + loopSamples));
+      const segment1 = extractWindowedSegment(channelData, startSample, endSample);
+      const segment2 = extractWindowedSegment(channelData, endSample, endSample + loopSamples);
       
       if (endSample + loopSamples > totalSamples) continue;
       

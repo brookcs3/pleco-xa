@@ -2,6 +2,7 @@ export default {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
   moduleNameMapper: {
+    '^src/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
   },
   transform: {
@@ -9,6 +10,12 @@ export default {
   },
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/src/index.test.js' // Temporarily ignore failing tests
+    '/src/index.test.js',
+    // '/examples/demos/',
+    // '/examples/astro-demo/',
+    // '/examples/astro-doppler/',
+    // '/examples/astro-site/',
+    // '/examples/frontend/',
+    // '/examples/backend/'
   ]
 };

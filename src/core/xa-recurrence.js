@@ -1,5 +1,5 @@
 /**
- * JavaScript port of librosa.segment.recurrence_matrix()
+ * JavaScript recurrence matrix and loop structure analysis
  * For finding loop structures in audio
  */
 
@@ -10,25 +10,27 @@ export function computeChroma(audioBuffer, hopLength = 512) {
   const audioData = audioBuffer.getChannelData(0);
   const sampleRate = audioBuffer.sampleRate;
   const frameLength = 2048;
+  if (!audioData || audioData.length < frameLength + 1) {
+    // Not enough data for even one frame
+    return [];
+  }
   const numFrames = Math.floor((audioData.length - frameLength) / hopLength);
-  
+  if (numFrames <= 0) {
+    return [];
+  }
   // 12 chroma bins (C, C#, D, D#, E, F, F#, G, G#, A, A#, B)
   const chroma = Array(12).fill(0).map(() => new Float32Array(numFrames));
-  
   for (let frame = 0; frame < numFrames; frame++) {
     const start = frame * hopLength;
     const frameData = audioData.slice(start, start + frameLength);
-    
     // Simple FFT to get frequency bins
     const fft = computeFFT(frameData);
     const magnitudes = new Float32Array(fft.length / 2);
-    
     for (let i = 0; i < magnitudes.length; i++) {
       const real = fft[i * 2];
       const imag = fft[i * 2 + 1];
       magnitudes[i] = Math.sqrt(real * real + imag * imag);
     }
-    
     // Map frequency bins to chroma bins
     for (let bin = 1; bin < magnitudes.length; bin++) {
       const freq = (bin * sampleRate) / frameLength;
@@ -38,7 +40,6 @@ export function computeChroma(audioBuffer, hopLength = 512) {
       }
     }
   }
-  
   return chroma;
 }
 
@@ -59,12 +60,21 @@ function frequencyToChroma(freq) {
  * Time-delay embedding to stack chroma features
  */
 export function stackMemory(chroma, nSteps = 10, delay = 3) {
-  const [numChroma, numFrames] = [chroma.length, chroma[0].length];
+  if (!Array.isArray(chroma) || chroma.length === 0 || !Array.isArray(chroma[0]) || chroma[0].length === 0) {
+    return [];
+  }
+  const numChroma = chroma.length;
+  const numFrames = chroma[0].length;
+  // Ensure all chroma rows have the same length
+  if (!chroma.every(row => row.length === numFrames)) {
+    throw new Error('All chroma rows must have the same length');
+  }
   const stackedSize = numChroma * nSteps;
   const validFrames = numFrames - (nSteps - 1) * delay;
-  
+  if (validFrames <= 0) {
+    return [];
+  }
   const stacked = Array(stackedSize).fill(0).map(() => new Float32Array(validFrames));
-  
   for (let frame = 0; frame < validFrames; frame++) {
     for (let step = 0; step < nSteps; step++) {
       const sourceFrame = frame + step * delay;
@@ -74,7 +84,6 @@ export function stackMemory(chroma, nSteps = 10, delay = 3) {
       }
     }
   }
-  
   return stacked;
 }
 
@@ -116,7 +125,7 @@ function gen_sim_matrix(data, k = null, metric = "euclidean", sparse = false, mo
 }
 
 /**
- * Proper librosa-style recurrence matrix
+ * Proper recurrence matrix (xa-style)
  */
 export function recurrenceMatrix(data, k = null, width = 1, metric = "euclidean", sym = false, axis = -1, sparse = false, mode = "connectivity", bandwidth = null, hop_length = 1, win_length = null) {
   let S = gen_sim_matrix(data, k, metric, sparse, mode, bandwidth, hop_length, win_length, axis);
@@ -163,21 +172,25 @@ export function recurrenceMatrix(data, k = null, width = 1, metric = "euclidean"
 }
 
 /**
- * Convert recurrence matrix to lag representation (proper librosa port)
+ * Convert recurrence matrix to lag representation (xa-style)
  */
 export function recurrenceToLag(recurrence, pad = true, axis = -1) {
   if (axis !== 0 && axis !== 1 && axis !== -1) {
     throw new Error('Invalid target axis: ' + axis);
   }
-  
+  if (!Array.isArray(recurrence) || recurrence.length === 0 || !Array.isArray(recurrence[0]) || recurrence[0].length === 0) {
+    return [];
+  }
+  // Check for square matrix
+  const originalSize = recurrence.length;
+  if (!recurrence.every(row => Array.isArray(row) && row.length === originalSize)) {
+    throw new Error('Recurrence matrix must be square');
+  }
   let R = recurrence;
-  
   if (pad) {
     // Pad the matrix
-    const originalSize = R.length;
     const newSize = originalSize * 2;
     const padded = Array(newSize).fill(0).map(() => new Float32Array(newSize));
-    
     // Copy original matrix to padded
     for (let i = 0; i < originalSize; i++) {
       for (let j = 0; j < originalSize; j++) {
@@ -186,10 +199,8 @@ export function recurrenceToLag(recurrence, pad = true, axis = -1) {
     }
     R = padded;
   }
-  
   const numFrames = R.length;
   const lagMatrix = Array(numFrames).fill(0).map(() => new Float32Array(numFrames));
-  
   // Convert to lag representation
   for (let i = 0; i < numFrames; i++) {
     for (let j = 0; j < numFrames; j++) {
@@ -199,12 +210,11 @@ export function recurrenceToLag(recurrence, pad = true, axis = -1) {
       }
     }
   }
-  
   return lagMatrix;
 }
 
 /**
- * Convert frames to time (librosa port)
+ * Convert frames to time (xa-style)
  */
 export function framesToTime(frames, hopLength = 512, sr = 22050) {
   if (Array.isArray(frames)) {

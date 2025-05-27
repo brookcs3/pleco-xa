@@ -1,5 +1,7 @@
+import { stft as fftStft, fft_frequencies } from './xa-fft.js';
+import { normalize } from './xa-util.js';
 /**
- * Web-ready JavaScript port of librosa spectral feature extraction
+ * Web-ready JavaScript spectral feature extraction
  * 
  * This module provides functions for extracting various spectral features from audio:
  * - Spectral characteristics (centroid, bandwidth, contrast, rolloff, flatness)
@@ -32,14 +34,32 @@ function _spectrogram(options) {
         throw new ParameterError("Either y or S must be provided");
     }
     
+    // Check for empty or all-zero input
+    if (!Array.isArray(y) || y.length === 0 || y.every(v => v === 0)) {
+        // Return a zero-filled spectrogram of expected shape
+        const frames = Math.max(1, Math.floor((n_fft ? y.length : 0) / (hop_length || 1)));
+        const zeroSpec = Array.from({ length: n_fft || 2048 }, () => new Array(frames).fill(0));
+        return { S: zeroSpec, n_fft };
+    }
+
     // Compute STFT
     const stft_result = stft(y, { n_fft, hop_length, win_length, window, center, pad_mode });
     let spec = abs(stft_result);
-    
+
+    // Sanitize: replace any NaN/Infinity with zero
+    function sanitize(arr) {
+        if (Array.isArray(arr[0])) {
+            return arr.map(row => sanitize(row));
+        }
+        return arr.map(v => (Number.isFinite(v) ? v : 0));
+    }
+    spec = sanitize(spec);
+
     if (power !== 1) {
         spec = power === 2 ? abs2(spec) : pow(spec, power);
+        spec = sanitize(spec);
     }
-    
+
     return { S: spec, n_fft };
 }
 
@@ -87,7 +107,7 @@ function spectralCentroid(options = {}) {
     // Compute center frequencies if not provided
     let frequencies = freq;
     if (frequencies === null) {
-        frequencies = fftFrequencies({ sr, n_fft: fft_size });
+        frequencies = fft_frequencies(sr, fft_size);
     }
     
     // Ensure frequencies can be broadcast
@@ -95,13 +115,40 @@ function spectralCentroid(options = {}) {
         frequencies = expandDims(frequencies, -2);
     }
     
+    // Check for non-finite values before normalization
+    const flatSpec = Array.isArray(spec) ? spec.flat(Infinity) : [];
+    if (!flatSpec.every(Number.isFinite)) {
+        throw new ParameterError("Spectrogram contains non-finite values (NaN or Infinity)");
+    }
+
     // Column-normalize S
     const S_norm = normalize(spec, { norm: 1, axis: -2 });
-    
+
     // Compute weighted mean
-    const centroid = sum(multiply(frequencies, S_norm), { axis: -2, keepdims: true });
-    
+    const centroid = sumArray(multiply(frequencies, S_norm), { axis: -2, keepdims: true });
     return centroid;
+
+// Helper: sum along axis for 1D/2D arrays
+function sumArray(arr, options = {}) {
+    // Only axis -2 (last but one) is supported for now
+    const { axis = -2, keepdims = false } = options;
+    if (!Array.isArray(arr[0])) {
+        // 1D array
+        const s = arr.reduce((a, b) => a + b, 0);
+        return keepdims ? [s] : s;
+    } else {
+        // 2D array: sum along axis -2 (rows)
+        const nRows = arr.length;
+        const nCols = arr[0].length;
+        const result = new Array(nCols).fill(0);
+        for (let i = 0; i < nRows; i++) {
+            for (let j = 0; j < nCols; j++) {
+                result[j] += arr[i][j];
+            }
+        }
+        return keepdims ? [result] : result;
+    }
+}
 }
 
 /**
@@ -954,11 +1001,9 @@ function mean(arr, options = {}) {
 }
 
 function stft(y, options) {
-    // Simplified STFT implementation
-    // In production, use Web Audio API or a proper FFT library
-    const { n_fft, hop_length, win_length, window, center, pad_mode } = options;
-    // Return complex spectrogram
-    return complexSpectrogram(y, n_fft, hop_length);
+    // Use the real STFT implementation from xa-fft.js
+    const { n_fft = 2048, hop_length = 512, window = 'hann', center = true } = options;
+    return fftStft(y, n_fft, hop_length, window, center);
 }
 
 function abs(x) {
@@ -992,9 +1037,76 @@ function exp(x) {
     return x.map(row => row.map ? row.map(Math.exp) : Math.exp(row));
 }
 
+
 function log(x) {
     if (typeof x === 'number') return Math.log(x);
     return x.map(row => row.map ? row.map(Math.log) : Math.log(row));
+}
+
+// Element-wise multiply: supports scalar * array, array * scalar, or array * array
+function multiply(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') {
+        return a * b;
+    }
+    if (typeof a === 'number') {
+        return Array.isArray(b[0])
+            ? b.map(row => row.map(v => a * v))
+            : b.map(v => a * v);
+    }
+    if (typeof b === 'number') {
+        return Array.isArray(a[0])
+            ? a.map(row => row.map(v => v * b))
+            : a.map(v => v * b);
+    }
+    // Both arrays: element-wise
+    if (Array.isArray(a[0]) && Array.isArray(b[0])) {
+        return a.map((row, i) => row.map((v, j) => v * b[i][j]));
+    }
+    return a.map((v, i) => v * b[i]);
+}
+
+// Element-wise divide: supports scalar / array, array / scalar, or array / array
+function divide(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') {
+        return a / b;
+    }
+    if (typeof a === 'number') {
+        return Array.isArray(b[0])
+            ? b.map(row => row.map(v => a / v))
+            : b.map(v => a / v);
+    }
+    if (typeof b === 'number') {
+        return Array.isArray(a[0])
+            ? a.map(row => row.map(v => v / b))
+            : a.map(v => v / b);
+    }
+    // Both arrays: element-wise
+    if (Array.isArray(a[0]) && Array.isArray(b[0])) {
+        return a.map((row, i) => row.map((v, j) => v / b[i][j]));
+    }
+    return a.map((v, i) => v / b[i]);
+}
+
+// Element-wise maximum: returns element-wise max of two arrays or array and scalar
+function maximum(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') {
+        return Math.max(a, b);
+    }
+    if (typeof a === 'number') {
+        return Array.isArray(b[0])
+            ? b.map(row => row.map(v => Math.max(a, v)))
+            : b.map(v => Math.max(a, v));
+    }
+    if (typeof b === 'number') {
+        return Array.isArray(a[0])
+            ? a.map(row => row.map(v => Math.max(v, b)))
+            : a.map(v => Math.max(v, b));
+    }
+    // Both arrays: element-wise
+    if (Array.isArray(a[0]) && Array.isArray(b[0])) {
+        return a.map((row, i) => row.map((v, j) => Math.max(v, b[i][j])));
+    }
+    return a.map((v, i) => Math.max(v, b[i]));
 }
 
 function getShape(arr) {

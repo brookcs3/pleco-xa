@@ -5,12 +5,12 @@
 
 import { onsetDetect, computeSTFT } from './librosa-onset.js';
 import { beatTrack, estimateTempo } from './librosa-beat.js';
-import { spectralCentroid, rms } from './librosa-spectral.js';
+import { spectralCentroid, rms } from './xa-spectral.js';
 import { findMusicalLoop, findDownbeatPhase } from './librosa-downbeat.js';
 import { findPreciseLoop } from './librosa-precise-loop.js';
 
 /**
- * Fast loop analysis - replaces the slow librosaLoopAnalysis
+ * Fast loop analysis - replaces the slow loopAnalysis
  * Uses proper onset detection and beat tracking for accurate results
  */
 export async function fastLoopAnalysis(audioBuffer) {

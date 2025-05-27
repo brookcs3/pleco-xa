@@ -17,8 +17,8 @@ export { WaveformRenderer } from './core/visualization/WaveformRenderer.js';
 export { SpectrumAnalyzer } from './core/visualization/SpectrumAnalyzer.js';
 
 // Utility functions
-export { analyzeAudio } from './utils/audio-utils.js';
-export { updateTrackInfo, updateLoopInfo, showError } from './utils/ui-utils.js';
-export { playAudio, stopAudio } from './utils/playback-utils.js';
-export { halfLoop, doubleLoop, moveForward } from './utils/loop-utils.js';
-export { drawWaveform } from './utils/waveform-utils.js';
+// Export the main PlecoXA class and its methods for npm consumers
+export { PlecoXA } from './pleco-xa.js';
+
+// Optionally, export core analysis modules for advanced users
+export * from './core/index.js';

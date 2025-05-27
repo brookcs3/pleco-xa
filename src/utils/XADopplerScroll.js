@@ -22,7 +22,6 @@ export class XADopplerScroll extends EnhancedDopplerScroll {
     super(options);
     
     // Additional options for XA-based morphing
-    // Additional options for xa-based morphing
     this.morphOptions = {
       windowFunction: 'hann', // Use Hann window from your implementation
       confidenceThreshold: 0.7,
@@ -82,7 +81,6 @@ export class XADopplerScroll extends EnhancedDopplerScroll {
 
   /**
    * Musical loop analysis from your XA loop editor
-   * Musical loop analysis from your xa-loop-editor
    */
   async musicalLoopAnalysis(audioBuffer, loopId) {
     const audioData = audioBuffer.getChannelData(0);

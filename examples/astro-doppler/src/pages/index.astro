@@ -32,7 +32,7 @@
     <section id="page3"><h1>Loop 2</h1></section>
 
     <script type="module">
-      import { librosaLoopAnalysis } from 'pleco-xa';
+      import { loopAnalysis } from 'pleco-xa';
 
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -51,7 +51,7 @@
         const res = await fetch(loop.url);
         const arrayBuffer = await res.arrayBuffer();
         loop.buffer = await ctx.decodeAudioData(arrayBuffer);
-        const analysis = await librosaLoopAnalysis(loop.buffer);
+        const analysis = await loopAnalysis(loop.buffer);
         loop.loopStart = analysis.loopStart;
         loop.loopEnd = analysis.loopEnd;
       }

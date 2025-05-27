@@ -372,4 +372,44 @@ export class EnhancedDopplerScroll extends DopplerScroll {
     
     return new Blob([arrayBuffer], { type: 'audio/wav' });
   }
+
+  /**
+   * Normalize array values to 0-1 range
+   */
+  normalizeArray(array) {
+    const min = Math.min(...array);
+    const max = Math.max(...array);
+    const range = max - min;
+    
+    if (range === 0) return array;
+    
+    const normalized = new Float32Array(array.length);
+    for (let i = 0; i < array.length; i++) {
+      normalized[i] = (array[i] - min) / range;
+    }
+    
+    return normalized;
+  }
+
+  /**
+   * Smooth envelope with moving average
+   */
+  smoothEnvelope(envelope) {
+    const windowSize = 5;
+    const smoothed = new Float32Array(envelope.length);
+    
+    for (let i = 0; i < envelope.length; i++) {
+      let sum = 0;
+      let count = 0;
+      
+      for (let j = Math.max(0, i - windowSize); j < Math.min(envelope.length, i + windowSize + 1); j++) {
+        sum += envelope[j];
+        count++;
+      }
+      
+      smoothed[i] = sum / count;
+    }
+    
+    return smoothed;
+  }
 }

@@ -1,5 +1,5 @@
 /**
- * Librosa-style FFT and STFT implementations for JavaScript
+ * FFT and STFT implementations for JavaScript
  * Fast Fourier Transform using Cooley-Tukey algorithm
  */
 

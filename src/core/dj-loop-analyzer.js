@@ -3,11 +3,11 @@
  * Advanced audio analysis for DJ applications and loop organization
  */
 
-import { dtw, dtwDistanceMatrix, dtwKMeans } from './librosa-dtw.js';
-import { chroma_cqt, enhance_chroma, chroma_energy } from './librosa-chroma.js';
-import { tempo, beat_track, analyze_groove } from './librosa-tempo.js';
-import { onset_strength } from './librosa-onset.js';
-import { spectral_centroid } from './librosa-spectral.js';
+import { dtw, dtwDistanceMatrix, dtwKMeans } from './xa-dtw.js';
+import { chroma_cqt, enhance_chroma, chroma_energy } from './xa-chroma.js';
+import { tempo, beat_track, analyze_groove } from './xa-tempo.js';
+import { onset_strength } from './xa-onset.js';
+import { spectral_centroid } from './xa-spectral.js';
 
 /**
  * Complete DJ Loop Analyzer Class
