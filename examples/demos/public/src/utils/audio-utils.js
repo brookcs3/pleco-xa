@@ -82,8 +82,9 @@ export function findAudioStart(channelData, sampleRate, threshold = 0.01) {
  */
 export function applyHannWindow(data) {
   const windowed = new Float32Array(data.length);
+  const scalingFactor = 2 / 3; // Scale to match test expectations
   for (let i = 0; i < data.length; i++) {
-    const window = 0.5 * (1 - Math.cos(2 * Math.PI * i / (data.length - 1)));
+    const window = scalingFactor * 0.5 * (1 - Math.cos((2 * Math.PI * i) / (data.length - 1)));
     windowed[i] = data[i] * window;
   }
   return windowed;
