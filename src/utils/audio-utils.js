@@ -204,17 +204,17 @@ export async function analyzeWithReference(audioBuffer, template) {
 }
 
 /**
- * Compute RMS energy of a sample array
+ * Compute RMS energy of raw PCM data
  * @param {Float32Array} y - Audio samples
  * @returns {number} RMS energy
  */
 export function rms_energy(y) {
-  const sum = y.reduce((acc, val) => acc + val * val, 0);
+  const sum = y.reduce((acc, v) => acc + v * v, 0);
   return Math.sqrt(sum / y.length);
 }
 
 /**
- * Convert amplitude level to decibels
+ * Convert linear amplitude to decibels
  * @param {number} level - Linear amplitude
  * @param {number} ref - Reference level (default 1.0)
  * @returns {number} Level in dB
@@ -224,7 +224,7 @@ export function amplitude_to_db(level, ref = 1.0) {
 }
 
 /**
- * Convert decibel value to linear amplitude
+ * Convert dB back to linear amplitude
  * @param {number} db - Level in dB
  * @param {number} ref - Reference level (default 1.0)
  * @returns {number} Linear amplitude
@@ -234,99 +234,100 @@ export function db_to_amplitude(db, ref = 1.0) {
 }
 
 /**
- * Convert frame index/array to sample index/array
- * @param {Array|number} frames - Frame indices
- * @param {number} hop_length - Samples between frames
- * @returns {Array|number} Sample indices
+ * Convert frames to sample indices
+ * @param {Array|number} frames
+ * @param {number} hop_length
+ * @returns {Array|number}
  */
 export function frames_to_samples(frames, hop_length = 512) {
   if (Array.isArray(frames)) {
-    return frames.map(frame => Math.round(frame * hop_length));
+    return frames.map((f) => Math.round(f * hop_length));
   }
   return Math.round(frames * hop_length);
 }
 
 /**
- * Convert frame index/array to time in seconds
+ * Convert frame indices to time values
  * @param {Array|number} frames
- * @param {number} sr - Sample rate
- * @param {number} hop_length - Samples between frames
- * @returns {Array|number} Time values
+ * @param {number} sr
+ * @param {number} hop_length
+ * @returns {Array|number}
  */
 export function frames_to_time(frames, sr = 22050, hop_length = 512) {
   if (Array.isArray(frames)) {
-    return frames.map(frame => (frame * hop_length) / sr);
+    return frames.map((f) => (f * hop_length) / sr);
   }
   return (frames * hop_length) / sr;
 }
 
 /**
- * Convert sample index/array to frame index/array
+ * Convert samples to frame indices
  * @param {Array|number} samples
- * @param {number} hop_length - Samples between frames
- * @returns {Array|number} Frame indices
+ * @param {number} hop_length
+ * @returns {Array|number}
  */
 export function samples_to_frames(samples, hop_length = 512) {
   if (Array.isArray(samples)) {
-    return samples.map(sample => Math.round(sample / hop_length));
+    return samples.map((s) => Math.round(s / hop_length));
   }
   return Math.round(samples / hop_length);
 }
 
 /**
  * Convert time values to frame indices
- * @param {Array|number} times - Time values in seconds
- * @param {number} sr - Sample rate
- * @param {number} hop_length - Samples between frames
- * @returns {Array|number} Frame indices
+ * @param {Array|number} times
+ * @param {number} sr
+ * @param {number} hop_length
+ * @returns {Array|number}
  */
 export function time_to_frames(times, sr = 22050, hop_length = 512) {
   if (Array.isArray(times)) {
-    return times.map(time => Math.round((time * sr) / hop_length));
+    return times.map((t) => Math.round((t * sr) / hop_length));
   }
   return Math.round((times * sr) / hop_length);
 }
 
 /**
- * Normalize sample array to a peak amplitude
- * @param {Float32Array} y - Audio samples
- * @param {number} peak - Target peak amplitude
- * @returns {Float32Array} Normalized samples
+ * Normalize raw PCM data to a target peak amplitude
+ * @param {Float32Array} y
+ * @param {number} peak
+ * @returns {Float32Array}
  */
-export function normalize(y, peak = 1.0) {
-  const current_peak = Math.max(...y.map(x => Math.abs(x)));
-  if (current_peak === 0) return y;
-  const scale = peak / current_peak;
-  return y.map(sample => sample * scale);
+export function normalize_audio(y, peak = 1.0) {
+  const current = Math.max(...y.map((x) => Math.abs(x)));
+  if (current === 0) return y;
+  const scale = peak / current;
+  return y.map((s) => s * scale);
 }
 
 /**
- * Apply fades to sample data
- * @param {Float32Array} y - Audio samples
- * @param {number} fade_in_samples - Number of samples for fade in
- * @param {number} fade_out_samples - Number of samples for fade out
- * @returns {Float32Array} Audio with fades
+ * Apply fade in/out to audio
+ * @param {Float32Array} y
+ * @param {number} fade_in_samples
+ * @param {number} fade_out_samples
+ * @returns {Float32Array}
+
  */
 export function apply_fade(y, fade_in_samples = 0, fade_out_samples = 0) {
   const result = new Float32Array(y);
   for (let i = 0; i < Math.min(fade_in_samples, y.length); i++) {
-    const alpha = i / fade_in_samples;
-    result[i] *= alpha;
+    result[i] *= i / fade_in_samples;
   }
   for (let i = 0; i < Math.min(fade_out_samples, y.length); i++) {
     const alpha = i / fade_out_samples;
-    const index = y.length - 1 - i;
-    result[index] *= alpha;
+    result[y.length - 1 - i] *= alpha;
+
   }
   return result;
 }
 
 /**
- * Frame-wise zero crossing rate
- * @param {Float32Array} y - Audio samples
- * @param {number} frame_length - Frame size
- * @param {number} hop_length - Hop length
- * @returns {Array} Zero crossing rate per frame
+ * Compute zero crossing rate over frames
+ * @param {Float32Array} y
+ * @param {number} frame_length
+ * @param {number} hop_length
+ * @returns {Array<number>}
+
  */
 export function zero_crossing_rate(y, frame_length = 2048, hop_length = 512) {
   const zcr = [];
@@ -345,10 +346,11 @@ export function zero_crossing_rate(y, frame_length = 2048, hop_length = 512) {
 
 /**
  * Simple peak detection
- * @param {Array} signal - Input signal
- * @param {number} threshold - Minimum peak height
- * @param {number} min_distance - Minimum distance between peaks
- * @returns {Array} Peak indices
+ * @param {Array<number>} signal
+ * @param {number} threshold
+ * @param {number} min_distance
+ * @returns {Array<number>}
+
  */
 export function find_peaks(signal, threshold = 0.1, min_distance = 10) {
   const peaks = [];
@@ -368,21 +370,27 @@ export function find_peaks(signal, threshold = 0.1, min_distance = 10) {
 
 /**
  * Moving average smoothing
- * @param {Array} signal - Input signal
- * @param {number} window_size - Size of the averaging window
- * @returns {Array} Smoothed signal
+ * @param {Array<number>} signal
+ * @param {number} window_size
+ * @returns {Array<number>}
  */
 export function moving_average(signal, window_size = 5) {
-  const result = new Array(signal.length);
+  const out = new Array(signal.length);
+
   const half = Math.floor(window_size / 2);
   for (let i = 0; i < signal.length; i++) {
     let sum = 0;
     let count = 0;
-    for (let j = Math.max(0, i - half); j <= Math.min(signal.length - 1, i + half); j++) {
+    for (
+      let j = Math.max(0, i - half);
+      j <= Math.min(signal.length - 1, i + half);
+      j++
+    ) {
       sum += signal[j];
       count++;
     }
-    result[i] = sum / count;
+    out[i] = sum / count;
   }
-  return result;
+  return out;
+
 }
