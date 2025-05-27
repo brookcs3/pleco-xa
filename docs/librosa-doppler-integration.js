@@ -1,4 +1,4 @@
-// src/utils/LibrosaDopplerScroll.js
+// src/utils/XADopplerScroll.js
 
 import { EnhancedDopplerScroll } from './EnhancedDopplerScroll.js';
 
@@ -14,14 +14,14 @@ function debugLog(...args) {
 }
 
 /**
- * LibrosaDopplerScroll - Doppler Scroll with your Librosa loop analysis
+ * XADopplerScroll - Doppler Scroll with advanced XA loop analysis
  * Uses confidence-based windowing for tempo morphing based on scroll distance
  */
-export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
+export class XADopplerScroll extends EnhancedDopplerScroll {
   constructor(options = {}) {
     super(options);
     
-    // Additional options for librosa-based morphing
+    // Additional options for XA-based morphing
     this.morphOptions = {
       windowFunction: 'hann', // Use Hann window from your implementation
       confidenceThreshold: 0.7,
@@ -29,8 +29,7 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
       spectralAnalysis: true,
       ...options.morphing
     };
-    
-    // Store detailed analysis from your librosa loop editor
+    // Store detailed analysis from your XA loop editor
     this.detailedAnalysis = {
       loop1: null,
       loop2: null
@@ -38,20 +37,17 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
   }
 
   /**
-   * Analyze loops using your librosa loop analysis with musical timing
+   * Analyze loops using advanced XA loop analysis with musical timing
    */
-  async analyzeLoopsWithLibrosa() {
+  async analyzeLoopsWithXA() {
     debugLog('🎵 Starting Musical Timing-Aware Analysis for Doppler Scroll...');
-    
     // Analyze both loops with your musical analysis
     const [analysis1, analysis2] = await Promise.all([
       this.musicalLoopAnalysis(this.loops.loop1.buffer, 'loop1'),
       this.musicalLoopAnalysis(this.loops.loop2.buffer, 'loop2')
     ]);
-    
     this.detailedAnalysis.loop1 = analysis1;
     this.detailedAnalysis.loop2 = analysis2;
-    
     // Update tempo data with enhanced analysis
     this.tempoData.loop1 = {
       bpm: analysis1.bpm,
@@ -66,7 +62,6 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
       rms: analysis1.rms,
       peak: analysis1.peak
     };
-    
     this.tempoData.loop2 = {
       bpm: analysis2.bpm,
       beatGrid: analysis2.beats || [],
@@ -80,13 +75,12 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
       rms: analysis2.rms,
       peak: analysis2.peak
     };
-    
     debugLog('Loop 1 Analysis:', this.tempoData.loop1);
     debugLog('Loop 2 Analysis:', this.tempoData.loop2);
   }
 
   /**
-   * Musical loop analysis from your librosa-loop-editor
+   * Musical loop analysis from your XA loop editor
    */
   async musicalLoopAnalysis(audioBuffer, loopId) {
     const audioData = audioBuffer.getChannelData(0);
@@ -100,7 +94,7 @@ export class LibrosaDopplerScroll extends EnhancedDopplerScroll {
     
     debugLog(`${loopId} - Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
     
-    // Basic Librosa metrics
+    // Basic XA metrics
     const rms = this.computeRMS(audioBuffer);
     const peak = this.computePeak(audioBuffer);
     const spectralCentroid = this.computeSpectralCentroid(audioBuffer);
