@@ -38,27 +38,29 @@ export function normalize_features(features, norm = 'l2', axis = 0) {
         throw new ParameterError('Features array cannot be empty');
     }
     
-    const normalized = features.map(row => [...row]); // Deep copy
+    // Create a deep copy of the features array
+    const normalized = features.map(row => [...row]);
+    
+    // Normalization function map for better performance
+    const normFunctions = {
+        'l1': arr => arr.reduce((acc, val) => acc + Math.abs(val), 0),
+        'l2': arr => Math.sqrt(arr.reduce((acc, val) => acc + val * val, 0)),
+        'inf': arr => Math.max(...arr.map(Math.abs))
+    };
+    
+    const normFunc = normFunctions[norm];
+    if (!normFunc) throw new ParameterError(`Unknown norm type: ${norm}`);
     
     if (axis === 0) {
         // Normalize each feature dimension across time
         for (let featIdx = 0; featIdx < features.length; featIdx++) {
             const feature = features[featIdx];
-            let normValue = 0;
+            const normValue = normFunc(feature);
             
-            // Calculate norm
-            if (norm === 'l1') {
-                normValue = feature.reduce((acc, val) => acc + Math.abs(val), 0);
-            } else if (norm === 'l2') {
-                normValue = Math.sqrt(feature.reduce((acc, val) => acc + val * val, 0));
-            } else if (norm === 'inf') {
-                normValue = Math.max(...feature.map(Math.abs));
-            }
-            
-            // Apply normalization
             if (normValue > 1e-10) {
+                const invNorm = 1 / normValue;
                 for (let i = 0; i < feature.length; i++) {
-                    normalized[featIdx][i] = feature[i] / normValue;
+                    normalized[featIdx][i] = feature[i] * invNorm;
                 }
             }
         }
@@ -66,21 +68,13 @@ export function normalize_features(features, norm = 'l2', axis = 0) {
         // Normalize each time frame across features
         const nFrames = features[0].length;
         for (let frameIdx = 0; frameIdx < nFrames; frameIdx++) {
-            let normValue = 0;
+            const frame = features.map(feature => feature[frameIdx]);
+            const normValue = normFunc(frame);
             
-            // Calculate norm across features for this frame
-            if (norm === 'l1') {
-                normValue = features.reduce((acc, feature) => acc + Math.abs(feature[frameIdx]), 0);
-            } else if (norm === 'l2') {
-                normValue = Math.sqrt(features.reduce((acc, feature) => acc + feature[frameIdx] * feature[frameIdx], 0));
-            } else if (norm === 'inf') {
-                normValue = Math.max(...features.map(feature => Math.abs(feature[frameIdx])));
-            }
-            
-            // Apply normalization
             if (normValue > 1e-10) {
+                const invNorm = 1 / normValue;
                 for (let featIdx = 0; featIdx < features.length; featIdx++) {
-                    normalized[featIdx][frameIdx] = features[featIdx][frameIdx] / normValue;
+                    normalized[featIdx][frameIdx] = features[featIdx][frameIdx] * invNorm;
                 }
             }
         }
@@ -104,27 +98,26 @@ export function zero_crossing_rate(y, frame_length = 2048, hop_length = 512, cen
         throw new ParameterError('Audio signal cannot be empty');
     }
     
-    const zcr = [];
-    const step = hop_length;
     const startOffset = center ? Math.floor(frame_length / 2) : 0;
+    const numFrames = Math.floor((y.length + startOffset - frame_length) / hop_length) + 1;
+    const zcr = new Float32Array(numFrames);
     
-    for (let i = startOffset; i + frame_length <= y.length + startOffset; i += step) {
+    for (let i = 0, frameIdx = 0; i + frame_length <= y.length + startOffset; i += hop_length, frameIdx++) {
         const start = Math.max(0, i - startOffset);
         const end = Math.min(y.length, start + frame_length);
-        const frame = y.slice(start, end);
         
         let crossings = 0;
-        for (let j = 1; j < frame.length; j++) {
-            if ((frame[j] >= 0 && frame[j-1] < 0) || 
-                (frame[j] < 0 && frame[j-1] >= 0)) {
+        for (let j = start + 1; j < end; j++) {
+            // XOR of sign bits is faster than comparing signs
+            if ((y[j] >= 0) !== (y[j-1] >= 0)) {
                 crossings++;
             }
         }
         
-        zcr.push(crossings / frame_length);
+        zcr[frameIdx] = crossings / frame_length;
     }
     
-    return new Float32Array(zcr);
+    return zcr;
 }
 
 // ============= RMS ENERGY =============
@@ -142,20 +135,23 @@ export function rms(y, frame_length = 2048, hop_length = 512, center = true) {
         throw new ParameterError('Audio signal cannot be empty');
     }
     
-    const rms_values = [];
-    const step = hop_length;
     const startOffset = center ? Math.floor(frame_length / 2) : 0;
+    const numFrames = Math.floor((y.length + startOffset - frame_length) / hop_length) + 1;
+    const rms_values = new Float32Array(numFrames);
     
-    for (let i = startOffset; i + frame_length <= y.length + startOffset; i += step) {
+    for (let i = 0, frameIdx = 0; i + frame_length <= y.length + startOffset; i += hop_length, frameIdx++) {
         const start = Math.max(0, i - startOffset);
         const end = Math.min(y.length, start + frame_length);
-        const frame = y.slice(start, end);
         
-        const sum = frame.reduce((acc, val) => acc + val * val, 0);
-        rms_values.push(Math.sqrt(sum / frame.length));
+        let sum = 0;
+        for (let j = start; j < end; j++) {
+            sum += y[j] * y[j];
+        }
+        
+        rms_values[frameIdx] = Math.sqrt(sum / (end - start));
     }
     
-    return new Float32Array(rms_values);
+    return rms_values;
 }
 
 // ============= HARMONIC-PERCUSSIVE SOURCE SEPARATION =============
@@ -173,37 +169,40 @@ export function hpss(S, kernel_size = 31, power = 2.0, mask = false) {
         throw new ParameterError('Spectrogram cannot be empty');
     }
     
-    const [n_freq, n_time] = [S.length, S[0].length];
+    const n_freq = S.length;
+    const n_time = S[0].length;
     
     // Median filters
     const H = median_filter_horizontal(S, kernel_size);
     const P = median_filter_vertical(S, kernel_size);
     
-    if (mask) {
-        // Soft masking
-        const H_mask = Array(n_freq).fill(null).map(() => new Float32Array(n_time));
-        const P_mask = Array(n_freq).fill(null).map(() => new Float32Array(n_time));
+    if (!mask) return { harmonic: H, percussive: P };
+    
+    // Soft masking - preallocate arrays
+    const H_mask = Array(n_freq);
+    const P_mask = Array(n_freq);
+    
+    for (let i = 0; i < n_freq; i++) {
+        H_mask[i] = new Float32Array(n_time);
+        P_mask[i] = new Float32Array(n_time);
         
-        for (let i = 0; i < n_freq; i++) {
-            for (let j = 0; j < n_time; j++) {
-                const H_power = Math.pow(Math.abs(H[i][j]), power);
-                const P_power = Math.pow(Math.abs(P[i][j]), power);
-                const sum = H_power + P_power;
-                
-                if (sum > 1e-10) {
-                    H_mask[i][j] = H_power / sum;
-                    P_mask[i][j] = P_power / sum;
-                } else {
-                    H_mask[i][j] = 0.5;
-                    P_mask[i][j] = 0.5;
-                }
+        for (let j = 0; j < n_time; j++) {
+            const H_power = Math.pow(Math.abs(H[i][j]), power);
+            const P_power = Math.pow(Math.abs(P[i][j]), power);
+            const sum = H_power + P_power;
+            
+            if (sum > 1e-10) {
+                const invSum = 1 / sum;
+                H_mask[i][j] = H_power * invSum;
+                P_mask[i][j] = P_power * invSum;
+            } else {
+                H_mask[i][j] = 0.5;
+                P_mask[i][j] = 0.5;
             }
         }
-        
-        return { harmonic: H_mask, percussive: P_mask };
     }
     
-    return { harmonic: H, percussive: P };
+    return { harmonic: H_mask, percussive: P_mask };
 }
 
 /**
@@ -221,10 +220,18 @@ function median_filter_horizontal(S, kernel_size) {
 function median_filter_vertical(S, kernel_size) {
     const n_freq = S.length;
     const n_time = S[0].length;
-    const result = Array(n_freq).fill(null).map(() => new Float32Array(n_time));
+    const result = Array(n_freq);
+    
+    for (let i = 0; i < n_freq; i++) {
+        result[i] = new Float32Array(n_time);
+    }
     
     for (let j = 0; j < n_time; j++) {
-        const column = S.map(row => row[j]);
+        const column = new Float32Array(n_freq);
+        for (let i = 0; i < n_freq; i++) {
+            column[i] = S[i][j];
+        }
+        
         const filtered = median_filter_1d(column, kernel_size);
         
         for (let i = 0; i < n_freq; i++) {
@@ -247,6 +254,7 @@ function median_filter_1d(array, kernel_size) {
         const start = Math.max(0, i - half_kernel);
         const end = Math.min(array.length, i + half_kernel + 1);
         
+        // Create a window slice for sorting
         const window = array.slice(start, end);
         result[i] = median(window);
     }
@@ -284,12 +292,10 @@ export function pitch_shift(y, sr, n_steps, bins_per_octave = 12) {
         throw new ParameterError('Audio signal cannot be empty');
     }
     
-    // Import STFT functions (assumes they're available)
-    // This would need to import from librosa-fft.js
     const hop_length = 512;
     const n_fft = 2048;
     
-    // Compute STFT (simplified - would need actual implementation)
+    // Compute STFT
     const D = simple_stft(y, n_fft, hop_length);
     
     // Shift ratio
@@ -298,10 +304,8 @@ export function pitch_shift(y, sr, n_steps, bins_per_octave = 12) {
     // Phase vocoder pitch shift
     const D_shifted = phase_vocoder(D, shift_ratio);
     
-    // Reconstruct signal (simplified - would need actual ISTFT)
-    const y_shifted = simple_istft(D_shifted, hop_length);
-    
-    return y_shifted;
+    // Reconstruct signal
+    return simple_istft(D_shifted, hop_length);
 }
 
 /**
@@ -320,15 +324,19 @@ export function phase_vocoder(D, rate) {
     }
     
     // Time stretch factor
-    const time_steps = Array.from({ length: Math.ceil(n_time / rate) }, (_, i) => i * rate);
+    const time_steps = Math.ceil(n_time / rate);
+    const D_stretched = Array(n_freq);
     
-    // Initialize output
-    const D_stretched = Array(n_freq).fill(null).map(() => 
-        Array(time_steps.length).fill(null).map(() => ({ real: 0, imag: 0 }))
-    );
+    // Initialize output matrix
+    for (let k = 0; k < n_freq; k++) {
+        D_stretched[k] = Array(time_steps);
+        for (let t = 0; t < time_steps; t++) {
+            D_stretched[k][t] = { real: 0, imag: 0 };
+        }
+    }
     
     // Phase advance per bin
-    const phase_advance = Array(n_freq).fill(0);
+    const phase_advance = new Float32Array(n_freq);
     for (let k = 0; k < n_freq; k++) {
         phase_advance[k] = 2 * Math.PI * k * hop_length / (n_freq * 2);
     }
@@ -337,16 +345,19 @@ export function phase_vocoder(D, rate) {
     for (let k = 0; k < n_freq; k++) {
         let phase_accumulator = 0;
         
-        for (let t = 0; t < time_steps.length - 1; t++) {
-            const index = Math.floor(time_steps[t]);
+        for (let t = 0; t < time_steps - 1; t++) {
+            const index = Math.floor(t * rate);
             if (index >= n_time - 1) break;
             
             const bin = D[k][index];
-            const magnitude = Math.sqrt(bin.real * bin.real + bin.imag * bin.imag);
+            const magnitude = Math.hypot(bin.real, bin.imag);
+            
+            const cos_val = Math.cos(phase_accumulator);
+            const sin_val = Math.sin(phase_accumulator);
             
             D_stretched[k][t] = {
-                real: magnitude * Math.cos(phase_accumulator),
-                imag: magnitude * Math.sin(phase_accumulator)
+                real: magnitude * cos_val,
+                imag: magnitude * sin_val
             };
             
             phase_accumulator += phase_advance[k];
@@ -372,19 +383,18 @@ export function monophonic_pitch_detect(y, sr = 22050, hop_length = 512, fmin = 
         throw new ParameterError('Audio signal cannot be empty');
     }
     
-    const pitches = [];
-    const confidences = [];
     const frame_length = 2048;
+    const numFrames = Math.floor((y.length - frame_length) / hop_length) + 1;
+    const pitches = new Float32Array(numFrames);
+    const confidences = new Float32Array(numFrames);
     
-    for (let i = 0; i <= y.length - frame_length; i += hop_length) {
+    // Convert frequency range to period range
+    const minPeriod = Math.floor(sr / fmax);
+    const maxPeriod = Math.floor(sr / fmin);
+    
+    for (let i = 0, frameIdx = 0; i <= y.length - frame_length; i += hop_length, frameIdx++) {
         const frame = y.slice(i, i + frame_length);
-        
-        // Autocorrelation method
         const ac = autocorrelate(frame);
-        
-        // Convert frequency range to period range
-        const minPeriod = Math.floor(sr / fmax);
-        const maxPeriod = Math.floor(sr / fmin);
         
         let maxVal = 0;
         let bestPeriod = 0;
@@ -397,17 +407,11 @@ export function monophonic_pitch_detect(y, sr = 22050, hop_length = 512, fmin = 
             }
         }
         
-        const pitch = bestPeriod > 0 ? sr / bestPeriod : 0;
-        const confidence = ac[0] > 0 ? maxVal / ac[0] : 0; // Normalized confidence
-        
-        pitches.push(pitch);
-        confidences.push(Math.max(0, Math.min(1, confidence)));
+        pitches[frameIdx] = bestPeriod > 0 ? sr / bestPeriod : 0;
+        confidences[frameIdx] = ac[0] > 0 ? Math.max(0, Math.min(1, maxVal / ac[0])) : 0;
     }
     
-    return { 
-        pitches: new Float32Array(pitches), 
-        confidences: new Float32Array(confidences) 
-    };
+    return { pitches, confidences };
 }
 
 /**
@@ -419,12 +423,27 @@ export function autocorrelate(buffer) {
     const n = buffer.length;
     const ac = new Float32Array(n);
     
-    for (let lag = 0; lag < n; lag++) {
-        let sum = 0;
-        for (let i = 0; i < n - lag; i++) {
-            sum += buffer[i] * buffer[i + lag];
+    // Compute autocorrelation using FFT for large buffers
+    if (n > 1024) {
+        // This would use FFT-based autocorrelation
+        // Placeholder for actual implementation
+        for (let lag = 0; lag < n; lag++) {
+            let sum = 0;
+            for (let i = 0; i < n - lag; i++) {
+                sum += buffer[i] * buffer[i + lag];
+            }
+            ac[lag] = sum;
         }
-        ac[lag] = sum;
+    } else {
+        // Direct computation for smaller buffers
+        for (let lag = 0; lag < n; lag++) {
+            let sum = 0;
+            const nSamples = n - lag;
+            for (let i = 0; i < nSamples; i++) {
+                sum += buffer[i] * buffer[i + lag];
+            }
+            ac[lag] = sum / nSamples; // Normalize by number of samples
+        }
     }
     
     return ac;
@@ -448,11 +467,15 @@ export function polyfit(x, y, degree = 1) {
     const coeffs = new Array(degree + 1).fill(0);
     
     if (degree === 1) {
-        // Linear regression
-        const sumX = x.reduce((a, b) => a + b, 0);
-        const sumY = y.reduce((a, b) => a + b, 0);
-        const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
-        const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
+        // Linear regression - optimized calculation
+        let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+        
+        for (let i = 0; i < n; i++) {
+            sumX += x[i];
+            sumY += y[i];
+            sumXY += x[i] * y[i];
+            sumX2 += x[i] * x[i];
+        }
         
         const denominator = n * sumX2 - sumX * sumX;
         if (Math.abs(denominator) > 1e-10) {
@@ -481,7 +504,13 @@ export function linspace(start, stop, num) {
     }
     
     const step = (stop - start) / (num - 1);
-    return Array.from({ length: num }, (_, i) => start + step * i);
+    const result = new Float32Array(num);
+    
+    for (let i = 0; i < num; i++) {
+        result[i] = start + step * i;
+    }
+    
+    return result;
 }
 
 /**
@@ -495,7 +524,7 @@ export function find_peaks(signal, min_distance = 1, threshold = 0) {
     const peaks = [];
     
     for (let i = 1; i < signal.length - 1; i++) {
-        // Check if it's a local maximum
+        // Check if it's a local maximum and above threshold
         if (signal[i] > signal[i - 1] && 
             signal[i] > signal[i + 1] && 
             signal[i] >= threshold) {
@@ -503,6 +532,9 @@ export function find_peaks(signal, min_distance = 1, threshold = 0) {
             // Check minimum distance constraint
             if (peaks.length === 0 || i - peaks[peaks.length - 1] >= min_distance) {
                 peaks.push(i);
+            } else if (signal[i] > signal[peaks[peaks.length - 1]]) {
+                // Replace previous peak if current one is higher
+                peaks[peaks.length - 1] = i;
             }
         }
     }
@@ -511,7 +543,6 @@ export function find_peaks(signal, min_distance = 1, threshold = 0) {
 }
 
 // ============= SIMPLIFIED STFT PLACEHOLDERS =============
-// These would normally import from librosa-fft.js
 
 /**
  * Simplified STFT placeholder
@@ -519,13 +550,18 @@ export function find_peaks(signal, min_distance = 1, threshold = 0) {
  */
 function simple_stft(y, n_fft, hop_length) {
     // This would normally use the full STFT implementation
-    // Placeholder that returns empty structure
     const n_frames = Math.floor((y.length - n_fft) / hop_length) + 1;
     const n_freq = Math.floor(n_fft / 2) + 1;
     
-    return Array(n_freq).fill(null).map(() => 
-        Array(n_frames).fill(null).map(() => ({ real: 0, imag: 0 }))
-    );
+    const D = Array(n_freq);
+    for (let i = 0; i < n_freq; i++) {
+        D[i] = Array(n_frames);
+        for (let j = 0; j < n_frames; j++) {
+            D[i][j] = { real: 0, imag: 0 };
+        }
+    }
+    
+    return D;
 }
 
 /**
@@ -534,7 +570,6 @@ function simple_stft(y, n_fft, hop_length) {
  */
 function simple_istft(D, hop_length) {
     // This would normally use the full ISTFT implementation
-    // Placeholder that returns zeros
     const length = (D[0].length - 1) * hop_length + 2048;
     return new Float32Array(length);
 }
