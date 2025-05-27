@@ -10,47 +10,52 @@
  */
 
 // ============= CORE FFT AND SPECTRAL ANALYSIS =============
-export * from './xa-fft.js';
+export * from './xa-fft.js'
 
 // ============= MEL-SCALE AND MFCC FEATURES =============
-export * from './xa-mel.js';
+export * from './xa-mel.js'
 
 // ============= AUDIO UTILITIES =============
-export * from '../utils/audio-utils.js';
+export * from '../utils/audio-utils.js'
 
 // ============= SPECTRAL FEATURES =============
-export * from './xa-spectral.js';
+export * from './xa-spectral.js'
 
 // ============= CHROMA AND HARMONIC ANALYSIS =============
-export * from './xa-chroma.js';
+export * from './xa-chroma.js'
 
 // ============= BEAT AND TEMPO DETECTION =============
-export * from './xa-beat.js';
+export * from './xa-beat.js'
 
 // ============= ADVANCED PROCESSING =============
-export * from './xa-advanced.js';
+export * from './xa-advanced.js'
 
 // ============= UTILITY FUNCTIONS =============
-export * from './xa-util.js';
+export * from './xa-util.js'
 
 // ============= ONSET DETECTION =============
-export * from './xa-onset.js';
+export * from './xa-onset.js'
 
 // ============= TEMPORAL ANALYSIS =============
-export * from './xa-temporal.js';
+export * from './xa-temporal.js'
 
 // ============= PATTERN MATCHING =============
-export * from './xa-matching.js';
+export * from './xa-matching.js'
 
 // ============= MUSICAL INTERVALS =============
-export * from './xa-intervals.js';
+export * from './xa-intervals.js'
 
 // ============= FILE UTILITIES =============
-export * from './xa-file.js';
+export * from './xa-file.js'
 
 // ============= WEB AUDIO ANALYSIS CLASS =============
-export { AudioAnalyzer, createAudioAnalyzer, getMicrophoneSource, quickAnalyze } from './audio-analyzer.js';
+export {
+  AudioAnalyzer,
+  createAudioAnalyzer,
+  getMicrophoneSource,
+  quickAnalyze,
+} from './audio-analyzer.js'
 
 // Default export
-import { AudioAnalyzer } from './audio-analyzer.js';
-export default new AudioAnalyzer();
+import { AudioAnalyzer } from './audio-analyzer.js'
+export default new AudioAnalyzer()

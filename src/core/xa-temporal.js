@@ -1,13 +1,13 @@
 /**
  * Librosa Temporal Segmentation Module
  * Web-ready JavaScript implementation of temporal analysis functions
- * 
+ *
  * Provides tools for:
  * - Cross-similarity matrix computation
  * - Recurrence matrix analysis
  * - Audio segmentation and clustering
  * - Path enhancement for tempo-varying music
- * 
+ *
  * @author Pleco-XA Audio Analysis Suite
  * @version 1.0.0
  */
@@ -16,10 +16,10 @@
  * Custom error class for parameter validation
  */
 class ParameterError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'ParameterError';
-    }
+  constructor(message) {
+    super(message)
+    this.name = 'ParameterError'
+  }
 }
 
 /**
@@ -35,49 +35,49 @@ class ParameterError extends Error {
  * @returns {Float32Array|Object} Cross-similarity matrix
  */
 export function crossSimilarity(data, dataRef, options = {}) {
-    const {
-        k = null,
-        metric = 'euclidean',
-        sparse = false,
-        mode = 'connectivity',
-        bandwidth = null
-    } = options;
-    
-    // Validate inputs
-    if (!data || !dataRef) {
-        throw new ParameterError('Both data and dataRef must be provided');
-    }
-    
-    // Get dimensions
-    const n = Math.floor(data.length / (data.length / data.length));
-    const nRef = Math.floor(dataRef.length / (dataRef.length / dataRef.length));
-    
-    // Default k value
-    const kVal = k || Math.min(nRef, 2 * Math.ceil(Math.sqrt(nRef)));
-    
-    // Compute pairwise distances
-    const distances = _computeDistances(data, dataRef, metric);
-    
-    // Find k-nearest neighbors
-    const knn = _kNearestNeighbors(distances, kVal);
-    
-    // Apply mode transformations
-    let result = knn;
-    if (mode === 'distance') {
-        // Keep distances as-is
-        result = knn;
-    } else if (mode === 'affinity') {
-        // Convert distances to affinities
-        const bw = _estimateBandwidth(distances, bandwidth, kVal);
-        result = _distanceToAffinity(knn, bw);
-    }
-    
-    // Return sparse format if requested
-    if (sparse) {
-        return _toSparseMatrix(result);
-    }
-    
-    return result;
+  const {
+    k = null,
+    metric = 'euclidean',
+    sparse = false,
+    mode = 'connectivity',
+    bandwidth = null,
+  } = options
+
+  // Validate inputs
+  if (!data || !dataRef) {
+    throw new ParameterError('Both data and dataRef must be provided')
+  }
+
+  // Get dimensions
+  const n = Math.floor(data.length / (data.length / data.length))
+  const nRef = Math.floor(dataRef.length / (dataRef.length / dataRef.length))
+
+  // Default k value
+  const kVal = k || Math.min(nRef, 2 * Math.ceil(Math.sqrt(nRef)))
+
+  // Compute pairwise distances
+  const distances = _computeDistances(data, dataRef, metric)
+
+  // Find k-nearest neighbors
+  const knn = _kNearestNeighbors(distances, kVal)
+
+  // Apply mode transformations
+  let result = knn
+  if (mode === 'distance') {
+    // Keep distances as-is
+    result = knn
+  } else if (mode === 'affinity') {
+    // Convert distances to affinities
+    const bw = _estimateBandwidth(distances, bandwidth, kVal)
+    result = _distanceToAffinity(knn, bw)
+  }
+
+  // Return sparse format if requested
+  if (sparse) {
+    return _toSparseMatrix(result)
+  }
+
+  return result
 }
 
 /**
@@ -96,62 +96,62 @@ export function crossSimilarity(data, dataRef, options = {}) {
  * @returns {Float32Array|Object} Recurrence matrix
  */
 export function recurrenceMatrix(data, options = {}) {
-    const {
-        k = null,
-        width = 1,
-        metric = 'euclidean',
-        sym = false,
-        sparse = false,
-        mode = 'connectivity',
-        bandwidth = null,
-        self = false,
-        axis = -1
-    } = options;
-    
-    // Validate input
-    if (!data) {
-        throw new ParameterError('Data matrix must be provided');
-    }
-    
-    // Get dimensions
-    const t = Math.floor(data.length / (data.length / data.length));
-    
-    // Default k value
-    const kVal = k || Math.min(t - 1, 2 * Math.ceil(Math.sqrt(t - 2 * width + 1)));
-    
-    // Compute self-distances
-    const distances = _computeDistances(data, data, metric);
-    
-    // Remove diagonal band to exclude trivial self-matches
-    for (let diag = -width + 1; diag < width; diag++) {
-        _setDiagonal(distances, Infinity, diag);
-    }
-    
-    // Find k-nearest neighbors
-    let rec = _kNearestNeighbors(distances, kVal);
-    
-    // Set self-connections if requested
-    if (self) {
-        const selfValue = mode === 'distance' ? 0 : 1;
-        _setDiagonal(rec, selfValue, 0);
-    }
-    
-    // Symmetrize if requested
-    if (sym) {
-        rec = _symmetrize(rec);
-    }
-    
-    // Apply mode transformations
-    if (mode === 'affinity') {
-        const bw = _estimateBandwidth(distances, bandwidth, kVal);
-        rec = _distanceToAffinity(rec, bw);
-    }
-    
-    if (sparse) {
-        return _toSparseMatrix(rec);
-    }
-    
-    return rec;
+  const {
+    k = null,
+    width = 1,
+    metric = 'euclidean',
+    sym = false,
+    sparse = false,
+    mode = 'connectivity',
+    bandwidth = null,
+    self = false,
+    axis = -1,
+  } = options
+
+  // Validate input
+  if (!data) {
+    throw new ParameterError('Data matrix must be provided')
+  }
+
+  // Get dimensions
+  const t = Math.floor(data.length / (data.length / data.length))
+
+  // Default k value
+  const kVal = k || Math.min(t - 1, 2 * Math.ceil(Math.sqrt(t - 2 * width + 1)))
+
+  // Compute self-distances
+  const distances = _computeDistances(data, data, metric)
+
+  // Remove diagonal band to exclude trivial self-matches
+  for (let diag = -width + 1; diag < width; diag++) {
+    _setDiagonal(distances, Infinity, diag)
+  }
+
+  // Find k-nearest neighbors
+  let rec = _kNearestNeighbors(distances, kVal)
+
+  // Set self-connections if requested
+  if (self) {
+    const selfValue = mode === 'distance' ? 0 : 1
+    _setDiagonal(rec, selfValue, 0)
+  }
+
+  // Symmetrize if requested
+  if (sym) {
+    rec = _symmetrize(rec)
+  }
+
+  // Apply mode transformations
+  if (mode === 'affinity') {
+    const bw = _estimateBandwidth(distances, bandwidth, kVal)
+    rec = _distanceToAffinity(rec, bw)
+  }
+
+  if (sparse) {
+    return _toSparseMatrix(rec)
+  }
+
+  return rec
 }
 
 /**
@@ -162,22 +162,22 @@ export function recurrenceMatrix(data, options = {}) {
  * @returns {Float32Array|Object} Lag matrix
  */
 export function recurrenceToLag(rec, pad = true, axis = -1) {
-    const isSparse = rec.sparse !== undefined;
-    const n = Math.sqrt(rec.length || rec.data?.length || 0);
-    
-    let matrix = rec;
-    
-    if (pad) {
-        // Pad the matrix for lag representation
-        if (isSparse) {
-            matrix = _padSparseMatrix(rec, n);
-        } else {
-            matrix = _padMatrix(rec, n);
-        }
+  const isSparse = rec.sparse !== undefined
+  const n = Math.sqrt(rec.length || rec.data?.length || 0)
+
+  let matrix = rec
+
+  if (pad) {
+    // Pad the matrix for lag representation
+    if (isSparse) {
+      matrix = _padSparseMatrix(rec, n)
+    } else {
+      matrix = _padMatrix(rec, n)
     }
-    
-    // Apply shear transformation to convert to lag coordinates
-    return _shear(matrix, -1, axis);
+  }
+
+  // Apply shear transformation to convert to lag coordinates
+  return _shear(matrix, -1, axis)
 }
 
 /**
@@ -187,12 +187,12 @@ export function recurrenceToLag(rec, pad = true, axis = -1) {
  * @returns {Float32Array|Object} Recurrence matrix
  */
 export function lagToRecurrence(lag, axis = -1) {
-    // Apply inverse shear transformation
-    const rec = _shear(lag, 1, axis);
-    
-    // Extract the appropriate slice to get original dimensions
-    const n = Math.floor(Math.sqrt(lag.length || lag.data?.length || 0));
-    return _sliceMatrix(rec, n);
+  // Apply inverse shear transformation
+  const rec = _shear(lag, 1, axis)
+
+  // Extract the appropriate slice to get original dimensions
+  const n = Math.floor(Math.sqrt(lag.length || lag.data?.length || 0))
+  return _sliceMatrix(rec, n)
 }
 
 /**
@@ -206,12 +206,12 @@ export function lagToRecurrence(lag, axis = -1) {
 
 // eslint-disable-next-line camelcase
 export function recurrence_to_lag(rec, pad = true, axis = -1) {
-  return recurrenceToLag(rec, pad, axis);
+  return recurrenceToLag(rec, pad, axis)
 }
 
 // eslint-disable-next-line camelcase
 export function lag_to_recurrence(lag, axis = -1) {
-  return lagToRecurrence(lag, axis);
+  return lagToRecurrence(lag, axis)
 }
 
 /**
@@ -224,79 +224,85 @@ export function lag_to_recurrence(lag, axis = -1) {
  * @returns {Uint32Array} Segment boundary indices
  */
 export function agglomerative(data, k, options = {}) {
-    const { axis = -1, linkage = 'ward' } = options;
-    
-    if (!data || k <= 0) {
-        throw new ParameterError('Valid data and positive k required');
+  const { axis = -1, linkage = 'ward' } = options
+
+  if (!data || k <= 0) {
+    throw new ParameterError('Valid data and positive k required')
+  }
+
+  // Get data dimensions
+  const n = Math.floor(data.length / (data.length / data.length))
+
+  if (k >= n) {
+    // Return all frame boundaries
+    return new Uint32Array(Array.from({ length: n }, (_, i) => i))
+  }
+
+  // Initialize clusters (each point is its own cluster)
+  let clusters = Array.from({ length: n }, (_, i) => [i])
+
+  // Compute initial pairwise distances between adjacent segments
+  const distances = new Float32Array(n - 1)
+  for (let i = 0; i < n - 1; i++) {
+    distances[i] = _clusterDistance(data, [i], [i + 1], linkage)
+  }
+
+  // Merge clusters until we have k segments
+  while (clusters.length > k) {
+    // Find minimum distance
+    let minDist = Infinity
+    let minIdx = -1
+
+    for (let i = 0; i < distances.length; i++) {
+      if (distances[i] >= 0 && distances[i] < minDist) {
+        minDist = distances[i]
+        minIdx = i
+      }
     }
-    
-    // Get data dimensions
-    const n = Math.floor(data.length / (data.length / data.length));
-    
-    if (k >= n) {
-        // Return all frame boundaries
-        return new Uint32Array(Array.from({length: n}, (_, i) => i));
+
+    if (minIdx === -1) break // No more valid merges
+
+    // Merge clusters at minIdx
+    const mergedCluster = clusters[minIdx].concat(clusters[minIdx + 1])
+    clusters[minIdx] = mergedCluster
+    clusters.splice(minIdx + 1, 1)
+
+    // Mark this distance as invalid
+    distances[minIdx] = -1
+
+    // Update distances for adjacent clusters
+    if (minIdx > 0 && clusters[minIdx - 1]) {
+      distances[minIdx - 1] = _clusterDistance(
+        data,
+        clusters[minIdx - 1],
+        clusters[minIdx],
+        linkage,
+      )
     }
-    
-    // Initialize clusters (each point is its own cluster)
-    let clusters = Array.from({length: n}, (_, i) => [i]);
-    
-    // Compute initial pairwise distances between adjacent segments
-    const distances = new Float32Array(n - 1);
-    for (let i = 0; i < n - 1; i++) {
-        distances[i] = _clusterDistance(data, [i], [i + 1], linkage);
+    if (minIdx < clusters.length - 1 && clusters[minIdx + 1]) {
+      if (minIdx < distances.length) {
+        distances[minIdx] = _clusterDistance(
+          data,
+          clusters[minIdx],
+          clusters[minIdx + 1],
+          linkage,
+        )
+      }
     }
-    
-    // Merge clusters until we have k segments
-    while (clusters.length > k) {
-        // Find minimum distance
-        let minDist = Infinity;
-        let minIdx = -1;
-        
-        for (let i = 0; i < distances.length; i++) {
-            if (distances[i] >= 0 && distances[i] < minDist) {
-                minDist = distances[i];
-                minIdx = i;
-            }
-        }
-        
-        if (minIdx === -1) break; // No more valid merges
-        
-        // Merge clusters at minIdx
-        const mergedCluster = clusters[minIdx].concat(clusters[minIdx + 1]);
-        clusters[minIdx] = mergedCluster;
-        clusters.splice(minIdx + 1, 1);
-        
-        // Mark this distance as invalid
-        distances[minIdx] = -1;
-        
-        // Update distances for adjacent clusters
-        if (minIdx > 0 && clusters[minIdx - 1]) {
-            distances[minIdx - 1] = _clusterDistance(
-                data, clusters[minIdx - 1], clusters[minIdx], linkage
-            );
-        }
-        if (minIdx < clusters.length - 1 && clusters[minIdx + 1]) {
-            if (minIdx < distances.length) {
-                distances[minIdx] = _clusterDistance(
-                    data, clusters[minIdx], clusters[minIdx + 1], linkage
-                );
-            }
-        }
-        
-        // Remove invalid distance entries
-        distances.splice(minIdx + 1, 1);
-    }
-    
-    // Extract segment boundaries
-    const boundaries = [0];
-    let cumSum = 0;
-    for (let i = 0; i < clusters.length - 1; i++) {
-        cumSum += clusters[i].length;
-        boundaries.push(cumSum);
-    }
-    
-    return new Uint32Array(boundaries);
+
+    // Remove invalid distance entries
+    distances.splice(minIdx + 1, 1)
+  }
+
+  // Extract segment boundaries
+  const boundaries = [0]
+  let cumSum = 0
+  for (let i = 0; i < clusters.length - 1; i++) {
+    cumSum += clusters[i].length
+    boundaries.push(cumSum)
+  }
+
+  return new Uint32Array(boundaries)
 }
 
 /**
@@ -315,58 +321,58 @@ export function agglomerative(data, k, options = {}) {
 // `n` (filter length) is now optional. If omitted, we use
 // 1/8 of the matrix size (clamped to [32, 256]).
 export function pathEnhance(R, n = null, options = {}) {
-    const {
-        window = 'hann',
-        maxRatio = 2.0,
-        minRatio = null,
-        nFilters = 7,
-        zeroMean = false,
-        clip = true
-    } = options;
+  const {
+    window = 'hann',
+    maxRatio = 2.0,
+    minRatio = null,
+    nFilters = 7,
+    zeroMean = false,
+    clip = true,
+  } = options
 
-    // If caller didn't supply n, pick a heuristic based on matrix size
-    if (n == null) {
-        const sizeGuess = Math.round(Math.sqrt(R.length));
-        n = Math.min(256, Math.max(32, Math.floor(sizeGuess / 8)));
+  // If caller didn't supply n, pick a heuristic based on matrix size
+  if (n == null) {
+    const sizeGuess = Math.round(Math.sqrt(R.length))
+    n = Math.min(256, Math.max(32, Math.floor(sizeGuess / 8)))
+  }
+
+  if (!R || n <= 0) {
+    throw new ParameterError('Valid similarity matrix required')
+  }
+
+  const minR = minRatio || 1.0 / maxRatio
+  const size = Math.sqrt(R.length)
+  let RSmooth = null
+
+  // Generate tempo ratios for diagonal filters
+  const ratios = _logspace(Math.log2(minR), Math.log2(maxRatio), nFilters)
+
+  // Apply filters at different tempo ratios
+  for (const ratio of ratios) {
+    // Create diagonal filter for this tempo ratio
+    const kernel = _diagonalFilter(window, n, ratio, zeroMean)
+
+    // Convolve with similarity matrix
+    const filtered = _convolve2d(R, kernel, size)
+
+    if (RSmooth === null) {
+      RSmooth = new Float32Array(filtered)
+    } else {
+      // Element-wise maximum to combine filter responses
+      for (let i = 0; i < RSmooth.length; i++) {
+        RSmooth[i] = Math.max(RSmooth[i], filtered[i])
+      }
     }
+  }
 
-    if (!R || n <= 0) {
-        throw new ParameterError('Valid similarity matrix required');
+  // Clip negative values if requested
+  if (clip && RSmooth) {
+    for (let i = 0; i < RSmooth.length; i++) {
+      RSmooth[i] = Math.max(0, RSmooth[i])
     }
+  }
 
-    const minR = minRatio || 1.0 / maxRatio;
-    const size = Math.sqrt(R.length);
-    let RSmooth = null;
-
-    // Generate tempo ratios for diagonal filters
-    const ratios = _logspace(Math.log2(minR), Math.log2(maxRatio), nFilters);
-
-    // Apply filters at different tempo ratios
-    for (const ratio of ratios) {
-        // Create diagonal filter for this tempo ratio
-        const kernel = _diagonalFilter(window, n, ratio, zeroMean);
-
-        // Convolve with similarity matrix
-        const filtered = _convolve2d(R, kernel, size);
-
-        if (RSmooth === null) {
-            RSmooth = new Float32Array(filtered);
-        } else {
-            // Element-wise maximum to combine filter responses
-            for (let i = 0; i < RSmooth.length; i++) {
-                RSmooth[i] = Math.max(RSmooth[i], filtered[i]);
-            }
-        }
-    }
-
-    // Clip negative values if requested
-    if (clip && RSmooth) {
-        for (let i = 0; i < RSmooth.length; i++) {
-            RSmooth[i] = Math.max(0, RSmooth[i]);
-        }
-    }
-
-    return RSmooth || new Float32Array(R.length);
+  return RSmooth || new Float32Array(R.length)
 }
 
 // ============= Private Helper Functions =============
@@ -376,41 +382,43 @@ export function pathEnhance(R, n = null, options = {}) {
  * @private
  */
 function _computeDistances(data1, data2, metric = 'euclidean') {
-    const n1 = Math.floor(data1.length / (data1.length / data1.length));
-    const n2 = Math.floor(data2.length / (data2.length / data2.length));
-    const d = data1.length / n1;
-    
-    const distances = new Float32Array(n1 * n2);
-    
-    for (let i = 0; i < n1; i++) {
-        for (let j = 0; j < n2; j++) {
-            const idx = i * n2 + j;
-            
-            if (metric === 'euclidean') {
-                let sum = 0;
-                for (let k = 0; k < d; k++) {
-                    const diff = data1[i * d + k] - data2[j * d + k];
-                    sum += diff * diff;
-                }
-                distances[idx] = Math.sqrt(sum);
-            } else if (metric === 'cosine') {
-                let dot = 0, norm1 = 0, norm2 = 0;
-                for (let k = 0; k < d; k++) {
-                    const v1 = data1[i * d + k];
-                    const v2 = data2[j * d + k];
-                    dot += v1 * v2;
-                    norm1 += v1 * v1;
-                    norm2 += v2 * v2;
-                }
-                const cosine = dot / (Math.sqrt(norm1) * Math.sqrt(norm2));
-                distances[idx] = 1 - Math.max(-1, Math.min(1, cosine));
-            } else {
-                throw new ParameterError(`Unsupported metric: ${metric}`);
-            }
+  const n1 = Math.floor(data1.length / (data1.length / data1.length))
+  const n2 = Math.floor(data2.length / (data2.length / data2.length))
+  const d = data1.length / n1
+
+  const distances = new Float32Array(n1 * n2)
+
+  for (let i = 0; i < n1; i++) {
+    for (let j = 0; j < n2; j++) {
+      const idx = i * n2 + j
+
+      if (metric === 'euclidean') {
+        let sum = 0
+        for (let k = 0; k < d; k++) {
+          const diff = data1[i * d + k] - data2[j * d + k]
+          sum += diff * diff
         }
+        distances[idx] = Math.sqrt(sum)
+      } else if (metric === 'cosine') {
+        let dot = 0,
+          norm1 = 0,
+          norm2 = 0
+        for (let k = 0; k < d; k++) {
+          const v1 = data1[i * d + k]
+          const v2 = data2[j * d + k]
+          dot += v1 * v2
+          norm1 += v1 * v1
+          norm2 += v2 * v2
+        }
+        const cosine = dot / (Math.sqrt(norm1) * Math.sqrt(norm2))
+        distances[idx] = 1 - Math.max(-1, Math.min(1, cosine))
+      } else {
+        throw new ParameterError(`Unsupported metric: ${metric}`)
+      }
     }
-    
-    return distances;
+  }
+
+  return distances
 }
 
 /**
@@ -418,27 +426,27 @@ function _computeDistances(data1, data2, metric = 'euclidean') {
  * @private
  */
 function _kNearestNeighbors(distances, k) {
-    const n = Math.sqrt(distances.length);
-    const result = new Float32Array(distances.length);
-    
-    for (let i = 0; i < n; i++) {
-        // Get distances for row i
-        const rowDistances = [];
-        for (let j = 0; j < n; j++) {
-            rowDistances.push({ index: j, distance: distances[i * n + j] });
-        }
-        
-        // Sort by distance and take k nearest
-        rowDistances.sort((a, b) => a.distance - b.distance);
-        
-        // Set k nearest neighbors
-        for (let j = 0; j < Math.min(k, rowDistances.length); j++) {
-            const neighbor = rowDistances[j];
-            result[i * n + neighbor.index] = neighbor.distance;
-        }
+  const n = Math.sqrt(distances.length)
+  const result = new Float32Array(distances.length)
+
+  for (let i = 0; i < n; i++) {
+    // Get distances for row i
+    const rowDistances = []
+    for (let j = 0; j < n; j++) {
+      rowDistances.push({ index: j, distance: distances[i * n + j] })
     }
-    
-    return result;
+
+    // Sort by distance and take k nearest
+    rowDistances.sort((a, b) => a.distance - b.distance)
+
+    // Set k nearest neighbors
+    for (let j = 0; j < Math.min(k, rowDistances.length); j++) {
+      const neighbor = rowDistances[j]
+      result[i * n + neighbor.index] = neighbor.distance
+    }
+  }
+
+  return result
 }
 
 /**
@@ -446,14 +454,14 @@ function _kNearestNeighbors(distances, k) {
  * @private
  */
 function _setDiagonal(matrix, value, offset = 0) {
-    const n = Math.sqrt(matrix.length);
-    
-    for (let i = 0; i < n; i++) {
-        const j = i + offset;
-        if (j >= 0 && j < n) {
-            matrix[i * n + j] = value;
-        }
+  const n = Math.sqrt(matrix.length)
+
+  for (let i = 0; i < n; i++) {
+    const j = i + offset
+    if (j >= 0 && j < n) {
+      matrix[i * n + j] = value
     }
+  }
 }
 
 /**
@@ -461,17 +469,17 @@ function _setDiagonal(matrix, value, offset = 0) {
  * @private
  */
 function _symmetrize(matrix) {
-    const n = Math.sqrt(matrix.length);
-    const result = new Float32Array(matrix.length);
-    
-    for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n; j++) {
-            const val = Math.max(matrix[i * n + j], matrix[j * n + i]);
-            result[i * n + j] = val;
-        }
+  const n = Math.sqrt(matrix.length)
+  const result = new Float32Array(matrix.length)
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const val = Math.max(matrix[i * n + j], matrix[j * n + i])
+      result[i * n + j] = val
     }
-    
-    return result;
+  }
+
+  return result
 }
 
 /**
@@ -479,29 +487,29 @@ function _symmetrize(matrix) {
  * @private
  */
 function _estimateBandwidth(distances, bandwidth, k) {
-    if (bandwidth !== null) return bandwidth;
-    
-    // Use median of k-th nearest neighbor distances
-    const n = Math.sqrt(distances.length);
-    const kthDistances = [];
-    
-    for (let i = 0; i < n; i++) {
-        const row = [];
-        for (let j = 0; j < n; j++) {
-            if (distances[i * n + j] > 0) {
-                row.push(distances[i * n + j]);
-            }
-        }
-        row.sort((a, b) => a - b);
-        if (row.length > k) {
-            kthDistances.push(row[k - 1]);
-        }
+  if (bandwidth !== null) return bandwidth
+
+  // Use median of k-th nearest neighbor distances
+  const n = Math.sqrt(distances.length)
+  const kthDistances = []
+
+  for (let i = 0; i < n; i++) {
+    const row = []
+    for (let j = 0; j < n; j++) {
+      if (distances[i * n + j] > 0) {
+        row.push(distances[i * n + j])
+      }
     }
-    
-    kthDistances.sort((a, b) => a - b);
-    const median = kthDistances[Math.floor(kthDistances.length / 2)] || 1.0;
-    
-    return median;
+    row.sort((a, b) => a - b)
+    if (row.length > k) {
+      kthDistances.push(row[k - 1])
+    }
+  }
+
+  kthDistances.sort((a, b) => a - b)
+  const median = kthDistances[Math.floor(kthDistances.length / 2)] || 1.0
+
+  return median
 }
 
 /**
@@ -509,16 +517,16 @@ function _estimateBandwidth(distances, bandwidth, k) {
  * @private
  */
 function _distanceToAffinity(distances, bandwidth) {
-    const result = new Float32Array(distances.length);
-    const gamma = 1.0 / (2 * bandwidth * bandwidth);
-    
-    for (let i = 0; i < distances.length; i++) {
-        if (distances[i] > 0) {
-            result[i] = Math.exp(-gamma * distances[i] * distances[i]);
-        }
+  const result = new Float32Array(distances.length)
+  const gamma = 1.0 / (2 * bandwidth * bandwidth)
+
+  for (let i = 0; i < distances.length; i++) {
+    if (distances[i] > 0) {
+      result[i] = Math.exp(-gamma * distances[i] * distances[i])
     }
-    
-    return result;
+  }
+
+  return result
 }
 
 /**
@@ -526,53 +534,53 @@ function _distanceToAffinity(distances, bandwidth) {
  * @private
  */
 function _clusterDistance(data, cluster1, cluster2, linkage = 'ward') {
-    const d = data.length / Math.floor(data.length / (data.length / data.length));
-    
-    if (linkage === 'single') {
-        // Minimum distance between any two points
-        let minDist = Infinity;
-        for (const i of cluster1) {
-            for (const j of cluster2) {
-                let dist = 0;
-                for (let k = 0; k < d; k++) {
-                    const diff = data[i * d + k] - data[j * d + k];
-                    dist += diff * diff;
-                }
-                minDist = Math.min(minDist, Math.sqrt(dist));
-            }
+  const d = data.length / Math.floor(data.length / (data.length / data.length))
+
+  if (linkage === 'single') {
+    // Minimum distance between any two points
+    let minDist = Infinity
+    for (const i of cluster1) {
+      for (const j of cluster2) {
+        let dist = 0
+        for (let k = 0; k < d; k++) {
+          const diff = data[i * d + k] - data[j * d + k]
+          dist += diff * diff
         }
-        return minDist;
-    } else if (linkage === 'complete') {
-        // Maximum distance between any two points
-        let maxDist = 0;
-        for (const i of cluster1) {
-            for (const j of cluster2) {
-                let dist = 0;
-                for (let k = 0; k < d; k++) {
-                    const diff = data[i * d + k] - data[j * d + k];
-                    dist += diff * diff;
-                }
-                maxDist = Math.max(maxDist, Math.sqrt(dist));
-            }
-        }
-        return maxDist;
-    } else {
-        // Average linkage (default)
-        let totalDist = 0;
-        let count = 0;
-        for (const i of cluster1) {
-            for (const j of cluster2) {
-                let dist = 0;
-                for (let k = 0; k < d; k++) {
-                    const diff = data[i * d + k] - data[j * d + k];
-                    dist += diff * diff;
-                }
-                totalDist += Math.sqrt(dist);
-                count++;
-            }
-        }
-        return count > 0 ? totalDist / count : 0;
+        minDist = Math.min(minDist, Math.sqrt(dist))
+      }
     }
+    return minDist
+  } else if (linkage === 'complete') {
+    // Maximum distance between any two points
+    let maxDist = 0
+    for (const i of cluster1) {
+      for (const j of cluster2) {
+        let dist = 0
+        for (let k = 0; k < d; k++) {
+          const diff = data[i * d + k] - data[j * d + k]
+          dist += diff * diff
+        }
+        maxDist = Math.max(maxDist, Math.sqrt(dist))
+      }
+    }
+    return maxDist
+  } else {
+    // Average linkage (default)
+    let totalDist = 0
+    let count = 0
+    for (const i of cluster1) {
+      for (const j of cluster2) {
+        let dist = 0
+        for (let k = 0; k < d; k++) {
+          const diff = data[i * d + k] - data[j * d + k]
+          dist += diff * diff
+        }
+        totalDist += Math.sqrt(dist)
+        count++
+      }
+    }
+    return count > 0 ? totalDist / count : 0
+  }
 }
 
 /**
@@ -580,43 +588,43 @@ function _clusterDistance(data, cluster1, cluster2, linkage = 'ward') {
  * @private
  */
 function _diagonalFilter(window, n, slope, zeroMean) {
-    const size = Math.ceil(n * Math.max(1, Math.abs(slope)));
-    const kernel = new Float32Array(size * size);
-    
-    // Create diagonal stripe filter
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            const diagDist = Math.abs(i - j * slope);
-            if (diagDist < n / 2) {
-                // Apply window function
-                let weight = 1.0;
-                if (window === 'hann') {
-                    weight = 0.5 + 0.5 * Math.cos(2 * Math.PI * diagDist / n);
-                } else if (window === 'hamming') {
-                    weight = 0.54 + 0.46 * Math.cos(2 * Math.PI * diagDist / n);
-                }
-                kernel[i * size + j] = weight;
-            }
+  const size = Math.ceil(n * Math.max(1, Math.abs(slope)))
+  const kernel = new Float32Array(size * size)
+
+  // Create diagonal stripe filter
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      const diagDist = Math.abs(i - j * slope)
+      if (diagDist < n / 2) {
+        // Apply window function
+        let weight = 1.0
+        if (window === 'hann') {
+          weight = 0.5 + 0.5 * Math.cos((2 * Math.PI * diagDist) / n)
+        } else if (window === 'hamming') {
+          weight = 0.54 + 0.46 * Math.cos((2 * Math.PI * diagDist) / n)
         }
+        kernel[i * size + j] = weight
+      }
     }
-    
-    // Normalize kernel
-    const sum = kernel.reduce((a, b) => a + b, 0);
-    if (sum > 0) {
-        for (let i = 0; i < kernel.length; i++) {
-            kernel[i] /= sum;
-        }
+  }
+
+  // Normalize kernel
+  const sum = kernel.reduce((a, b) => a + b, 0)
+  if (sum > 0) {
+    for (let i = 0; i < kernel.length; i++) {
+      kernel[i] /= sum
     }
-    
-    // Zero-mean if requested
-    if (zeroMean) {
-        const mean = kernel.reduce((a, b) => a + b, 0) / kernel.length;
-        for (let i = 0; i < kernel.length; i++) {
-            kernel[i] -= mean;
-        }
+  }
+
+  // Zero-mean if requested
+  if (zeroMean) {
+    const mean = kernel.reduce((a, b) => a + b, 0) / kernel.length
+    for (let i = 0; i < kernel.length; i++) {
+      kernel[i] -= mean
     }
-    
-    return kernel;
+  }
+
+  return kernel
 }
 
 /**
@@ -624,30 +632,30 @@ function _diagonalFilter(window, n, slope, zeroMean) {
  * @private
  */
 function _convolve2d(matrix, kernel, size) {
-    const kSize = Math.sqrt(kernel.length);
-    const result = new Float32Array(matrix.length);
-    const pad = Math.floor(kSize / 2);
-    
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            let sum = 0;
-            
-            for (let ki = 0; ki < kSize; ki++) {
-                for (let kj = 0; kj < kSize; kj++) {
-                    const mi = i + ki - pad;
-                    const mj = j + kj - pad;
-                    
-                    if (mi >= 0 && mi < size && mj >= 0 && mj < size) {
-                        sum += matrix[mi * size + mj] * kernel[ki * kSize + kj];
-                    }
-                }
-            }
-            
-            result[i * size + j] = sum;
+  const kSize = Math.sqrt(kernel.length)
+  const result = new Float32Array(matrix.length)
+  const pad = Math.floor(kSize / 2)
+
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      let sum = 0
+
+      for (let ki = 0; ki < kSize; ki++) {
+        for (let kj = 0; kj < kSize; kj++) {
+          const mi = i + ki - pad
+          const mj = j + kj - pad
+
+          if (mi >= 0 && mi < size && mj >= 0 && mj < size) {
+            sum += matrix[mi * size + mj] * kernel[ki * kSize + kj]
+          }
         }
+      }
+
+      result[i * size + j] = sum
     }
-    
-    return result;
+  }
+
+  return result
 }
 
 /**
@@ -655,10 +663,10 @@ function _convolve2d(matrix, kernel, size) {
  * @private
  */
 function _logspace(start, stop, num) {
-    if (num <= 1) return num === 1 ? [Math.pow(2, start)] : [];
-    
-    const step = (stop - start) / (num - 1);
-    return Array.from({length: num}, (_, i) => Math.pow(2, start + i * step));
+  if (num <= 1) return num === 1 ? [Math.pow(2, start)] : []
+
+  const step = (stop - start) / (num - 1)
+  return Array.from({ length: num }, (_, i) => Math.pow(2, start + i * step))
 }
 
 /**
@@ -666,26 +674,26 @@ function _logspace(start, stop, num) {
  * @private
  */
 function _toSparseMatrix(dense) {
-    const indices = [];
-    const values = [];
-    const size = Math.sqrt(dense.length);
-    
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            const val = dense[i * size + j];
-            if (Math.abs(val) > 1e-10) {
-                indices.push([i, j]);
-                values.push(val);
-            }
-        }
+  const indices = []
+  const values = []
+  const size = Math.sqrt(dense.length)
+
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      const val = dense[i * size + j]
+      if (Math.abs(val) > 1e-10) {
+        indices.push([i, j])
+        values.push(val)
+      }
     }
-    
-    return {
-        sparse: true,
-        indices: new Uint32Array(indices.flat()),
-        values: new Float32Array(values),
-        shape: [size, size]
-    };
+  }
+
+  return {
+    sparse: true,
+    indices: new Uint32Array(indices.flat()),
+    values: new Float32Array(values),
+    shape: [size, size],
+  }
 }
 
 /**
@@ -693,9 +701,9 @@ function _toSparseMatrix(dense) {
  * @private
  */
 function _shear(matrix, direction, axis) {
-    // Simplified shear implementation
-    // In a full implementation, this would apply the proper shear transformation
-    return new Float32Array(matrix);
+  // Simplified shear implementation
+  // In a full implementation, this would apply the proper shear transformation
+  return new Float32Array(matrix)
 }
 
 /**
@@ -703,8 +711,8 @@ function _shear(matrix, direction, axis) {
  * @private
  */
 function _padMatrix(matrix, n) {
-    // Simplified padding - in practice would pad with zeros
-    return new Float32Array(matrix);
+  // Simplified padding - in practice would pad with zeros
+  return new Float32Array(matrix)
 }
 
 /**
@@ -712,8 +720,8 @@ function _padMatrix(matrix, n) {
  * @private
  */
 function _padSparseMatrix(matrix, n) {
-    // Simplified sparse padding
-    return matrix;
+  // Simplified sparse padding
+  return matrix
 }
 
 /**
@@ -721,8 +729,8 @@ function _padSparseMatrix(matrix, n) {
  * @private
  */
 function _sliceMatrix(matrix, n) {
-    // Simplified slicing
-    return new Float32Array(matrix.slice(0, n * n));
+  // Simplified slicing
+  return new Float32Array(matrix.slice(0, n * n))
 }
 
 // Usage Example:
