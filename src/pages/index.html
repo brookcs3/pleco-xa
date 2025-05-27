@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pleco-XA: Audio Analysis</title>
+  <meta name="description" content="Interactive demo of Pleco-XA, a Web Audio analysis toolkit built from a Librosa port.">
+  <link rel="canonical" href="https://example.com/pleco-xa/">
+  <meta property="og:title" content="Pleco-XA Audio Analysis Demo">
+  <meta property="og:description" content="Try advanced beat tracking and loop detection in the browser.">
+  <meta property="og:type" content="website">
   <style>
     * {
       margin: 0;
@@ -396,7 +401,7 @@
     import { findMusicalLoop, findDownbeatPhase } from '/src/core/librosa-downbeat.js';
     
     // Audio utilities
-    import { computeRMS, computePeak, computeZeroCrossingRate } from '/src/core/audio-utils.js';
+    import { computeRMS, computePeak, computeZeroCrossingRate } from '/src/utils/audio-utils.js';
     
     // Dynamic zero crossing for clean loops
     import { DynamicZeroCrossing } from '/src/core/dynamic-zero-crossing.js';
