@@ -122,7 +122,7 @@ export async function createReferenceTemplate(audioBuffer, loopStart, loopEnd) {
   const loopSegment = channelData.slice(startSample, endSample);
   
   // Import heavy spectral helper lazily
-  const { computeSpectralCentroid } = await import('../core/spectral.js');
+  const { spectralCentroid } = await import('../core/librosa-spectral.js');
   
   // Compute reference characteristics
   const template = {
@@ -130,7 +130,7 @@ export async function createReferenceTemplate(audioBuffer, loopStart, loopEnd) {
     samples: loopSegment.length,
     rms: computeRMS(audioBuffer),
     peak: computePeak(audioBuffer),
-    spectralCentroid: computeSpectralCentroid(audioBuffer),
+    spectralCentroid: spectralCentroid({ y: Array.from(channelData), sr: sampleRate }),
     zeroCrossingRate: computeZeroCrossingRate(audioBuffer),
     segment: loopSegment,
     sampleRate: sampleRate
