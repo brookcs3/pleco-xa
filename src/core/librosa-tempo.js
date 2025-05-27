@@ -268,51 +268,48 @@ export function beat_track(y, sr = 22050, hop_length = 512, bpm = null) {
  * @returns {Array} Beat frame indices
  */
 export function dp_beat_track(onset_env, period) {
-    const n_frames = onset_env.length;
-    const tightness = 400; // Tempo consistency parameter
+    const n = onset_env.length;
     
-    // Transition costs based on tempo consistency
-    const transition_matrix = compute_transition_matrix(period, tightness);
-    
-    // Observation costs (negative log-likelihood)
-    const obs_costs = onset_env.map(strength => -Math.log(Math.max(1e-10, strength)));
-    
-    // Viterbi algorithm for optimal path
-    const path_costs = new Array(n_frames).fill(Infinity);
-    const path_indices = new Array(n_frames).fill(-1);
+    // State variables
+    const backlink = new Int32Array(n);
+    const cumulative_score = new Float32Array(n);
     
     // Initialize
-    path_costs[0] = obs_costs[0];
+    cumulative_score[0] = onset_env[0];
+    backlink[0] = -1;
     
-    // Forward pass
-    for (let t = 1; t < n_frames; t++) {
-        for (let prev_t = Math.max(0, t - Math.round(2 * period)); prev_t < t; prev_t++) {
-            const transition_cost = transition_matrix[t - prev_t] || Infinity;
-            const total_cost = path_costs[prev_t] + transition_cost + obs_costs[t];
+    // Dynamic programming
+    for (let i = 1; i < n; i++) {
+        let max_score = -Infinity;
+        let max_idx = -1;
+        
+        // Search range centered around expected period
+        const start = Math.max(0, Math.floor(i - 2 * period));
+        const end = Math.max(0, i - 1);
+        
+        for (let j = start; j <= end; j++) {
+            // Transition score: local onset + transition cost
+            const beat_strength = onset_env[i];
+            const transition_cost = -0.5 * Math.pow((i - j - period) / period, 2);
+            const score = cumulative_score[j] + beat_strength + transition_cost;
             
-            if (total_cost < path_costs[t]) {
-                path_costs[t] = total_cost;
-                path_indices[t] = prev_t;
+            if (score > max_score) {
+                max_score = score;
+                max_idx = j;
             }
         }
+        
+        cumulative_score[i] = max_score;
+        backlink[i] = max_idx;
     }
     
-    // Backtrack to find optimal path
+    // Backtracking
     const beats = [];
-    let current = n_frames - 1;
+    let current = backlink.indexOf(Math.max(...cumulative_score));
     
-    // Find best final state
-    let best_final = 0;
-    for (let t = Math.max(0, n_frames - Math.round(period)); t < n_frames; t++) {
-        if (path_costs[t] < path_costs[best_final]) {
-            best_final = t;
-        }
-    }
-    
-    current = best_final;
     while (current >= 0) {
         beats.unshift(current);
-        current = path_indices[current];
+        current = backlink[current];
     }
     
     return beats;
