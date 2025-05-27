@@ -1,1 +1,116 @@
-/**\n * Musical loop analysis and detection\n * Part of Pleco Xa audio analysis engine\n */\n\nimport { detectBPM } from '../../../src/core/analysis/BPMDetector.js';\nimport { computeRMS, computePeak } from '../../../../../src/utils/audio-utils.js';\nimport { computeZeroCrossingRate } from '../../../../../src/utils/audio-utils.js';\nimport { computeSpectrum, computeSpectralCentroid } from './spectral.js';\nimport { calculateBeatAlignment } from './musical-timing.js';\nimport { findZeroCrossing, findAudioStart, applyHannWindow } from '../../../../../src/utils/audio-utils.js';\nimport { debugLog } from '../../../../../src/utils/debug.js';\n\n/**\n * Main Librosa-style loop analysis with musical timing awareness\n * @param {AudioBuffer} audioBuffer - Audio buffer to analyze\n * @param {boolean} useReference - Whether to use reference template\n * @returns {Promise<Object>} Complete analysis results\n */\nexport async function librosaLoopAnalysis(audioBuffer, useReference = false) {\n  debugLog('Starting Musical Timing-Aware Analysis...');\n  \n  const audioData = audioBuffer.getChannelData(0);\n  const sampleRate = audioBuffer.sampleRate;\n  \n  // First, detect BPM and musical timing\n  const bpmData = await detectBPM(audioBuffer);\n  const beatsPerBar = 4; // Assume 4/4 time signature\n  const barDuration = (60 / bpmData.bpm) * beatsPerBar;\n  \n  debugLog(`Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);\n  \n  // Basic Librosa metrics\n  const rms = computeRMS(audioBuffer);\n  const peak = computePeak(audioBuffer);\n  const spectrum = await computeSpectrum(audioBuffer);\n  \n  // Always use musical boundary-aware loop detection\n  const loopPoints = await musicalLoopAnalysis(audioBuffer, bpmData);\n  \n  // Spectral analysis for better loop detection\n  const spectralCentroid = computeSpectralCentroid(audioBuffer);\n  const zeroCrossingRate = computeZeroCrossingRate(audioBuffer);\n  \n  return {\n    ...loopPoints,\n    rms: rms,\n    peak: peak,\n    spectrum: spectrum,\n    spectralCentroid: spectralCentroid,\n    zeroCrossingRate: zeroCrossingRate,\n    confidence: loopPoints.confidence * (1 - Math.abs(rms - 0.1)), // Adjust confidence based on RMS\n    bpm: bpmData.bpm,\n    barDuration: barDuration,\n    musicalInfo: {\n      bpm: bpmData.bpm,\n      barDuration: barDuration,\n      beatDuration: 60 / bpmData.bpm\n    }\n  };\n}\n\n/**\n * Musical boundary-aware loop detection\n * @param {AudioBuffer} audioBuffer - Audio buffer to analyze\n * @param {Object} bpmData - BPM detection results\n * @returns {Promise<Object>} Loop analysis results\n */\nexport async function musicalLoopAnalysis(audioBuffer, bpmData) {\n  const channelData = audioBuffer.getChannelData(0);\n  const sampleRate = audioBuffer.sampleRate;\n  const totalSamples = channelData.length;\n  \n  // Skip silence at the beginning for long tracks\n  const isLongTrack = audioBuffer.duration > 15;\n  const audioStartSample = isLongTrack ? findAudioStart(channelData, sampleRate) : 0;\n  const audioStartTime = audioStartSample / sampleRate;\n  \n  debugLog(`Musical Analysis: Audio starts at ${audioStartTime.toFixed(3)}s`);\n  \n  const beatsPerBar = 4;\n  const barDuration = (60 / bpmData.bpm) * beatsPerBar;\n  const beatDuration = 60 / bpmData.bpm;\n  \n  debugLog(`Musical Analysis: Bar=${barDuration.toFixed(3)}s, Beat=${beatDuration.toFixed(3)}s`);\n  \n  // Test musical divisions: 1/2 bar, 1 bar, 2 bars, 4 bars\n  const musicalDivisions = [0.5, 1, 2, 4, 8].map(div => div * barDuration);\n  const results = [];\n  \n  for (const loopLength of musicalDivisions) {\n    // Don't test loops longer than 12 seconds or longer than half the track\n    if (loopLength > 12.0 || loopLength > audioBuffer.duration / 2) continue;\n    \n    const loopSamples = Math.floor(loopLength * sampleRate);\n    if (audioStartSample + loopSamples * 2 > totalSamples) continue;\n    \n    // Extract segments starting from actual audio content, not silence\n    const segment1 = applyHannWindow(channelData.slice(audioStartSample, audioStartSample + loopSamples));\n    const segment2 = applyHannWindow(channelData.slice(audioStartSample + loopSamples, audioStartSample + loopSamples * 2));\n    \n    // Cross-correlation for similarity\n    let correlation = 0;\n    for (let i = 0; i < segment1.length; i++) {\n      correlation += segment1[i] * segment2[i];\n    }\n    correlation /= segment1.length;\n    \n    // Find zero-crossings for clean loop boundaries, starting from audio content\n    const startIndex = findZeroCrossing(channelData, audioStartSample);\n    const endIndex = findZeroCrossing(channelData, audioStartSample + loopSamples);\n    \n    // Musical timing confidence boost\n    const beatAlignment = calculateBeatAlignment(loopLength, bpmData.bpm);\n    const musicalConfidence = Math.abs(correlation) * beatAlignment;\n    \n    results.push({\n      loopStart: startIndex / sampleRate,\n      loopEnd: endIndex / sampleRate,\n      loopLength: loopLength,\n      correlation: correlation,\n      confidence: musicalConfidence,\n      musicalDivision: loopLength / barDuration,\n      bpm: bpmData.bpm,\n      isMusicalBoundary: true\n    });\n    \n    debugLog(`Testing ${(loopLength/barDuration).toFixed(1)} bars (${loopLength.toFixed(3)}s): correlation=${correlation.toFixed(4)}, confidence=${musicalConfidence.toFixed(4)}`);\n  }\n  \n  // Add fine-grained analysis around promising musical divisions\n  const bestMusical = results.reduce((best, curr) => \n    curr.confidence > best.confidence ? curr : best, results[0]);\n  \n  if (bestMusical) {\n    const baseLength = bestMusical.loopLength;\n    for (let offset = -0.05; offset <= 0.05; offset += 0.01) {\n      const testLength = baseLength + offset;\n      if (testLength <= 0) continue;\n      \n      const loopSamples = Math.floor(testLength * sampleRate);\n      if (loopSamples * 2 > totalSamples) continue;\n      \n      const segment1 = applyHannWindow(channelData.slice(0, loopSamples));\n      const segment2 = applyHannWindow(channelData.slice(loopSamples, loopSamples * 2));\n      \n      let correlation = 0;\n      for (let i = 0; i < segment1.length; i++) {\n        correlation += segment1[i] * segment2[i];\n      }\n      correlation /= segment1.length;\n      \n      const startIndex = findZeroCrossing(channelData, 0);\n      const endIndex = findZeroCrossing(channelData, loopSamples);\n      \n      results.push({\n        loopStart: startIndex / sampleRate,\n        loopEnd: endIndex / sampleRate,\n        loopLength: testLength,\n        correlation: correlation,\n        confidence: Math.abs(correlation) * 0.9, // Slightly lower for non-exact musical boundaries\n        musicalDivision: testLength / barDuration,\n        bpm: bpmData.bpm,\n        isMusicalBoundary: false\n      });\n    }\n  }\n  \n  // For longer tracks, add sequential loop candidates starting from the end of the best loop\n  if (audioBuffer.duration > 10 && bestMusical) {\n    const firstLoopEnd = bestMusical.loopEnd;\n    const remainingDuration = audioBuffer.duration - firstLoopEnd;\n    \n    // Add sequential loops starting where the first one ends\n    for (const loopLength of musicalDivisions) {\n      if (loopLength > remainingDuration || loopLength > 12.0) continue;\n      \n      const sequentialStart = firstLoopEnd;\n      const sequentialEnd = sequentialStart + loopLength;\n      \n      if (sequentialEnd > audioBuffer.duration) continue;\n      \n      const startSample = Math.floor(sequentialStart * sampleRate);\n      const endSample = Math.floor(sequentialEnd * sampleRate);\n      const loopSamples = endSample - startSample;\n      \n      // Test this sequential segment\n      const segment1 = applyHannWindow(channelData.slice(startSample, endSample));\n      const segment2 = applyHannWindow(channelData.slice(endSample, endSample + loopSamples));\n      \n      if (endSample + loopSamples > totalSamples) continue;\n      \n      let correlation = 0;\n      for (let i = 0; i < segment1.length; i++) {\n        correlation += segment1[i] * segment2[i];\n      }\n      correlation /= segment1.length;\n      \n      const beatAlignment = calculateBeatAlignment(loopLength, bpmData.bpm);\n      const sequentialConfidence = Math.abs(correlation) * beatAlignment * 0.8; // Slightly lower for sequential\n      \n      results.push({\n        loopStart: sequentialStart,\n        loopEnd: sequentialEnd,\n        loopLength: loopLength,\n        correlation: correlation,\n        confidence: sequentialConfidence,\n        musicalDivision: loopLength / barDuration,\n        bpm: bpmData.bpm,\n        isMusicalBoundary: true,\n        isSequential: true\n      });\n      \n      debugLog(`Sequential candidate: ${sequentialStart.toFixed(3)}s - ${sequentialEnd.toFixed(3)}s (${(loopLength/barDuration).toFixed(1)} bars)`);\n    }\n  }\n  \n  // Sort by confidence and return best\n  results.sort((a, b) => b.confidence - a.confidence);\n  \n  // Smart logic: For short tracks (under 15 seconds), assume entire length is the desired loop\n  const isShortTrack = audioBuffer.duration < 15;\n  \n  let best;\n  if (isShortTrack && results.length > 0) {\n    // For short tracks, prefer loops that use most/all of the track\n    const fullTrackCandidate = results.find(r => \n      Math.abs(r.loopLength - audioBuffer.duration) < 0.5\n    );\n    \n    if (fullTrackCandidate) {\n      best = fullTrackCandidate;\n      debugLog(`Short track: Using full length ${best.loopLength.toFixed(3)}s as loop`);\n    } else {\n      // Create a full-track loop option\n      best = {\n        loopStart: 0,\n        loopEnd: audioBuffer.duration,\n        loopLength: audioBuffer.duration,\n        correlation: 0.8,\n        confidence: 0.8,\n        musicalDivision: audioBuffer.duration / barDuration,\n        bpm: bpmData.bpm,\n        isMusicalBoundary: false,\n        isFullTrack: true\n      };\n      debugLog(`Short track: Created full-track loop ${best.loopLength.toFixed(3)}s`);\n    }\n  } else {\n    best = results[0] || {\n      loopStart: 0,\n      loopEnd: Math.min(barDuration, audioBuffer.duration),\n      loopLength: Math.min(barDuration, audioBuffer.duration),\n      correlation: 0.5,\n      confidence: 0.5,\n      musicalDivision: 1,\n      bpm: bpmData.bpm,\n      isMusicalBoundary: true\n    };\n  }\n  \n  debugLog(`Best musical loop: ${(best.musicalDivision || 1).toFixed(2)} bars (${best.loopLength.toFixed(3)}s) at ${best.bpm.toFixed(1)} BPM`);\n  \n  return {\n    loopStart: best.loopStart,\n    loopEnd: best.loopEnd,\n    confidence: best.confidence,\n    musicalDivision: best.musicalDivision || 1,\n    bpm: best.bpm,\n    allCandidates: results.slice(0, 5),\n    isFullTrack: best.isFullTrack || false\n  };\n}\n\n/**\n * Original loop analysis from 2023 research (fallback)\n * @param {AudioBuffer} audioBuffer - Audio buffer to analyze\n * @returns {Promise<Object>} Loop analysis results\n */\nexport async function analyzeLoopPoints(audioBuffer) {\n  const channelData = audioBuffer.getChannelData(0);\n  const sampleRate = audioBuffer.sampleRate;\n  const totalSamples = channelData.length;\n  \n  const window = Math.min(Math.floor(sampleRate * 0.5), Math.floor(totalSamples / 2));\n  const startSlice = applyHannWindow(channelData.subarray(0, window));\n  const endSlice = applyHannWindow(channelData.subarray(totalSamples - window));\n  \n  let bestOffset = 0;\n  let bestScore = -Infinity;\n  \n  for (let offset = 0; offset < window; offset++) {\n    let score = 0;\n    for (let i = 0; i < window - offset; i++) {\n      score += startSlice[i] * endSlice[i + offset];\n    }\n    if (score > bestScore) {\n      bestScore = score;\n      bestOffset = offset;\n    }\n  }\n  \n  const startIndex = findZeroCrossing(channelData, 0);\n  const endIndex = findZeroCrossing(channelData, totalSamples - window + bestOffset);\n  \n  return {\n    loopStart: startIndex / sampleRate,\n    loopEnd: endIndex / sampleRate,\n    confidence: bestScore / window,\n    bestOffset: bestOffset,\n    windowSize: window\n  };\n}\n
+// Re-export core analysis functions for demo tests
+export { musicalLoopAnalysis, analyzeLoopPoints } from 'src/core/loop-analyzer.js';
+/**
+ * Musical loop analysis and detection
+ * Part of Pleco Xa audio analysis engine
+ */
+
+import { detectBPM } from 'src/core/analysis/BPMDetector.js';
+import {
+  computeRMS,
+  computePeak,
+  computeZeroCrossingRate,
+  findZeroCrossing,
+  findAudioStart,
+  applyHannWindow
+} from '../../../../../src/utils/audio-utils.js';
+import { computeSpectrum, computeSpectralCentroid } from './spectral.js';
+import { calculateBeatAlignment } from './musical-timing.js';
+import { debugLog } from '../../../../../src/utils/debug.js';
+
+export async function librosaLoopAnalysis(audioBuffer) {
+  debugLog('Starting Musical Timing-Aware Analysis');
+
+  const audioData = audioBuffer.getChannelData(0);
+  const sampleRate = audioBuffer.sampleRate;
+
+  const bpmData = await detectBPM(audioBuffer);
+  const barDuration = (60 / bpmData.bpm) * 4; // 4/4 time signature
+
+  debugLog(`Detected BPM: ${bpmData.bpm.toFixed(2)}, Bar duration: ${barDuration.toFixed(3)}s`);
+
+  const rms = computeRMS(audioBuffer);
+  const peak = computePeak(audioBuffer);
+  const spectrum = await computeSpectrum(audioBuffer);
+
+  const loopPoints = await musicalLoopAnalysis(audioBuffer, bpmData, barDuration);
+
+  const spectralCentroid = computeSpectralCentroid(audioBuffer);
+  const zeroCrossingRate = computeZeroCrossingRate(audioBuffer);
+
+  return {
+    ...loopPoints,
+    rms,
+    peak,
+    spectrum,
+    spectralCentroid,
+    zeroCrossingRate,
+    confidence: loopPoints.confidence * (1 - Math.abs(rms - 0.1)),
+    bpm: bpmData.bpm,
+    barDuration,
+    musicalInfo: {
+      bpm: bpmData.bpm,
+      barDuration,
+      beatDuration: 60 / bpmData.bpm
+    }
+  };
+}
+
+async function musicalLoopAnalysis(audioBuffer, bpmData, barDuration) {
+  const data = audioBuffer.getChannelData(0);
+  const rate = audioBuffer.sampleRate;
+  const totalSamples = data.length;
+
+  const audioStart = audioBuffer.duration > 15 ? findAudioStart(data, rate) : 0;
+  debugLog(`Audio start: ${(audioStart / rate).toFixed(3)}s`);
+
+  const musicalDivisions = [0.5, 1, 2, 4, 8].map(bars => bars * barDuration);
+  const results = [];
+
+  for (const lengthSec of musicalDivisions) {
+    if (lengthSec > 12 || lengthSec > audioBuffer.duration / 2) continue;
+
+    const loopSamples = Math.floor(lengthSec * rate);
+    if (audioStart + 2 * loopSamples > totalSamples) continue;
+
+    const segment1 = applyHannWindow(data.slice(audioStart, audioStart + loopSamples));
+    const segment2 = applyHannWindow(data.slice(audioStart + loopSamples, audioStart + 2 * loopSamples));
+
+    const correlation = segment1.reduce((sum, val, i) => sum + val * segment2[i], 0) / loopSamples;
+
+    const beatAlignment = calculateBeatAlignment(lengthSec, bpmData.bpm);
+
+    results.push({
+      loopStart: findZeroCrossing(data, audioStart) / rate,
+      loopEnd: findZeroCrossing(data, audioStart + loopSamples) / rate,
+      loopLength: lengthSec,
+      correlation,
+      confidence: Math.abs(correlation) * beatAlignment,
+      musicalDivision: lengthSec / barDuration,
+      bpm: bpmData.bpm
+    });
+
+    debugLog(`Checked ${lengthSec}s (${(lengthSec / barDuration).toFixed(1)} bars): confidence=${(Math.abs(correlation) * beatAlignment).toFixed(4)}`);
+  }
+
+  results.sort((a, b) => b.confidence - a.confidence);
+
+  const best = results[0] || {
+    loopStart: 0,
+    loopEnd: Math.min(barDuration, audioBuffer.duration),
+    confidence: 0.5,
+    musicalDivision: 1,
+    bpm: bpmData.bpm
+  };
+
+  debugLog(`Best loop: ${best.loopLength}s (${best.musicalDivision} bars)`);
+
+  return {
+    loopStart: best.loopStart,
+    loopEnd: best.loopEnd,
+    confidence: best.confidence,
+    musicalDivision: best.musicalDivision,
+    bpm: best.bpm,
+    candidates: results.slice(0, 5)
+  };
+}
