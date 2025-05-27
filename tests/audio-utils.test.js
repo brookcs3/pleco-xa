@@ -2,7 +2,7 @@ import {
   computeRMS,
   computePeak,
   computeZeroCrossingRate,
-} from '../src/core/audio-utils.js';
+} from '../src/utils/audio-utils.js';
 
 function createAudioBuffer(samples) {
   const data = Float32Array.from(samples);
