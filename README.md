@@ -149,11 +149,6 @@ Main analysis engine with musical timing awareness.
 - **useReference**: `boolean` - Use reference template matching
 - **Returns**: Complete analysis object with loop points, BPM, musical info
 
-#### `musicalLoopAnalysis(audioBuffer, bpmData)`
-Musical boundary-aware loop detection.
-- **audioBuffer**: `AudioBuffer` - Audio to analyze
-- **bpmData**: `Object` - BPM detection results
-- **Returns**: Loop candidates with musical timing confidence
 
 ### Spectral Analysis
 
@@ -233,7 +228,6 @@ Additional Astro components:
 ```javascript
 import { 
   detectBPM, 
-  musicalLoopAnalysis,
   createReferenceTemplate,
   analyzeWithReference 
 } from 'pleco-xa';
