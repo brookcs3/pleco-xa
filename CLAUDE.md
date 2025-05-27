@@ -1,5 +1,6 @@
 - Lets remmeber where we are and our plane, so in the case of a crash we are on the same page still
 - check your fucking work
+- dont use bpm_detector.js because we have librose-tempo now
 
 ## DEBUG History & Lessons Learned
 
