@@ -12,7 +12,7 @@ export { computeSpectralCentroid, computeSpectrum, computeFFT } from './core/spe
 export { calculateBeatAlignment } from './core/musical-timing.js';
 
 // Basic audio processing
-export { loadAudioBuffer, computeRMS, computePeak, computeZeroCrossingRate } from '../../../../src/utils/audio-utils.js';
+export { loadAudioBuffer, computeRMS, computePeak, computeZeroCrossingRate } from './utils/audio-utils.js';
 
 // Audio manipulation
 export { pitchBasedCompress, tempoBasedCompress } from './core/compression.js';
