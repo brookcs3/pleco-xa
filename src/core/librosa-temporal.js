@@ -196,6 +196,25 @@ export function lagToRecurrence(lag, axis = -1) {
 }
 
 /**
+ * Alias helpers using the original Python-style snake_case names so that
+ * JS ports copied verbatim from librosa can do:
+ *   import { recurrence_to_lag, lag_to_recurrence } from './librosa-temporal.js';
+ * without failing.
+ *
+ * They simply call the camelCase versions above.
+ */
+
+// eslint-disable-next-line camelcase
+export function recurrence_to_lag(rec, pad = true, axis = -1) {
+  return recurrenceToLag(rec, pad, axis);
+}
+
+// eslint-disable-next-line camelcase
+export function lag_to_recurrence(lag, axis = -1) {
+  return lagToRecurrence(lag, axis);
+}
+
+/**
  * Apply temporal clustering using agglomerative clustering
  * @param {Float32Array} data - Data matrix to cluster
  * @param {number} k - Number of segments/clusters
@@ -283,7 +302,7 @@ export function agglomerative(data, k, options = {}) {
 /**
  * Multi-angle path enhancement for tempo-varying music
  * @param {Float32Array} R - Similarity matrix
- * @param {number} n - Filter length
+ * @param {number} [n] - Filter length (optional)
  * @param {Object} options - Enhancement options
  * @param {string} options.window - Window function type
  * @param {number} options.maxRatio - Maximum tempo ratio
@@ -293,7 +312,9 @@ export function agglomerative(data, k, options = {}) {
  * @param {boolean} options.clip - Clip negative values
  * @returns {Float32Array} Enhanced similarity matrix
  */
-export function pathEnhance(R, n, options = {}) {
+// `n` (filter length) is now optional. If omitted, we use
+// 1/8 of the matrix size (clamped to [32, 256]).
+export function pathEnhance(R, n = null, options = {}) {
     const {
         window = 'hann',
         maxRatio = 2.0,
@@ -302,26 +323,32 @@ export function pathEnhance(R, n, options = {}) {
         zeroMean = false,
         clip = true
     } = options;
-    
-    if (!R || n <= 0) {
-        throw new ParameterError('Valid similarity matrix and filter length required');
+
+    // If caller didn't supply n, pick a heuristic based on matrix size
+    if (n == null) {
+        const sizeGuess = Math.round(Math.sqrt(R.length));
+        n = Math.min(256, Math.max(32, Math.floor(sizeGuess / 8)));
     }
-    
+
+    if (!R || n <= 0) {
+        throw new ParameterError('Valid similarity matrix required');
+    }
+
     const minR = minRatio || 1.0 / maxRatio;
     const size = Math.sqrt(R.length);
     let RSmooth = null;
-    
+
     // Generate tempo ratios for diagonal filters
     const ratios = _logspace(Math.log2(minR), Math.log2(maxRatio), nFilters);
-    
+
     // Apply filters at different tempo ratios
     for (const ratio of ratios) {
         // Create diagonal filter for this tempo ratio
         const kernel = _diagonalFilter(window, n, ratio, zeroMean);
-        
+
         // Convolve with similarity matrix
         const filtered = _convolve2d(R, kernel, size);
-        
+
         if (RSmooth === null) {
             RSmooth = new Float32Array(filtered);
         } else {
@@ -331,14 +358,14 @@ export function pathEnhance(R, n, options = {}) {
             }
         }
     }
-    
+
     // Clip negative values if requested
     if (clip && RSmooth) {
         for (let i = 0; i < RSmooth.length; i++) {
             RSmooth[i] = Math.max(0, RSmooth[i]);
         }
     }
-    
+
     return RSmooth || new Float32Array(R.length);
 }
 

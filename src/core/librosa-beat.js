@@ -46,6 +46,19 @@ export function beatTrack(audioData, sampleRate, {
 }
 
 /**
+ * Alias matching the original librosa.beat.beat_track() API.
+ * Delegates directly to beatTrack() so other ports can import { beat_track }.
+ *
+ * @param {Float32Array} audioData
+ * @param {number}       sampleRate
+ * @param {Object}       options
+ * @returns {Object}     identical to beatTrack()
+ */
+export function beat_track(audioData, sampleRate, options = {}) {
+  return beatTrack(audioData, sampleRate, options);
+}
+
+/**
  * Fast tempo estimation using autocorrelation
  * Much more efficient than testing every possible BPM
  */
@@ -117,6 +130,13 @@ export function estimateTempo(onsetStrength, sampleRate, hopLength = 512, startB
     confidence: bestPeak.strength,
     allCandidates: peaks.slice(0, 5)
   };
+}
+
+/**
+ * Alias for estimateTempo() to match librosa.beat.tempo().
+ */
+export function tempo(onsetStrength, sampleRate, hopLength = 512, startBpm = 120) {
+  return estimateTempo(onsetStrength, sampleRate, hopLength, startBpm);
 }
 
 /**
