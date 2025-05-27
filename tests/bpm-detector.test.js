@@ -1,4 +1,4 @@
-import { detectBPM } from '../src/core/bpm-detector.js';
+import { detectBPM } from '../src/core/analysis/BPMDetector.js';
 
 function createPulseSample(bpm, sampleRate, durationSeconds) {
   const length = Math.floor(sampleRate * durationSeconds);
@@ -9,15 +9,23 @@ function createPulseSample(bpm, sampleRate, durationSeconds) {
     data[Math.floor(i)] = 1; // simple impulse on each beat
   }
 
-  return data;
+  // Create a mock AudioBuffer for testing
+  const mockAudioBuffer = {
+    getChannelData: () => data,
+    numberOfChannels: 1,
+    sampleRate: sampleRate,
+    length: data.length
+  };
+
+  return mockAudioBuffer;
 }
 
 describe('detectBPM', () => {
-  it('returns an object with bpm and confidence for a short synthetic sample', () => {
+  it('returns an object with bpm and confidence for a short synthetic sample', async () => {
     const sampleRate = 44100;
-    const audioData = createPulseSample(120, sampleRate, 2);
+    const audioBuffer = createPulseSample(120, sampleRate, 2);
 
-    const result = detectBPM(audioData, sampleRate);
+    const result = await detectBPM(audioBuffer);
 
     expect(result).toEqual(
       expect.objectContaining({

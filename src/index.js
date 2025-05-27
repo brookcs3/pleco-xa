@@ -3,13 +3,22 @@
  * Core audio processing features (no UI components)
  */
 
-export { BPMDetector } from './core/bpm-detector.js';
-export { LivePeakExtractor } from './core/live-peak-extractor.js';
-export { LoopController } from './core/loop-controller.js';
-export { VolumeAnalyzer } from './core/volume-analyzer.js';
-export { WaveformProcessor } from './core/waveform-processor.js';
-export { AudioLoader } from './core/audio-loader.js';
-export { DynamicZeroCrossing } from './core/dynamic-zero-crossing.js';
+// Core audio analysis modules
+export { BPMDetector } from './core/analysis/BPMDetector.js';
+export { LoopAnalyzer } from './core/analysis/LoopAnalyzer.js';
+export { WaveformData } from './core/analysis/WaveformData.js';
 
-// Main class that combines all audio analysis features
-export { PlecoXA } from './pleco-xa.js';
+// Audio playback and control
+export { AudioPlayer } from './core/audio/AudioPlayer.js';
+export { LoopController } from './core/loop-controller.js';
+
+// Visualization components
+export { WaveformRenderer } from './core/visualization/WaveformRenderer.js';
+export { SpectrumAnalyzer } from './core/visualization/SpectrumAnalyzer.js';
+
+// Utility functions
+export { analyzeAudio } from './utils/audio-utils.js';
+export { updateTrackInfo, updateLoopInfo, showError } from './utils/ui-utils.js';
+export { playAudio, stopAudio } from './utils/playback-utils.js';
+export { halfLoop, doubleLoop, moveForward } from './utils/loop-utils.js';
+export { drawWaveform } from './utils/waveform-utils.js';

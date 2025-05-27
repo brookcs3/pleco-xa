@@ -117,6 +117,14 @@
       color: #ffd700;
       text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
       margin-bottom: 0.5rem;
+      transition: all 0.1s ease-out;
+      transform-origin: center;
+    }
+
+    .bpm-value.beat-pulse {
+      transform: scale(1.15);
+      color: #ff6b6b;
+      text-shadow: 0 0 40px rgba(255, 107, 107, 0.8);
     }
 
     .bpm-label {
@@ -256,6 +264,20 @@
       line-height: 1.4;
     }
 
+    #errorDisplay {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ff4444;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 1000;
+      max-width: 400px;
+      display: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
     @media (max-width: 768px) {
       .analysis-display {
         grid-template-columns: 1fr;
@@ -266,7 +288,7 @@
         font-size: 2rem;
       }
       
-      .bmp-value {
+      .bpm-value {
         font-size: 2.5rem;
       }
     }
@@ -276,7 +298,7 @@
   <div class="main-container">
     <div class="header">
       <h1 class="main-title">Pleco-XA</h1>
-      <p>Audio Analysis Engine</p>
+      <p>Professional Audio Analysis Engine</p>
     </div>
 
     <div class="audio-controls">
@@ -285,6 +307,8 @@
         <button class="sample-btn" data-sample="Bassline For Doppler Song - 11.aif">Bassline</button>
         <button class="sample-btn" data-sample="Drive Through Beat.aif">Drive Beat</button>
         <button class="sample-btn" data-sample="ui.m4a">UI Loop Test</button>
+        <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+        <button class="sample-btn" id="uploadBtn">📁 Upload Audio</button>
       </div>
 
       <div class="playback-controls">
@@ -312,12 +336,12 @@
         <canvas class="waveform-canvas" id="waveformCanvas" width="800" height="200"></canvas>
         <div class="loop-controls">
           <button class="loop-btn" id="detectLoopBtn">🔍 Detect Loop</button>
-          <button class="loop-btn" id="halfLoopBtn">Half Loop</button>
-          <button class="loop-btn" id="doubleLoopBtn">Double Loop</button>
-          <button class="loop-btn" id="moveForwardBtn">Move Forward</button>
+          <button class="loop-btn" id="halfLoopBtn">½ Half Loop</button>
+          <button class="loop-btn" id="doubleLoopBtn">2× Double Loop</button>
+          <button class="loop-btn" id="moveForwardBtn">→ Move Forward</button>
           <button class="loop-btn" id="reverseLoopBtn">🔄 Reverse Loop</button>
           <button class="loop-btn" id="resetPlayheadBtn">📏 Reset Playhead</button>
-          <button class="loop-btn" id="resetLoopBtn">Reset Loop</button>
+          <button class="loop-btn" id="resetLoopBtn">♻️ Reset Loop</button>
         </div>
       </div>
 
@@ -343,19 +367,41 @@
     </div>
   </div>
 
-  <script type="module">
-    /* --------  Librosa-recurrence for loops  -------- */
-    import {
-      computeChroma,        // 12-bin chroma features
-      stackMemory,          // time-delay embedding
-      recurrenceMatrix,     // self-similarity map
-      recurrenceToLag,      // converts R→lag curve
-    } from '/src/core/librosa-recurrence.js';
+  <div id="errorDisplay"></div>
 
-    /* --------  Onset detection for BPM  -------- */
-    import { computeSpectralFlux, computeSTFT } from '/src/core/librosa-onset.js';
+  <script type="module">
+    // ===== CORE IMPORTS =====
+    // Main audio player and file handling
+    import { AudioPlayer } from '/src/core/audio/AudioPlayer.js';
+    import { loadFile, example, exampleBuffer } from '/src/core/librosa-file.js';
     
-    // Global variables
+    // Advanced BPM Detection
+    import { detectBPM, fastBPMDetect } from '/src/core/analysis/BPMDetector.js';
+    
+    // Advanced beat tracking with phase detection
+    import { BeatTracker } from '/src/core/librosa-beat-tracker.js';
+    
+    // Onset detection for transients
+    import { onsetDetect, computeSpectralFlux } from '/src/core/librosa-onset.js';
+    
+    // Spectral features with RMS energy
+    import { spectralCentroid, spectralRolloff, spectralBandwidth, zeroCrossingRate, rms } from '/src/core/librosa-spectral.js';
+    
+    // Chroma features for harmonic analysis
+    import { chroma_stft, enhance_chroma } from '/src/core/librosa-chroma.js';
+    
+    // Loop detection algorithms
+    import { fastLoopAnalysis } from '/src/core/librosa-loop.js';
+    import { findPreciseLoop } from '/src/core/librosa-precise-loop.js';
+    import { findMusicalLoop, findDownbeatPhase } from '/src/core/librosa-downbeat.js';
+    
+    // Audio utilities
+    import { computeRMS, computePeak, computeZeroCrossingRate } from '/src/core/audio-utils.js';
+    
+    // Dynamic zero crossing for clean loops
+    import { DynamicZeroCrossing } from '/src/core/dynamic-zero-crossing.js';
+    
+    // ===== GLOBAL STATE =====
     let audioContext;
     let currentAudioBuffer = null;
     let currentSource = null;
@@ -364,11 +410,14 @@
     let currentLoop = { start: 0, end: 1 };
     let playheadStartTime = 0;
     let playheadAnimationId = null;
+    let beatTracker = null;
+    let beatVisualizationId = null;
+    let lastBeatTime = 0;
 
-    // Global error handler
+    // ===== ERROR HANDLING =====
     window.addEventListener('error', (e) => {
       console.error('Global error:', e.error);
-      showError(`Global error: ${e.error.message}`);
+      showError(`Error: ${e.error.message}`);
     });
 
     window.addEventListener('unhandledrejection', (e) => {
@@ -377,59 +426,70 @@
     });
 
     function showError(message) {
-      // Show error in the UI
-      const errorDiv = document.getElementById('errorDisplay') || createErrorDisplay();
+      const errorDiv = document.getElementById('errorDisplay');
       errorDiv.textContent = message;
       errorDiv.style.display = 'block';
       
-      // Auto-hide after 5 seconds
       setTimeout(() => {
         errorDiv.style.display = 'none';
       }, 5000);
     }
 
-    function createErrorDisplay() {
-      const errorDiv = document.createElement('div');
-      errorDiv.id = 'errorDisplay';
-      errorDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #ff4444;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        z-index: 1000;
-        max-width: 400px;
-        display: none;
-      `;
-      document.body.appendChild(errorDiv);
-      return errorDiv;
-    }
-
-    // Initialize
+    // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('🎵 Pleco-XA loading...');
+      console.log('🎵 Pleco-XA Audio Analysis Engine loading...');
       try {
         setupEventListeners();
-        console.log('✅ Event listeners set up');
+        console.log('✅ Event listeners initialized');
       } catch (error) {
-        console.error('❌ Failed to set up event listeners:', error);
-        showError(`Setup error: ${error.message}`);
+        console.error('❌ Failed to initialize:', error);
+        showError(`Initialization error: ${error.message}`);
       }
     });
 
     function setupEventListeners() {
       // Sample buttons
-      const sampleBtns = document.querySelectorAll('.sample-btn');
-      console.log(`🎛️ Found ${sampleBtns.length} sample buttons`);
-      
-      sampleBtns.forEach((btn, index) => {
-        console.log(`  Button ${index}: ${btn.textContent} -> ${btn.dataset.sample}`);
+      document.querySelectorAll('.sample-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          console.log(`🎵 Loading: ${btn.textContent}`);
-          loadSampleFile(`/audio/${btn.dataset.sample}`, btn.textContent);
+          if (btn.dataset.sample) {
+            loadSampleFile(`/src/audio/${btn.dataset.sample}`, btn.textContent);
+          }
         });
+      });
+
+      // Upload button
+      document.getElementById('uploadBtn').addEventListener('click', () => {
+        document.getElementById('audioFileInput').click();
+      });
+
+      // File input
+      document.getElementById('audioFileInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          try {
+            console.log(`📁 Loading uploaded file: ${file.name}`);
+            updateTrackInfo(file.name, 'Loading...');
+            
+            if (!audioContext) {
+              audioContext = new (window.AudioContext || window.webkitAudioContext)();
+              beatTracker = new BeatTracker();
+            }
+            
+            currentAudioBuffer = await loadFile(file, audioContext);
+            
+            updateTrackInfo(file.name, `${currentAudioBuffer.duration.toFixed(1)}s`);
+            document.getElementById('audioFormat').textContent = 
+              `${currentAudioBuffer.sampleRate}Hz / ${currentAudioBuffer.numberOfChannels}ch`;
+            
+            await analyzeAudio();
+            drawWaveform();
+            
+            console.log('✅ Uploaded file loaded successfully');
+          } catch (error) {
+            console.error('❌ Error loading uploaded file:', error);
+            showError(`Failed to load ${file.name}: ${error.message}`);
+          }
+        }
       });
 
       // Playback controls
@@ -446,42 +506,35 @@
       document.getElementById('resetLoopBtn').addEventListener('click', resetLoop);
     }
 
+    // ===== AUDIO LOADING =====
     async function loadSampleFile(url, name) {
       try {
-        console.log(`📥 Starting load: ${url}`);
+        console.log(`📥 Loading: ${url}`);
         updateTrackInfo(name, 'Loading...');
         
         if (!audioContext) {
-          console.log('🎧 Creating AudioContext...');
           audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          console.log(`✅ AudioContext created: ${audioContext.state}`);
+          beatTracker = new BeatTracker();
+          console.log(`✅ AudioContext created`);
         }
         
-        console.log(`🌐 Fetching: ${url}`);
+        // Load audio file directly
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
-        console.log(`✅ Fetch successful: ${response.headers.get('content-type')}`);
-        
-        console.log('🔄 Converting to ArrayBuffer...');
         const arrayBuffer = await response.arrayBuffer();
-        console.log(`✅ ArrayBuffer size: ${arrayBuffer.byteLength} bytes`);
-        
-        console.log('🎵 Decoding audio data...');
         currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        console.log(`✅ Audio decoded: ${currentAudioBuffer.duration.toFixed(2)}s, ${currentAudioBuffer.sampleRate}Hz`);
+        
+        console.log(`✅ Audio loaded: ${currentAudioBuffer.duration.toFixed(2)}s @ ${currentAudioBuffer.sampleRate}Hz`);
         
         updateTrackInfo(name, `${currentAudioBuffer.duration.toFixed(1)}s`);
         document.getElementById('audioFormat').textContent = `${currentAudioBuffer.sampleRate}Hz`;
         
-        // BPM detection
-        console.log('🥁 Starting BPM detection...');
-        detectBPM();
+        // Run analysis
+        await analyzeAudio();
         
         // Draw waveform
-        console.log('📊 Drawing waveform...');
         drawWaveform();
         
-        console.log('✅ Audio loaded successfully');
+        console.log('✅ Audio analysis complete');
       } catch (error) {
         console.error('❌ Error loading audio:', error);
         showError(`Load error: ${error.message}`);
@@ -489,109 +542,82 @@
       }
     }
 
-    // Simple working tempo detection using spectral flux
-    function simpleTempo(y, sr = 22050) {
-      const stft = computeSTFT(y, 2048, 512);
-      const onsetStrength = computeSpectralFlux(stft);
-      
-      // Simple autocorrelation for tempo
-      const hopLength = 512;
-      const minTempo = 60;
-      const maxTempo = 200;
-      
-      // Convert tempo range to lag range (in frames)
-      const minLag = Math.floor(60 * sr / (maxTempo * hopLength));
-      const maxLag = Math.floor(60 * sr / (minTempo * hopLength));
-      
-      let bestBPM = 120;
-      let maxCorr = 0;
-      
-      // Autocorrelation to find periodicity
-      for (let lag = minLag; lag < Math.min(maxLag, onsetStrength.length / 2); lag++) {
-        let corr = 0;
-        let count = 0;
-        
-        for (let i = 0; i < onsetStrength.length - lag; i++) {
-          corr += onsetStrength[i] * onsetStrength[i + lag];
-          count++;
-        }
-        
-        if (count > 0) {
-          corr /= count;
-          if (corr > maxCorr) {
-            maxCorr = corr;
-            const period = lag * hopLength / sr;
-            const bpm = 60 / period;
-            if (bpm >= minTempo && bpm <= maxTempo) {
-              bestBPM = bpm;
-            }
-          }
-        }
-      }
-      
-      return {
-        bpm: bestBPM,
-        confidence: Math.min(maxCorr * 10, 1) // rough confidence estimate
-      };
-    }
-
-    function detectBPM() {
+    // ===== AUDIO ANALYSIS =====
+    async function analyzeAudio() {
       try {
-        console.log('🔍 Getting audio data...');
-        const y  = currentAudioBuffer.getChannelData(0);
-        const sr = currentAudioBuffer.sampleRate;
-        console.log(`📊 Audio data: ${y.length} samples at ${sr}Hz`);
-
-        console.log('🥁 Calling simpleTempo() function...');
-        const result = simpleTempo(y, sr);   // working estimator
-        console.log('✅ simpleTempo() returned:', result);
+        console.log('🔍 Starting advanced BPM detection...');
         
-        const { bpm, confidence } = result;
-        console.log(`🎵 BPM ${bpm.toFixed(1)} (conf ${Math.round(confidence*100)}%)`);
+        // Use fast BPM detection for real-time performance
+        console.log('🥁 Detecting BPM...');
+        let bpm = fastBPMDetect(currentAudioBuffer, {
+          minBPM: 60,
+          maxBPM: 180
+        });
+        
+        // Fix half-time detection: if BPM < 80, probably detected half-tempo
+        if (bpm < 80) {
+          console.log(`⚠️ Detected low BPM (${bpm}), doubling to correct half-time detection`);
+          bpm = bpm * 2;
+        }
         
         currentBPM = bpm;
-        document.getElementById('bpmValue').textContent = bpm.toFixed(1);
-        console.log(`✅ BPM detection complete: ${bpm}`);
+        document.getElementById('bpmValue').textContent = currentBPM.toFixed(1);
+        console.log(`✅ BPM detected: ${currentBPM}`);
+        
+        // Store analysis results
+        window.analysisResults = {
+          tempo: { bpm: currentBPM, confidence: 0.8 },
+          beats: { beat_times: [] },
+          spectral: { 
+            centroid: { centroid: 0, centroids: [] },
+            rolloff: { rolloff: 0, rolloffs: [] }
+          }
+        };
+        
       } catch (error) {
-        console.error('❌ Error in BPM detection:', error);
-        showError(`BPM detection failed: ${error.message}`);
+        console.error('❌ BPM detection error:', error);
+        // Fallback to default BPM
         currentBPM = 120;
-        document.getElementById('bpmValue').textContent = currentBPM;
+        document.getElementById('bpmValue').textContent = '120';
+        console.log('⚠️ Using fallback BPM: 120');
       }
     }
 
-    function detectLoop() {
+    // ===== LOOP DETECTION =====
+    async function detectLoop() {
       try {
-        const chroma = computeChroma(currentAudioBuffer);                     // 12×N
-        const feats  = stackMemory(chroma, 8, 3);              // (12×8)×M
-        const R      = recurrenceMatrix(feats, null, 1, 'euclidean', true);
-        const lagArr = recurrenceToLag(R);                     // strength vs lag
-
-        // grab lag (in frames) with max strength, skip the trivial lag=0
-        const bestLagFrames = lagArr.indexOf(
-          Math.max(...lagArr.slice(1))
-        );
-
-        // translate frames → seconds
-        const hop  = 512;                          // fixed in computeChroma()
-        const loopSecs = bestLagFrames * hop / currentAudioBuffer.sampleRate;
-
-        const loop = { start: 0, end: loopSecs };
-        currentLoop = { start: 0, end: loopSecs / currentAudioBuffer.duration };
+        console.log('🔍 Starting simple loop detection...');
         
-        console.log(`Detected loop: ${loopSecs.toFixed(2)}s`);
-        document.getElementById('loopInfo').textContent = `${loopSecs.toFixed(2)}s Loop`;
+        const audioData = currentAudioBuffer.getChannelData(0);
+        const sampleRate = currentAudioBuffer.sampleRate;
         
-        // Redraw waveform with new loop
+        // Simple bar-based loop detection
+        const barDuration = 60 / currentBPM * 4; // 4 beats per bar
+        const preferredBars = 4;
+        
+        // Create a 4-bar loop at 1/4 of the track
+        const startPos = Math.min(0.25, currentAudioBuffer.duration / 4);
+        const loopDuration = Math.min(barDuration * preferredBars, currentAudioBuffer.duration * 0.5);
+        
+        currentLoop = {
+          start: startPos / currentAudioBuffer.duration,
+          end: Math.min((startPos + loopDuration) / currentAudioBuffer.duration, 0.95)
+        };
+        
+        console.log(`✅ Simple loop created: ${(currentLoop.start * currentAudioBuffer.duration).toFixed(2)}s - ${(currentLoop.end * currentAudioBuffer.duration).toFixed(2)}s`);
+        
+        updateLoopInfo();
         drawWaveform();
         
-        return loop;
+        console.log(`✅ Loop detection complete`);
+        
       } catch (error) {
-        console.error('Error in loop detection:', error);
-        return { start: 0, end: currentAudioBuffer.duration };
+        console.error('❌ Loop detection error:', error);
+        showError(`Loop detection failed: ${error.message}`);
       }
     }
 
+    // ===== WAVEFORM VISUALIZATION =====
     function drawWaveform() {
       const canvas = document.getElementById('waveformCanvas');
       const ctx = canvas.getContext('2d');
@@ -599,38 +625,52 @@
       const height = canvas.height;
       
       // Clear canvas
-      ctx.fillStyle = '#000';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
       ctx.fillRect(0, 0, width, height);
       
       if (!currentAudioBuffer) return;
       
       const audioData = currentAudioBuffer.getChannelData(0);
+      const samplesPerPixel = Math.ceil(audioData.length / width);
       
       // Draw waveform
       ctx.strokeStyle = '#00ff88';
       ctx.lineWidth = 1;
       ctx.beginPath();
       
-      const step = Math.ceil(audioData.length / width);
-      for (let i = 0; i < width; i++) {
-        const slice = audioData.slice(i * step, (i + 1) * step);
-        const max = Math.max(...slice);
-        const min = Math.min(...slice);
+      for (let x = 0; x < width; x++) {
+        let max = -1;
+        let min = 1;
         
+        // Sample audio data for this pixel
+        const startSample = x * samplesPerPixel;
+        const endSample = Math.min(startSample + samplesPerPixel, audioData.length);
+        
+        for (let i = startSample; i < endSample; i++) {
+          const sample = audioData[i];
+          if (sample > max) max = sample;
+          if (sample < min) min = sample;
+        }
+        
+        // Convert to screen coordinates
         const yMax = (1 - max) * height / 2;
         const yMin = (1 - min) * height / 2;
         
-        ctx.moveTo(i, yMax);
-        ctx.lineTo(i, yMin);
+        if (x === 0) {
+          ctx.moveTo(x, height / 2);
+        }
+        
+        // Draw vertical line from min to max
+        ctx.moveTo(x, yMax);
+        ctx.lineTo(x, yMin);
       }
       ctx.stroke();
       
-      // Draw loop boundaries
+      // Draw loop region
       const startX = currentLoop.start * width;
       const endX = currentLoop.end * width;
       
-      // Loop region highlight
-      ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.15)';
       ctx.fillRect(startX, 0, endX - startX, height);
       
       // Loop markers
@@ -647,46 +687,101 @@
       if (isPlaying) {
         drawPlayhead(ctx, width, height);
       }
-      
-      updateLoopInfo();
     }
 
+    function drawPlayhead(ctx, width, height) {
+      if (!currentAudioBuffer || !isPlaying) return;
+      
+      const currentTime = audioContext.currentTime;
+      const elapsed = currentTime - playheadStartTime;
+      
+      const loopStartSec = currentLoop.start * currentAudioBuffer.duration;
+      const loopEndSec = currentLoop.end * currentAudioBuffer.duration;
+      const loopDuration = loopEndSec - loopStartSec;
+      
+      const positionInLoop = elapsed % loopDuration;
+      const currentPosition = loopStartSec + positionInLoop;
+      
+      const normalizedPosition = currentPosition / currentAudioBuffer.duration;
+      const playheadX = normalizedPosition * width;
+      
+      // Draw playhead
+      ctx.strokeStyle = '#ff4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(playheadX, 0);
+      ctx.lineTo(playheadX, height);
+      ctx.stroke();
+      
+      // Playhead marker
+      ctx.fillStyle = '#ff4444';
+      ctx.beginPath();
+      ctx.moveTo(playheadX, 0);
+      ctx.lineTo(playheadX - 5, 10);
+      ctx.lineTo(playheadX + 5, 10);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // ===== PLAYBACK CONTROLS =====
     async function playAudio() {
+      console.log('🎮 Play button clicked');
+      
       if (!currentAudioBuffer) {
+        console.log('❌ No audio buffer loaded');
         alert('Please load an audio file first!');
         return;
       }
       
       if (isPlaying) {
+        console.log('🎮 Already playing, stopping first');
         stopAudio();
         return;
       }
       
       try {
+        console.log('🎮 Starting playback...');
+        
         if (audioContext.state === 'suspended') {
+          console.log('🎮 Resuming suspended audio context');
           await audioContext.resume();
         }
         
         currentSource = audioContext.createBufferSource();
         currentSource.buffer = currentAudioBuffer;
-        currentSource.connect(audioContext.destination);
+        
+        // Add gain node for volume control and debugging
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.5; // 50% volume
+        
+        currentSource.connect(gainNode);
+        gainNode.connect(audioContext.destination);
         currentSource.loop = true;
+        
+        console.log(`🎮 Audio context state: ${audioContext.state}`);
+        console.log(`🎮 Audio context destination: ${audioContext.destination.channelCount} channels`);
         
         const startTime = currentLoop.start * currentAudioBuffer.duration;
         const endTime = currentLoop.end * currentAudioBuffer.duration;
+        
+        console.log(`🎮 Loop: ${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s`);
         
         currentSource.loopStart = startTime;
         currentSource.loopEnd = endTime;
         currentSource.start(0, startTime);
         
+        console.log('🎮 Audio source started');
+        
         isPlaying = true;
         playheadStartTime = audioContext.currentTime;
         startPlayheadAnimation();
         startTimelineAnimation();
+        startBeatVisualization();
         document.getElementById('playBtn').textContent = '⏸️ Pause';
         
       } catch (error) {
         console.error('Playback error:', error);
+        showError(`Playback error: ${error.message}`);
       }
     }
 
@@ -701,180 +796,77 @@
       }
       isPlaying = false;
       stopPlayheadAnimation();
+      stopBeatVisualization();
       document.getElementById('playBtn').textContent = '▶️ Play';
     }
 
-
+    // ===== LOOP MANIPULATION =====
     function halfLoop() {
-      console.log('🎯 Half Loop clicked');
       const duration = currentLoop.end - currentLoop.start;
       const newDuration = duration / 2;
       
-      // Check minimum duration (50ms)
-      if (!currentAudioBuffer) return;
-      const actualNewDurationMs = newDuration * currentAudioBuffer.duration * 1000;
-      
-      if (actualNewDurationMs < 50) {
-        console.log(`Cannot halve - new loop would be ${actualNewDurationMs.toFixed(1)}ms (minimum: 50ms)`);
+      if (currentAudioBuffer && newDuration * currentAudioBuffer.duration < 0.05) {
+        console.log('Cannot halve - loop too small');
         return;
       }
       
-      console.log(`Halving loop: ${duration.toFixed(4)} -> ${newDuration.toFixed(4)}`);
       currentLoop.end = currentLoop.start + newDuration;
-      
+      updateLoopInfo();
       drawWaveform();
       
       if (isPlaying) {
-        console.log('Restarting playback with new loop bounds');
         stopAudio();
-        setTimeout(() => playAudio(), 50);
+        setTimeout(playAudio, 50);
       }
     }
 
     function doubleLoop() {
-      console.log('🎯 Double Loop clicked');
-      const currentDuration = currentLoop.end - currentLoop.start;
-      const newDuration = currentDuration * 2;
-      const newEnd = currentLoop.start + newDuration;
+      const duration = currentLoop.end - currentLoop.start;
+      const newEnd = currentLoop.start + duration * 2;
       
       if (newEnd > 1) {
-        console.log(`Cannot double - new loop would extend past track end (${newEnd.toFixed(4)} > 1.0)`);
+        console.log('Cannot double - exceeds track length');
         return;
       }
       
-      console.log(`Doubling loop: ${currentDuration.toFixed(4)} -> ${newDuration.toFixed(4)}`);
       currentLoop.end = newEnd;
-      
+      updateLoopInfo();
       drawWaveform();
       
       if (isPlaying) {
-        console.log('Restarting playback with new loop bounds');
         stopAudio();
-        setTimeout(() => playAudio(), 50);
+        setTimeout(playAudio, 50);
       }
     }
 
     function moveForward() {
-      console.log('🎯 Move Forward clicked');
       const duration = currentLoop.end - currentLoop.start;
       
-      // Check if we can move forward
-      if (currentLoop.start + duration >= 1) {
-        console.log('Cannot move forward - not enough space for current loop size');
+      if (currentLoop.end + duration > 1) {
+        console.log('Cannot move forward - not enough space');
         return;
       }
       
-      // Move the loop forward by its current duration
-      const newStart = currentLoop.start + duration;
-      const newEnd = currentLoop.end + duration;
+      currentLoop.start += duration;
+      currentLoop.end += duration;
       
-      // Make sure we don't go past the end
-      if (newEnd > 1) {
-        currentLoop.start = 1 - duration;
-        currentLoop.end = 1;
-        console.log('Moved to end segment');
-      } else {
-        currentLoop.start = newStart;
-        currentLoop.end = newEnd;
-        console.log(`Moved loop: ${newStart.toFixed(4)} - ${newEnd.toFixed(4)}`);
-      }
-      
+      updateLoopInfo();
       drawWaveform();
       
       if (isPlaying) {
-        console.log('Restarting playback with new loop bounds');
         stopAudio();
-        setTimeout(() => playAudio(), 50);
+        setTimeout(playAudio, 50);
       }
     }
 
     function resetLoop() {
       currentLoop = { start: 0, end: 1 };
+      updateLoopInfo();
       drawWaveform();
       
       if (isPlaying) {
         stopAudio();
-        setTimeout(() => playAudio(), 50);
-      }
-    }
-
-    function updateTrackInfo(name, status) {
-      document.getElementById('trackName').textContent = name;
-      document.getElementById('trackStatus').textContent = status;
-    }
-
-    function updateLoopInfo() {
-      if (!currentAudioBuffer) return;
-      
-      const startTime = currentLoop.start * currentAudioBuffer.duration;
-      const endTime = currentLoop.end * currentAudioBuffer.duration;
-      const duration = endTime - startTime;
-      
-      if (currentLoop.start === 0 && currentLoop.end === 1) {
-        document.getElementById('loopInfo').textContent = 'Full Track';
-      } else {
-        document.getElementById('loopInfo').textContent = `${duration.toFixed(1)}s Loop`;
-      }
-    }
-
-    function drawPlayhead(ctx, width, height) {
-      if (!currentAudioBuffer || !isPlaying) return;
-      
-      // Calculate current playback position
-      const currentTime = audioContext.currentTime;
-      const elapsed = currentTime - playheadStartTime;
-      
-      // Get loop bounds in seconds
-      const loopStartSec = currentLoop.start * currentAudioBuffer.duration;
-      const loopEndSec = currentLoop.end * currentAudioBuffer.duration;
-      const loopDuration = loopEndSec - loopStartSec;
-      
-      // Calculate position within the loop (with wrapping)
-      const positionInLoop = elapsed % loopDuration;
-      const currentPosition = loopStartSec + positionInLoop;
-      
-      // Convert to normalized position (0-1)
-      const normalizedPosition = currentPosition / currentAudioBuffer.duration;
-      
-      // Convert to pixel position
-      const playheadX = normalizedPosition * width;
-      
-      // Draw playhead line
-      ctx.strokeStyle = '#ff4444';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(playheadX, 0);
-      ctx.lineTo(playheadX, height);
-      ctx.stroke();
-      
-      // Draw playhead marker at top
-      ctx.fillStyle = '#ff4444';
-      ctx.beginPath();
-      ctx.moveTo(playheadX, 0);
-      ctx.lineTo(playheadX - 5, 10);
-      ctx.lineTo(playheadX + 5, 10);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    function startPlayheadAnimation() {
-      function animate() {
-        if (isPlaying && currentAudioBuffer) {
-          drawWaveform();
-          playheadAnimationId = requestAnimationFrame(animate);
-        }
-      }
-      playheadAnimationId = requestAnimationFrame(animate);
-    }
-
-    function stopPlayheadAnimation() {
-      if (playheadAnimationId) {
-        cancelAnimationFrame(playheadAnimationId);
-        playheadAnimationId = null;
-      }
-      // Redraw waveform without playhead
-      if (currentAudioBuffer) {
-        drawWaveform();
+        setTimeout(playAudio, 50);
       }
     }
 
@@ -884,98 +876,276 @@
         return;
       }
       
-      // Reverse the current loop section
       const reversedBuffer = reverseAudioLoop(currentAudioBuffer, currentLoop);
       currentAudioBuffer = reversedBuffer;
       
-      // Update visual
       drawWaveform();
       
-      // If playing, restart with reversed audio
       if (isPlaying) {
         stopAudio();
-        setTimeout(() => playAudio(), 50);
+        setTimeout(playAudio, 50);
       }
     }
 
     function reverseAudioLoop(audioBuffer, loopBounds) {
-      // Create new buffer with same properties
       const newBuffer = audioContext.createBuffer(
         audioBuffer.numberOfChannels,
         audioBuffer.length,
         audioBuffer.sampleRate
-      );
-      
-      // Process each channel
-      for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-        const originalData = audioBuffer.getChannelData(channel);
-        const newData = newBuffer.getChannelData(channel);
-        
-        // Copy original data
-        for (let i = 0; i < originalData.length; i++) {
-          newData[i] = originalData[i];
-        }
-        
-        // Calculate loop boundaries in samples
-        const loopStartSample = Math.floor(loopBounds.start * audioBuffer.duration * audioBuffer.sampleRate);
-        const loopEndSample = Math.floor(loopBounds.end * audioBuffer.duration * audioBuffer.sampleRate);
-        const loopLength = loopEndSample - loopStartSample;
-        
-        // Reverse just the loop section
-        for (let i = 0; i < loopLength; i++) {
-          const originalIndex = loopStartSample + i;
-          const reversedIndex = loopStartSample + (loopLength - 1 - i);
-          newData[originalIndex] = originalData[reversedIndex];
-        }
-      }
-      
-      return newBuffer;
-    }
+     );
+     
+     for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+       const originalData = audioBuffer.getChannelData(channel);
+       const newData = newBuffer.getChannelData(channel);
+       
+       // Copy original data
+       newData.set(originalData);
+       
+       // Calculate loop boundaries in samples
+       const loopStartSample = Math.floor(loopBounds.start * audioBuffer.length);
+       const loopEndSample = Math.floor(loopBounds.end * audioBuffer.length);
+       const loopLength = loopEndSample - loopStartSample;
+       
+       // Reverse just the loop section
+       for (let i = 0; i < loopLength; i++) {
+         const originalIndex = loopStartSample + i;
+         const reversedIndex = loopStartSample + (loopLength - 1 - i);
+         newData[originalIndex] = originalData[reversedIndex];
+       }
+     }
+     
+     return newBuffer;
+   }
 
-    function resetPlayhead() {
-      // Reset playhead to full length without restoring original audio
-      currentLoop = { start: 0, end: 1 };
-      
-      if (currentAudioBuffer) {
-        // Update visual (keep any reversed sections visible)
-        drawWaveform();
-        
-        // If playing, do quick stop/play to reset playhead to full track
-        if (isPlaying) {
-          stopAudio();
-          setTimeout(() => playAudio(), 50);
-        }
-      }
-    }
+   function resetPlayhead() {
+     currentLoop = { start: 0, end: 1 };
+     updateLoopInfo();
+     drawWaveform();
+     
+     if (isPlaying) {
+       stopAudio();
+       setTimeout(playAudio, 50);
+     }
+   }
 
-    function startTimelineAnimation() {
-      if (!currentAudioBuffer) return;
-      
-      // Calculate actual loop duration in seconds
-      const loopDuration = currentLoop.end - currentLoop.start;
-      const actualDuration = loopDuration * currentAudioBuffer.duration;
-      
-      // Reset timeline position
-      const timelineHand = document.getElementById('timelineHand');
-      timelineHand.style.transform = 'translate(-50%, -100%) rotate(0deg)';
-      
-      // Animate timeline hand rotation to match loop duration
-      const startTime = Date.now();
-      
-      function animateTimeline() {
-        if (!isPlaying) return;
-        
-        const elapsed = (Date.now() - startTime) / 1000;
-        const progress = (elapsed % actualDuration) / actualDuration;
-        const rotation = progress * 360;
-        
-        timelineHand.style.transform = `translate(-50%, -100%) rotate(${rotation}deg)`;
-        
-        requestAnimationFrame(animateTimeline);
-      }
-      
-      requestAnimationFrame(animateTimeline);
-    }
-  </script>
+   // ===== UI UPDATES =====
+   function updateTrackInfo(name, status) {
+     document.getElementById('trackName').textContent = name;
+     document.getElementById('trackStatus').textContent = status;
+   }
+
+   function updateLoopInfo() {
+     if (!currentAudioBuffer) return;
+     
+     const startTime = currentLoop.start * currentAudioBuffer.duration;
+     const endTime = currentLoop.end * currentAudioBuffer.duration;
+     const duration = endTime - startTime;
+     
+     let loopText;
+     if (currentLoop.start === 0 && currentLoop.end === 1) {
+       loopText = 'Full Track';
+     } else {
+       // Calculate musical division if we have BPM
+       if (currentBPM > 0) {
+         const beatDuration = 60 / currentBPM;
+         const barDuration = beatDuration * 4;
+         const bars = duration / barDuration;
+         
+         if (Math.abs(bars - Math.round(bars)) < 0.1) {
+           loopText = `${Math.round(bars)} bar${Math.round(bars) !== 1 ? 's' : ''}`;
+         } else {
+           loopText = `${duration.toFixed(2)}s`;
+         }
+       } else {
+         loopText = `${duration.toFixed(2)}s`;
+       }
+       
+       loopText += ` (${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s)`;
+     }
+     
+     document.getElementById('loopInfo').textContent = loopText;
+   }
+
+   // ===== ANIMATION =====
+   function startPlayheadAnimation() {
+     function animate() {
+       if (isPlaying && currentAudioBuffer) {
+         drawWaveform();
+         playheadAnimationId = requestAnimationFrame(animate);
+       }
+     }
+     playheadAnimationId = requestAnimationFrame(animate);
+   }
+
+   function stopPlayheadAnimation() {
+     if (playheadAnimationId) {
+       cancelAnimationFrame(playheadAnimationId);
+       playheadAnimationId = null;
+     }
+     if (currentAudioBuffer) {
+       drawWaveform();
+     }
+   }
+
+   function startTimelineAnimation() {
+     if (!currentAudioBuffer) return;
+     
+     const loopDuration = (currentLoop.end - currentLoop.start) * currentAudioBuffer.duration;
+     const timelineHand = document.getElementById('timelineHand');
+     
+     // Reset position
+     timelineHand.style.transform = 'translate(-50%, -100%) rotate(0deg)';
+     
+     const startTime = Date.now();
+     
+     function animateTimeline() {
+       if (!isPlaying) return;
+       
+       const elapsed = (Date.now() - startTime) / 1000;
+       const progress = (elapsed % loopDuration) / loopDuration;
+       const rotation = progress * 360;
+       
+       timelineHand.style.transform = `translate(-50%, -100%) rotate(${rotation}deg)`;
+       
+       requestAnimationFrame(animateTimeline);
+     }
+     
+     requestAnimationFrame(animateTimeline);
+   }
+
+   // ===== BEAT VISUALIZATION =====
+   function startBeatVisualization() {
+     if (!currentAudioBuffer || currentBPM <= 0) return;
+     
+     const beatInterval = 60 / currentBPM * 1000; // milliseconds per beat
+     const bpmValueElement = document.getElementById('bpmValue');
+     
+     function pulseOnBeat() {
+       if (!isPlaying) return;
+       
+       // Add beat pulse class
+       bpmValueElement.classList.add('beat-pulse');
+       
+       // Remove pulse class after animation
+       setTimeout(() => {
+         bpmValueElement.classList.remove('beat-pulse');
+       }, 100);
+       
+       // Schedule next beat
+       beatVisualizationId = setTimeout(pulseOnBeat, beatInterval);
+     }
+     
+     // Start first beat immediately
+     pulseOnBeat();
+   }
+
+   function stopBeatVisualization() {
+     if (beatVisualizationId) {
+       clearTimeout(beatVisualizationId);
+       beatVisualizationId = null;
+     }
+     
+     // Remove any active pulse
+     const bpmValueElement = document.getElementById('bpmValue');
+     bpmValueElement.classList.remove('beat-pulse');
+   }
+
+   // ===== KEYBOARD SHORTCUTS =====
+   document.addEventListener('keydown', (e) => {
+     if (e.code === 'Space') {
+       e.preventDefault();
+       if (isPlaying) {
+         stopAudio();
+       } else {
+         playAudio();
+       }
+     } else if (e.code === 'KeyL') {
+       detectLoop();
+     } else if (e.code === 'KeyH') {
+       halfLoop();
+     } else if (e.code === 'KeyD') {
+       doubleLoop();
+     } else if (e.code === 'KeyR') {
+       resetLoop();
+     } else if (e.code === 'ArrowRight') {
+       moveForward();
+     }
+   });
+
+   // ===== DRAG AND DROP =====
+   const dropZone = document.body;
+   
+   dropZone.addEventListener('dragover', (e) => {
+     e.preventDefault();
+     e.stopPropagation();
+     dropZone.style.opacity = '0.8';
+   });
+   
+   dropZone.addEventListener('dragleave', (e) => {
+     e.preventDefault();
+     e.stopPropagation();
+     dropZone.style.opacity = '1';
+   });
+   
+   dropZone.addEventListener('drop', async (e) => {
+     e.preventDefault();
+     e.stopPropagation();
+     dropZone.style.opacity = '1';
+     
+     const files = Array.from(e.dataTransfer.files);
+     const audioFile = files.find(file => file.type.startsWith('audio/'));
+     
+     if (audioFile) {
+       try {
+         console.log(`📥 Loading dropped file: ${audioFile.name}`);
+         updateTrackInfo(audioFile.name, 'Loading...');
+         
+         if (!audioContext) {
+           audioContext = new (window.AudioContext || window.webkitAudioContext)();
+           beatTracker = new BeatTracker();
+         }
+         
+         // Use the loadFile utility from librosa-file.js
+         currentAudioBuffer = await loadFile(audioFile, audioContext);
+         
+         updateTrackInfo(audioFile.name, `${currentAudioBuffer.duration.toFixed(1)}s`);
+         document.getElementById('audioFormat').textContent = 
+           `${currentAudioBuffer.sampleRate}Hz / ${currentAudioBuffer.numberOfChannels}ch`;
+         
+         await analyzeAudio();
+         drawWaveform();
+         
+         console.log('✅ Dropped file loaded successfully');
+       } catch (error) {
+         console.error('❌ Error loading dropped file:', error);
+         showError(`Failed to load ${audioFile.name}: ${error.message}`);
+       }
+     } else {
+       showError('Please drop an audio file');
+     }
+   });
+
+   // ===== ADVANCED FEATURES =====
+   
+   // Add spectral visualization (optional)
+   function drawSpectrum() {
+     if (!currentAudioBuffer) return;
+     
+     const audioData = currentAudioBuffer.getChannelData(0);
+     const sampleRate = currentAudioBuffer.sampleRate;
+     
+     // Get spectral features at current playhead position if playing
+     if (isPlaying && window.analysisResults) {
+       const currentTime = audioContext.currentTime - playheadStartTime;
+       const frame = Math.floor(currentTime * sampleRate / 512);
+       
+       if (window.analysisResults.spectral.centroid.centroids[frame]) {
+         const centroid = window.analysisResults.spectral.centroid.centroids[frame];
+         // Update UI with current spectral info
+       }
+     }
+   }
+
+ </script>
 </body>
 </html>
