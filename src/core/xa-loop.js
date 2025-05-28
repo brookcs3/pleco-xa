@@ -3,11 +3,11 @@
  * Replaces the slow loop-analyzer.js with optimized implementations
  */
 
-import { onsetDetect, computeSTFT } from './librosa-onset.js'
-import { beatTrack, estimateTempo } from './librosa-beat.js'
+import { onsetDetect, computeSTFT } from './xa-onset.js'
+import { beatTrack, estimateTempo } from './xa-beat.js'
 import { spectralCentroid, rms } from './xa-spectral.js'
-import { findMusicalLoop, findDownbeatPhase } from './librosa-downbeat.js'
-import { findPreciseLoop } from './librosa-precise-loop.js'
+import { findMusicalLoop, findDownbeatPhase } from './xa-downbeat.js'
+import { findPreciseLoop } from './xa-precise-loop.js'
 
 /**
  * Fast loop analysis - replaces the slow loopAnalysis
