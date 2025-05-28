@@ -1,13 +1,15 @@
+// @ts-check
 /**
  * Create a loopable AudioBuffer with custom waveform, multichannel support, and export options.
  *
- * @param {number} loopLengthSeconds - Length of each loop in seconds.
- * @param {number} repeats - Number of times to repeat the loop.
- * @param {number} sampleRate - Sample rate of the buffer (default: 44100).
- * @param {function} waveformFn - Function to generate waveform values (default: 440Hz sine wave).
- * @param {number} channels - Number of audio channels (default: 1).
- * @param {boolean} loopable - Whether to set loop points for seamless looping (default: false).
- * @returns {AudioBuffer} - The generated AudioBuffer.
+ * @param {Object} options - Options for buffer creation.
+ * @param {number} options.loopLengthSeconds - Length of each loop in seconds.
+ * @param {number} options.sampleRate - Sample rate of the buffer (default: 44100).
+ * @param {function} options.waveformFn - Function to generate waveform values (default: 440Hz sine wave).
+ * @param {number} options.channels - Number of audio channels (default: 1).
+ * @param {boolean} options.loopable - Whether to set loop points for seamless looping (default: false).
+ * @param {number} options.repeats - Number of times to repeat the loop.
+ * @returns {AudioBuffer | {buffer: AudioBuffer, loopStart: number, loopEnd: number}} - The generated AudioBuffer or an object with buffer and loop points if loopable.
  */
 export function createLoopBuffer({
   loopLengthSeconds,
@@ -34,8 +36,17 @@ export function createLoopBuffer({
   }
 
   if (loopable) {
-    buffer.loopStart = 0;
-    buffer.loopEnd = loopLengthSeconds * repeats;
+    // AudioBuffer does not support loopStart/loopEnd properties.
+    // Loop points should be set on the AudioBufferSourceNode when playing:
+    // source.loop = true;
+    // source.loopStart = 0;
+    // source.loopEnd = loopLengthSeconds * repeats;
+    // Optionally, you can return loop points for use during playback:
+    return {
+      buffer,
+      loopStart: 0,
+      loopEnd: loopLengthSeconds * repeats,
+    };
   }
 
   return buffer;
@@ -88,3 +99,36 @@ export function exportBufferAsWav(buffer) {
 
   return new Blob([view], { type: 'audio/wav' });
 }
+
+/**
+ * Define multiple loop points for playback.
+ *
+ * @param {AudioBuffer} buffer - The AudioBuffer to use.
+ * @param {number} loopLengthSeconds - Length of each loop in seconds.
+ * @param {number} repeats - Number of loops to define.
+ * @returns {Array<{loopStart: number, loopEnd: number}>} - Array of loop points.
+ */
+export function defineMultipleLoopPoints(buffer, loopLengthSeconds, repeats) {
+  const loopPoints = [];
+
+  for (let i = 0; i < repeats; i++) {
+    const loopStart = i * loopLengthSeconds;
+    const loopEnd = (i + 1) * loopLengthSeconds;
+    loopPoints.push({ loopStart, loopEnd });
+  }
+
+  return loopPoints;
+}
+
+// Example usage:
+// const buffer = createLoopBuffer({
+// //   loopLengthSeconds: 2,
+// //   repeats: 5,
+// //   sampleRate: 44100,
+// //   waveformFn: (t) => Math.sin(2 * Math.PI * 440 * t),
+// //   channels: 1,
+// //   loopable: true,
+// // });
+//
+// const loopPoints = defineMultipleLoopPoints(buffer.buffer, 2, 5);
+// console.log('Defined loop points:', loopPoints);

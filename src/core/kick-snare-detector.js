@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Kick+Snare detector for finding strong downbeats
  * Useful for electronic music, hip-hop, and other beat-driven genres

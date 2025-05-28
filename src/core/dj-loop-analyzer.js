@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Complete DJ Loop Analyzer with DTW-based similarity matching
  * Advanced audio analysis for DJ applications and loop organization
@@ -7,7 +8,7 @@ import { dtw, dtwDistanceMatrix, dtwKMeans } from './xa-dtw.js'
 import { chroma_cqt, enhance_chroma, chroma_energy } from './xa-chroma.js'
 import { tempo, beat_track, analyze_groove } from './xa-tempo.js'
 import { onset_strength } from './xa-onset.js'
-import { spectral_centroid } from './xa-spectral.js'
+import { spectralCentroid } from './xa-spectral.js'
 
 /**
  * Complete DJ Loop Analyzer Class
@@ -25,7 +26,7 @@ export class DJLoopAnalyzer {
    * Analyze a loop and extract all features
    * @param {AudioBuffer} audioBuffer - Audio buffer to analyze
    * @param {Object} metadata - Additional metadata
-   * @returns {Object} Complete loop analysis
+   * @returns {Promise<Object>} Complete loop analysis
    */
   async analyzeLoop(audioBuffer, metadata = {}) {
     const channelData = audioBuffer.getChannelData(0)
@@ -77,7 +78,7 @@ export class DJLoopAnalyzer {
    * Extract comprehensive audio features
    * @param {Float32Array} audioData - Audio time series
    * @param {number} sampleRate - Sample rate
-   * @returns {Object} Extracted features
+   * @returns {Promise<Object>} Extracted features
    */
   async extractAllFeatures(audioData, sampleRate) {
     const cacheKey = this.generateCacheKey(audioData)
@@ -96,8 +97,8 @@ export class DJLoopAnalyzer {
     const groove = analyze_groove(beat_result.beat_times, sampleRate)
 
     // Spectral features
-    const onset_env = onset_strength(audioData, sampleRate)
-    const spectral_cent = spectral_centroid(audioData, sampleRate)
+    const onset_env = onset_strength(audioData, { sr: sampleRate })
+    const spectral_cent = spectralCentroid({ y: Array.from(audioData), sr: sampleRate })
 
     // Musical key detection
     const key_result = this.estimateKey(chroma)
@@ -378,7 +379,7 @@ export class DJLoopAnalyzer {
       const clustering = dtwKMeans(sequences, nClusters)
 
       // Add loop metadata to clusters
-      const enrichedClusters = clustering.clusters.map((cluster, index) => ({
+      const enrichedClusters = clustering.map((cluster, index) => ({
         id: index,
         center: cluster.center,
         members: cluster.members
@@ -499,7 +500,7 @@ export class DJLoopAnalyzer {
       ),
     }
 
-    return mixingOptions
+    return /** @type {any} */ (mixingOptions)
   }
 
   /**
@@ -714,7 +715,7 @@ export class DJLoopAnalyzer {
  * Quick loop comparison utility
  * @param {AudioBuffer} buffer1 - First audio buffer
  * @param {AudioBuffer} buffer2 - Second audio buffer
- * @returns {Object} Comparison result
+ * @returns {Promise<Object>} Comparison result
  */
 export async function compareLoops(buffer1, buffer2) {
   const analyzer = new DJLoopAnalyzer()

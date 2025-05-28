@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Audio time compression and manipulation
  * Part of Pleco Xa audio analysis engine
@@ -16,7 +17,11 @@ export async function pitchBasedCompress(audioBuffer, ratio) {
   const originalSampleRate = audioBuffer.sampleRate
   const newLength = Math.floor(audioBuffer.length * ratio)
 
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+  // Use standard AudioContext; throw if not available
+  if (!window.AudioContext) {
+    throw new Error('Web Audio API is not supported in this browser.')
+  }
+  const audioContext = new window.AudioContext()
   const compressedBuffer = audioContext.createBuffer(
     audioBuffer.numberOfChannels,
     newLength,

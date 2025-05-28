@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Dynamic Zero Crossing with Micro Crossfades
  * Maintains musical accuracy while ensuring clean audio boundaries
@@ -105,7 +106,7 @@ export class DynamicZeroCrossing {
    * Generate crossfade data for smooth loop transitions
    * @param {Float32Array} audioData - Audio samples
    * @param {Object} crossfadeInfo - Crossfade configuration
-   * @returns {Float32Array} - Crossfaded audio segment
+   * @returns {{ fadeIn: Float32Array, fadeOut: Float32Array, length: number }} - Crossfade data object
    */
   static generateMicroCrossfade(audioData, crossfadeInfo) {
     const { musicalPoint, zeroPoint, crossfadeDuration } = crossfadeInfo
@@ -123,15 +124,16 @@ export class DynamicZeroCrossing {
 
     return { fadeIn, fadeOut, length: fadeLength }
   }
+
   /**
    * Simple wrapper used by higher-level modules (e.g. loop-smart.js).
    * Given raw start/end sample indices, it snaps each edge to the nearest
-   * zero‑crossing within ±searchWindow samples and returns the two indices.
+   * zero-crossing within ±searchWindow samples and returns the two indices.
    *
    * @param {Float32Array} audioData
    * @param {number} startSample    initial start index (samples)
    * @param {number} endSample      initial end index   (samples)
-   * @param {number} [searchWindow=441] window half‑width in samples (≈10 ms @44.1 kHz)
+   * @param {number} [searchWindow=441] - window half-width in samples (≈10 ms @ 44.1 kHz)
    * @returns {[number, number]}    [snappedStart, snappedEnd] sample indices
    */
   static snap(audioData, startSample, endSample, searchWindow = 441) {

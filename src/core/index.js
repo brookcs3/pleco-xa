@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Pleco-XA Core Audio Analysis Library
  *
@@ -27,9 +28,28 @@
  */
 
 // Audio Core (Playback & Control)
+import { AudioPlayer } from './audio/AudioPlayer.js'
 export { AudioPlayer } from './audio/AudioPlayer.js'
 
 // Analysis Modules
+import {
+  detectBPM,
+  fastBPMDetect,
+  analyzeTempoVariations,
+} from './analysis/BPMDetector.js'
+import {
+  getWaveformPeaks,
+  getStereoWaveformPeaks,
+  getTimebasedWaveform,
+  getWaveformRange,
+  analyzeWaveform,
+} from './analysis/WaveformData.js'
+import {
+  analyzeLoop,
+  findBestLoop,
+  validateLoop,
+  createSeamlessLoop,
+} from './analysis/LoopAnalyzer.js'
 export {
   detectBPM,
   fastBPMDetect,
@@ -52,11 +72,20 @@ export {
 } from './analysis/LoopAnalyzer.js'
 
 // Visualization Modules
+import {
+  renderWaveform,
+  renderStereoWaveform,
+  addLoopRegions,
+} from './visualization/WaveformRenderer.js'
+import {
+  RealtimeSpectrumAnalyzer,
+  renderStaticSpectrum,
+  createSpectrogram,
+} from './visualization/SpectrumAnalyzer.js'
 export {
   renderWaveform,
   renderStereoWaveform,
   addLoopRegions,
-  createInteractiveRenderer,
 } from './visualization/WaveformRenderer.js'
 
 export {
@@ -66,11 +95,14 @@ export {
 } from './visualization/SpectrumAnalyzer.js'
 
 // Utility Modules
+import * as AudioMath from './utils/AudioMath.js'
 export * as AudioMath from './utils/AudioMath.js'
 
 // Legacy API compatibility (for existing projects)
 export { DynamicZeroCrossing } from './dynamic-zero-crossing.js'
 export { recurrenceLoopAnalysis } from './recurrence-loop-analyzer.js'
+import { DynamicZeroCrossing } from './dynamic-zero-crossing.js'
+import { recurrenceLoopAnalysis } from './recurrence-loop-analyzer.js'
 
 /**
  * Complete PlecoXA namespace for convenience
@@ -112,7 +144,6 @@ export const PlecoXA = {
       render: renderWaveform,
       renderStereo: renderStereoWaveform,
       addLoopRegions: addLoopRegions,
-      createInteractive: createInteractiveRenderer,
     },
 
     Spectrum: {
@@ -237,11 +268,12 @@ export const INFO = {
 }
 
 // Development utilities (only in development)
+let Debug
 if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
   /**
    * Debug utilities for development
    */
-  export const Debug = {
+  Debug = {
     /**
      * Log all available functions and their signatures
      */
@@ -298,3 +330,65 @@ if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
     },
   }
 }
+export { Debug }
+function createInteractiveRenderer(canvas, visualization = {}) {
+  // Basic interactive waveform renderer for QuickStart.createPlayer
+  let waveformData = null
+  let duration = 0
+  let playheadTime = 0
+
+  const ctx = canvas.getContext('2d')
+
+  function clear() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+  }
+
+  function drawWaveform(data) {
+    clear()
+    ctx.save()
+    ctx.strokeStyle = visualization.waveformColor || '#2196f3'
+    ctx.lineWidth = visualization.waveformLineWidth || 1
+    ctx.beginPath()
+    const midY = canvas.height / 2
+    for (let i = 0; i < data.length; i++) {
+      const x = (i / (data.length - 1)) * canvas.width
+      const y = midY - data[i] * midY
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  function drawPlayhead() {
+    if (!duration) return
+    const x = (playheadTime / duration) * canvas.width
+    ctx.save()
+    ctx.strokeStyle = visualization.playheadColor || '#e91e63'
+    ctx.lineWidth = visualization.playheadWidth || 2
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, canvas.height)
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  return {
+    render(data) {
+      waveformData = data
+      drawWaveform(waveformData)
+      drawPlayhead()
+    },
+    setDuration(dur) {
+      duration = dur
+    },
+    setPlayheadPosition(time) {
+      playheadTime = time
+      if (waveformData) {
+        drawWaveform(waveformData)
+        drawPlayhead()
+      }
+    },
+  }
+}
+
