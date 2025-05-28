@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Live Peak Extractor for real-time audio analysis
  * Part of Pleco-XA audio analysis toolkit

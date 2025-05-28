@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Clean loop analysis using only librosa recurrence matrix
  * No BPM dependencies, just pure audio structure analysis

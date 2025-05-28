@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Pleco-XA Loop Controller Module
  * Dynamic loop manipulation with configurable constraints

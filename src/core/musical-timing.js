@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Musical timing and beat alignment functions
  * Part of Pleco Xa audio analysis engine

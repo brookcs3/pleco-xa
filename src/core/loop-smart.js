@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Smart loop detector: recurrence-matrix search ➜ beat snaps ➜ zero-cross trim.
  */
@@ -13,7 +14,7 @@ import { DynamicZeroCrossing } from './dynamic-zero-crossing.js'
  * ------------------------------------------------------------------*/
 
 // Simple onset‑strength envelope: frame‑wise RMS difference
-function onset_strength(y, { sr, hop_length = 512 } = {}) {
+function onset_strength(y, { sr, hop_length = 512 }) {
   const frame = hop_length
   const nFrames = Math.floor((y.length - frame) / hop_length)
   const env = new Float32Array(nFrames)
@@ -35,7 +36,8 @@ function onset_strength(y, { sr, hop_length = 512 } = {}) {
 // Micro beat‑tracker via autocorrelation on the onset envelope
 function beat_track(
   env,
-  { sr, hop_length = 512, minBPM = 60, maxBPM = 180 } = {},
+  sr,
+  { hop_length = 512, minBPM = 60, maxBPM = 180 } = {},
 ) {
   const fps = sr / hop_length
   const minLag = Math.floor((fps * 60) / maxBPM)
@@ -77,9 +79,19 @@ function beat_track(
 
 export function smartLoopDetect(y, sr, hop = 512, maxBars = 8) {
   const onsetEnv = onset_strength(y, { sr, hop_length: hop })
-  const { tempo, beats } = beat_track(onsetEnv, { sr, hop_length: hop })
+  const { tempo, beats } = beat_track(onsetEnv, sr, { hop_length: hop })
 
-  const R = recurrenceMatrix(onsetEnv, { k: 3, width: 3 })
+  const R = recurrenceMatrix(onsetEnv, {
+    k: 3,
+    width: 3,
+    metric: 'euclidean',
+    sym: true,
+    sparse: false,
+    mode: 'connectivity',
+    bandwidth: 1,
+    self: false,
+    axis: 0,
+  })
   const L = recurrenceToLag(R)
   const Lenh = pathEnhance(L)
 
@@ -88,6 +100,7 @@ export function smartLoopDetect(y, sr, hop = 512, maxBars = 8) {
     bestLag = 0
   for (let lag = 1; lag < Lenh.length; ++lag) {
     const col = Lenh[lag]
+    if (!Array.isArray(col)) continue // Defensive: skip if not array-like
     let runStart = null,
       runLen = 0
     for (let i = 0; i < col.length; ++i) {

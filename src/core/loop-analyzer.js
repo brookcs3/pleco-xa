@@ -1,3 +1,4 @@
+// @ts-check
 /** ---------------------------------------------------------------------------
  * Musical loop analysis and detection
  * Part of Pleco-XA audio analysis engine
@@ -8,7 +9,7 @@ import {
   computeRMS,
   computePeak,
   computeZeroCrossingRate,
-  findZeroCrossing,
+  findAllZeroCrossings,
   findAudioStart,
   applyHannWindow,
 } from '../utils/audio-utils.js';
@@ -35,7 +36,7 @@ export async function loopAnalysis(audioBuffer, useReference = false) {
 
   const rms                 = computeRMS(audioBuffer);
   const peak                = computePeak(audioBuffer);
-  const spectrum            = spectrogram([...audioData]);
+  const spectrum            = spectrogram(audioData);
   const spectralCentroidVal = spectralCentroid({ y: audioData, sr: sampleRate });
   const zeroCrossingRate    = computeZeroCrossingRate(audioBuffer);
   const loopPts             = await fastOnsetLoopAnalysis(audioBuffer, bpmData);
@@ -96,8 +97,14 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
     const conf      = Math.min(100, Math.abs(r) * beatAlign * 100);
 
     results.push({
-      loopStart: findZeroCrossing(ch, startS)              / sr,
-      loopEnd:   findZeroCrossing(ch, startS + samples)    / sr,
+      loopStart: (() => {
+        const zc = findAllZeroCrossings(ch, startS);
+        return (zc.find(idx => idx >= startS) ?? startS) / sr;
+      })(),
+      loopEnd: (() => {
+        const zc = findAllZeroCrossings(ch, startS + samples);
+        return (zc.find(idx => idx >= startS + samples) ?? (startS + samples)) / sr;
+      })(),
       loopLength: len,
       correlation: r,
       confidence: conf,
@@ -182,8 +189,14 @@ export async function analyzeLoopPoints(audioBuffer) {
   }
 
   return {
-    loopStart: findZeroCrossing(ch, 0)                    / sr,
-    loopEnd:   findZeroCrossing(ch, ch.length - win + bestOffset) / sr,
+    loopStart: (() => {
+      const zc = findAllZeroCrossings(ch, 0);
+      return (zc.find(idx => idx >= 0) ?? 0) / sr;
+    })(),
+    loopEnd: (() => {
+      const zc = findAllZeroCrossings(ch, ch.length - win + bestOffset);
+      return (zc.find(idx => idx >= ch.length - win + bestOffset) ?? (ch.length - win + bestOffset)) / sr;
+    })(),
     confidence: bestScore / win,
     bestOffset,
     windowSize: win,
