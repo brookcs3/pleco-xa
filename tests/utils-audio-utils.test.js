@@ -2,9 +2,9 @@ import {
   findZeroCrossing,
   findAudioStart,
   applyHannWindow,
-} from 'src/utils/audio-utils';
+} from '../src/utils/audio-utils.js';
 
-describe.skip('findZeroCrossing', () => {
+describe('findZeroCrossing', () => {
   it('returns the index where a positive to negative transition occurs', () => {
     const data = new Float32Array([0.1, 0.2, -0.1, -0.2]);
     expect(findZeroCrossing(data, 0)).toBe(1);
@@ -21,7 +21,7 @@ describe.skip('findZeroCrossing', () => {
   });
 });
 
-describe.skip('findAudioStart', () => {
+describe('findAudioStart', () => {
   it('skips initial silence and returns zero crossing index', () => {
     const channelData = new Float32Array([0, 0, 0, 0.05, -0.05, -0.05]);
     const sampleRate = 10; // windowSize = 1
@@ -40,7 +40,7 @@ describe.skip('findAudioStart', () => {
   });
 });
 
-describe.skip('applyHannWindow', () => {
+describe('applyHannWindow', () => {
   it('applies a Hann window to the data', () => {
     const data = new Float32Array([1, 1, 1, 1]);
     const result = applyHannWindow(data);

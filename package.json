@@ -3,8 +3,8 @@
   "version": "1.0.4",
   "type": "module",
   "publishConfig": {
-   "registry": "https://npm.pkg.github.com/"
-},
+    "registry": "https://npm.pkg.github.com/"
+  },
   "engines": {
     "node": ">=18.20.8"
   },
