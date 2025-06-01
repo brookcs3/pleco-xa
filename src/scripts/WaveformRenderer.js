@@ -42,7 +42,7 @@
  *
  * @example
  * ```javascript
- * import { renderWaveform } from './visualization/WaveformRenderer.js';
+ * import { renderWaveform } from './WaveformRenderer.js';
  * import { getWaveformPeaks } from './analysis/WaveformData.js';
  *
  * const canvas = document.getElementById('waveform');
@@ -130,7 +130,7 @@ export function renderWaveform(canvas, waveformData, options = {}) {
  *
  * @example
  * ```javascript
- * import { renderStereoWaveform } from './visualization/WaveformRenderer.js';
+ * import { renderStereoWaveform } from './WaveformRenderer.js';
  *
  * renderStereoWaveform(canvas, stereoWaveformData, {
  *   leftColor: '#e74c3c',
@@ -194,7 +194,7 @@ export function renderStereoWaveform(canvas, stereoData, options = {}) {
  *
  * @example
  * ```javascript
- * import { addLoopRegions } from './visualization/WaveformRenderer.js';
+ * import { addLoopRegions } from './WaveformRenderer.js';
  *
  * addLoopRegions(canvas, [
  *   { start: 1.5, end: 3.2, color: 'rgba(255,255,0,0.3)' },
@@ -237,7 +237,7 @@ export function addLoopRegions(canvas, loops, duration) {
  *
  * @example
  * ```javascript
- * import { createInteractiveRenderer } from './visualization/WaveformRenderer.js';
+ * import { createInteractiveRenderer } from './WaveformRenderer.js';
  *
  * const renderer = createInteractiveRenderer(canvas, {
  *   enableSelection: true,

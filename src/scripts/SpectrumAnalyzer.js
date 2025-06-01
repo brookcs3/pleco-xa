@@ -28,7 +28,7 @@
  *
  * @example
  * ```javascript
- * import { RealtimeSpectrumAnalyzer } from './visualization/SpectrumAnalyzer.js';
+ * import { RealtimeSpectrumAnalyzer } from './SpectrumAnalyzer.js';
  *
  * const analyzer = new RealtimeSpectrumAnalyzer(canvas, audioContext, {
  *   fftSize: 2048,
@@ -389,7 +389,7 @@ export class RealtimeSpectrumAnalyzer {
  *
  * @example
  * ```javascript
- * import { renderStaticSpectrum } from './visualization/SpectrumAnalyzer.js';
+ * import { renderStaticSpectrum } from './SpectrumAnalyzer.js';
  *
  * const result = await renderStaticSpectrum(canvas, audioBuffer, {
  *   fftSize: 4096,
@@ -495,7 +495,7 @@ export async function renderStaticSpectrum(canvas, audioBuffer, options = {}) {
  *
  * @example
  * ```javascript
- * import { createSpectrogram } from './visualization/SpectrumAnalyzer.js';
+ * import { createSpectrogram } from './SpectrumAnalyzer.js';
  *
  * const spectrogram = await createSpectrogram(canvas, audioBuffer, {
  *   fftSize: 2048,
@@ -673,3 +673,6 @@ function getSpectrogramColor(value, colormap) {
       return { r: gray, g: gray, b: gray }
   }
 }
+
+// Alias for primary export to match expected name in index.js
+export const SpectrumAnalyzer = RealtimeSpectrumAnalyzer;
