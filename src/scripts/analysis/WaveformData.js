@@ -465,3 +465,6 @@ function normalizeData(data) {
 
   return data.map((val) => val / max)
 }
+
+// Alias for primary export to match expected name in index.js
+export const WaveformData = getWaveformPeaks;
