@@ -565,3 +565,6 @@ function renderFilled(ctx, data, width, height, centerY, maxAmplitude, opts) {
     ctx.fill()
   }
 }
+
+// Alias for primary export to match expected name in index.js
+export const WaveformRenderer = renderWaveform;
