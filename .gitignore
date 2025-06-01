@@ -54,22 +54,17 @@ tmp/
 temp/
 
 # Audio files (for examples)
-examples/*.wav
-examples/*.mp3
-examples/*.aiff
-examples/*.aif
+
 
 # Optional npm cache
 
 
 # Optional eslint cache
-.eslintcache
 
 rollup.config.js
 test-worker.cjs
 
 # Yarn Integrity file
-.yarn-integrity
 
 # Exclude large npm package files
 pleco-xa-*.tgz
