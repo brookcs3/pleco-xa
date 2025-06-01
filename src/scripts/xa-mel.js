@@ -109,7 +109,7 @@ export function linspace(start, stop, num) {
  * @param {number|null} fmax - Maximum frequency
  * @returns {Array} Mel spectrogram (n_mels x n_frames)
  */
-export function melspectrogram(y, sr = 22050, n_fft = 2048, hop_length = 512, n_mels = 128, fmin = 0, fmax = null) {
+export async function melspectrogram(y, sr = 22050, n_fft = 2048, hop_length = 512, n_mels = 128, fmin = 0, fmax = null) {
     // Import STFT from librosa-fft
     const { stft, magnitude } = await import('./librosa-fft.js');
     

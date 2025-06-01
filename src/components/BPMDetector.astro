@@ -83,7 +83,7 @@ const {
 </style>
 
 <script>
-  import { detectBPM } from 'pleco-xa';
+  import { detectBPM } from '@/core/analysis/BPMDetector.js';
 
   document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('bpmFileInput');
@@ -92,19 +92,21 @@ const {
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
         if (!file) return;
 
         try {
           bpmValue.textContent = 'Analyzing...';
           
           // Load and analyze
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const AudioContextConstructor = window.AudioContext || (window as any).webkitAudioContext;
+          const audioContext = new AudioContextConstructor();
           const arrayBuffer = await file.arrayBuffer();
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
           
           const audioData = audioBuffer.getChannelData(0);
-          const result = detectBPM(audioData, audioBuffer.sampleRate);
+          const result = await detectBPM(audioData, audioBuffer.sampleRate);
           
           // Update display
           bpmValue.textContent = `${result.bpm.toFixed(1)} BPM`;

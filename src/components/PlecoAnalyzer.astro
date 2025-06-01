@@ -136,13 +136,13 @@ const {
 </style>
 
 <script>
-  import {
-    detectBPM,
-    librosaLoopAnalysis,
-    computeSpectralCentroid,
-    computeRMS,
-    LoopPlayer
-  } from 'pleco-xa';
+  import { detectBPM } from '@/core/analysis/BPMDetector.js';
+  import { LoopPlayer } from '@/classes/LoopPlayer.js';
+  // Updated import for loop analysis based on user feedback
+  import { analyzeLoop as librosaLoopAnalysis } from '@/core/analysis/LoopAnalyzer.js';
+  // Updated import paths for spectral functions based on user feedback
+  import { computeRMS } from '@/utils/audio-utils.js';
+  import { spectralCentroid } from '@/core/xa-spectral.js';
 
   let currentPlayer = null;
 
@@ -158,19 +158,22 @@ const {
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
         if (!file) return;
 
         try {
           // Load audio
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const AudioContextConstructor = window.AudioContext || (window as any).webkitAudioContext;
+          const audioContext = new AudioContextConstructor();
           const arrayBuffer = await file.arrayBuffer();
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
           // Analyze with Pleco Xa
           const audioData = audioBuffer.getChannelData(0);
-          const bpmResult = detectBPM(audioData, audioBuffer.sampleRate);
-          const analysis = await librosaLoopAnalysis(audioBuffer);
+          const bpmResult = await detectBPM(audioData, audioBuffer.sampleRate);
+          const analysisResult = await librosaLoopAnalysis(audioBuffer);
+          const analysis = analysisResult.best || { start: 0, end: audioBuffer.duration, length: audioBuffer.duration };
           
           // Update UI
           if (bpmValue && bpmConfidence) {
@@ -179,27 +182,31 @@ const {
           }
           
           if (loopInfo) {
-            const loopDuration = analysis.loopEnd - analysis.loopStart;
+            const loopDuration = analysis.end - analysis.start;
             loopInfo.innerHTML = `
-              <div>Start: ${analysis.loopStart.toFixed(3)}s</div>
-              <div>End: ${analysis.loopEnd.toFixed(3)}s</div>
+              <div>Start: ${analysis.start.toFixed(3)}s</div>
+              <div>End: ${analysis.end.toFixed(3)}s</div>
               <div>Duration: ${loopDuration.toFixed(3)}s</div>
-              <div>Musical: ${analysis.musicalDivision.toFixed(1)} bars</div>
+              <div>Musical: <!-- musicalDivision not available --></div>
             `;
           }
           
           if (spectralInfo) {
-            const spectralCentroid = computeSpectralCentroid(audioBuffer);
+            const spectralCentroidValues = spectralCentroid({ y: audioBuffer.getChannelData(0), sr: audioBuffer.sampleRate });
+            // Compute mean if array, or use directly if single value
+            const spectralCentroidValue = Array.isArray(spectralCentroidValues) 
+              ? spectralCentroidValues.reduce((sum, val) => sum + val, 0) / spectralCentroidValues.length 
+              : spectralCentroidValues;
             const rms = computeRMS(audioBuffer);
             spectralInfo.innerHTML = `
-              <div>Spectral Centroid: ${spectralCentroid.toFixed(0)} Hz</div>
+              <div>Spectral Centroid: ${spectralCentroidValue.toFixed(0)} Hz</div>
               <div>RMS Energy: ${rms.toFixed(4)}</div>
             `;
           }
 
           // Set up player
           currentPlayer = new LoopPlayer(audioBuffer);
-          currentPlayer.setLoopPoints(analysis.loopStart, analysis.loopEnd);
+          currentPlayer.setLoopPoints(analysis.start, analysis.end);
 
           // Show results
           if (resultsDiv) {
