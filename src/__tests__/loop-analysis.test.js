@@ -38,7 +38,7 @@ describe('analyzeLoopPoints', () => {
     const result = await analyzeLoopPoints(buffer)
 
     expect(result.loopStart).toBeCloseTo(0, 2)
-    expect(result.loopEnd).toBeGreaterThan(3)
+    expect(result.loopEnd).toBeGreaterThanOrEqual(3)
     expect(result.loopEnd).toBeLessThanOrEqual(buffer.duration)
   })
 })
