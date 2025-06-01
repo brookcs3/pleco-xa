@@ -54,7 +54,8 @@ tmp/
 temp/
 
 # Audio files (for examples)
-
+demo.html
+/public/index.html
 
 # Optional npm cache
 
