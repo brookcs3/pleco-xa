@@ -15,13 +15,11 @@ export default defineConfig({
     port: 3000
   },
 
-  publicDir: 'public',
-  outDir: 'dist',
-
   build: {
-    assets: 'assets',
-    output: 'static'
+    output: 'static',
+    assets: 'assets'
   },
+
   vite: {
     resolve: {
       alias: {
