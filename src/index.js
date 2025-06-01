@@ -11,10 +11,10 @@ export { WaveformData } from './scripts/analysis/WaveformData.js'
 
 // Audio playback and control
 export { AudioPlayer } from './assets/audio/AudioPlayer.js'
-export { LoopController } from './scripts/LoopController.js'
+export { LoopController } from './scripts/loop-controller.js'
 
 // Visualization components
-export { WaveformRenderer } from './scripts/waveformRenderer.js'
+export { WaveformRenderer } from './scripts/WaveformRenderer.js'
 export { SpectrumAnalyzer } from './scripts/SpectrumAnalyzer.js'
 
 // Utility functions
