@@ -43,6 +43,41 @@
  */
 
 /**
+ * LoopAnalyzer class for object-oriented usage
+ */
+export class LoopAnalyzer {
+  constructor(options = {}) {
+    this.options = {
+      minLoopLength: 0.5,
+      maxLoopLength: 8.0,
+      threshold: 0.8,
+      fadeLength: 0.01,
+      useSpectral: true,
+      useTempo: true,
+      channel: 0,
+      method: 'correlation',
+      ...options
+    };
+  }
+  
+  async analyze(audioBuffer) {
+    return analyzeLoop(audioBuffer, this.options);
+  }
+  
+  findBest(audioBuffer) {
+    return findBestLoop(audioBuffer, this.options);
+  }
+  
+  validateLoop(audioBuffer, startTime, endTime) {
+    return validateLoop(audioBuffer, startTime, endTime, this.options);
+  }
+  
+  async createSeamless(audioBuffer, loopPoint) {
+    return createSeamlessLoop(audioBuffer, loopPoint, this.options);
+  }
+}
+
+/**
  * Analyzes audio for optimal loop points using cross-correlation
  *
  * @param {AudioBuffer} audioBuffer - Web Audio API AudioBuffer
@@ -321,12 +356,12 @@ export async function createSeamlessLoop(audioBuffer, loopPoint, options = {}) {
     if (fadesamples > 0) {
       // Fade out at end
       for (let i = 0; i < fadesamples && i < outputData.length; i++) {
-        const fadePos = i / fadeValues
+        const fadePos = i / fadesamples
         const fadeOut = Math.cos((fadePos * Math.PI) / 2)
         const fadeIn = Math.sin((fadePos * Math.PI) / 2)
 
         // Crossfade with beginning of loop
-        const endPos = outputData.length - fadeLength + i
+        const endPos = outputData.length - fadesamples + i
         if (endPos >= 0 && endPos < outputData.length) {
           outputData[endPos] =
             outputData[endPos] * fadeOut + outputData[i] * fadeIn

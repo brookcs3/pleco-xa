@@ -1,6 +1,7 @@
+
 // ===== CORE IMPORTS =====
 // Main audio player and file handling
-// import { AudioPlayer } from './audio/AudioPlayer.js'
+// import { AudioPlayer } from './analysis/AudioPlayer.js'
 // import { loadFile, example, exampleBuffer } from './xa-file.js'
 import { loadFile } from './xa-file.js'
 
@@ -35,7 +36,7 @@ import {
   computeRMS,
   computePeak,
   computeZeroCrossingRate,
-} from '../utils/audio-utils.js'
+} from '.audio-utils.js'
 
 // Dynamic zero crossing for clean loops
 import { DynamicZeroCrossing } from './dynamic-zero-crossing.js'
@@ -89,7 +90,7 @@ function setupEventListeners() {
   document.querySelectorAll('.sample-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.sample) {
-        loadSampleFile(`src/assets/audio/${btn.dataset.sample}`, btn.textContent)
+        loadSampleFile(`./assets/audio/${btn.dataset.sample}`, btn.textContent)
       }
     })
   })
@@ -299,9 +300,24 @@ async function detectLoop() {
     console.log('🔍 Running fastLoopAnalysis ...')
 
     // Use the more sophisticated Librosa‑port algorithm.
-    const result = await fastLoopAnalysis(currentAudioBuffer, {
-      bpmHint: currentBPM,
-    })
+    let result;
+    try {
+      if (typeof fastLoopAnalysis !== 'undefined') {
+        result = await fastLoopAnalysis(currentAudioBuffer, {
+          bpmHint: currentBPM,
+        });
+      } else {
+        throw new Error('fastLoopAnalysis function not available');
+      }
+    } catch (error) {
+      console.error('❌ fastLoopAnalysis not found or failed:', error);
+      // Fallback to full track loop
+      result = {
+        loopStart: 0,
+        loopEnd: currentAudioBuffer.duration
+      };
+      console.log('⚠️ Using fallback full track loop due to missing fastLoopAnalysis');
+    }
 
     const channel = currentAudioBuffer.getChannelData(0)
     const sr = currentAudioBuffer.sampleRate
@@ -340,23 +356,7 @@ async function detectLoop() {
       -1,
     )
 
-    /* --- subtle adjustment: nudge start to first strong onset (≤½ beat ahead) --- */
-    try {
-      const beatDur = 60 / currentBPM // seconds per beat
-      const lookAhead = Math.min(0.5 * beatDur, 0.5) // cap at 0.5 s
-      const searchSamples = Math.floor(lookAhead * sr)
-      const hop = 512,
-        frame = 1024
-      const seg = channel.subarray(startSample, startSample + searchSamples)
-
-      let maxIdx = 0,
-        maxDiff = 0,
-        prevRms = 0
-      for (let i = 0; i + frame < seg.length; i += hop) {
-        const rms = Math.sqrt(
-          seg.subarray(i, i + frame).reduce((s, v) => s + v * v, 0) / frame,
-        )
-        const diff = Math.max(0, rms - prevRms)
+    /* --- subtle adjustment: nudge start to first strong onset (≤½ beat ahead) -
         if (diff > maxDiff) {
           maxDiff = diff
           maxIdx = i

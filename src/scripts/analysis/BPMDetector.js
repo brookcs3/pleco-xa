@@ -320,43 +320,56 @@ function extractBeats(onsetStrength, bpm, sampleRate, options) {
  * @private
  */
 function extractOnsets(audioData, sampleRate, options) {
-  const frameSize = options.windowSize
-  const hopLength = options.hopLength
-  const threshold = options.threshold
+  const frameSize = options.windowSize || 1024
+  const hopLength = options.hopLength || 512
+  const threshold = options.threshold || 0.1
+  
   const onsets = []
-
-  // Simple energy-based onset detection
-  const numFrames = Math.floor((audioData.length - frameSize) / hopLength) + 1
-  const energy = new Float32Array(numFrames)
-
-  for (let frame = 0; frame < numFrames; frame++) {
-    const start = frame * hopLength
-    const end = Math.min(start + frameSize, audioData.length)
-
-    let sum = 0
-    for (let i = start; i < end; i++) {
-      sum += audioData[i] * audioData[i]
+  const numFrames = Math.floor((audioData.length - frameSize) / hopLength)
+  
+  let prevEnergy = 0
+  for (let i = 0; i < numFrames; i++) {
+    const start = i * hopLength
+    let energy = 0
+    
+    for (let j = 0; j < frameSize; j++) {
+      energy += audioData[start + j] * audioData[start + j]
     }
-
-    energy[frame] = Math.sqrt(sum / (end - start))
-  }
-
-  // Find peaks
-  for (let i = 1; i < energy.length - 1; i++) {
-    if (
-      energy[i] > energy[i - 1] &&
-      energy[i] > energy[i + 1] &&
-      energy[i] > threshold
-    ) {
-      const timeInSeconds = (i * hopLength) / sampleRate
-      onsets.push(timeInSeconds)
+    
+    if (energy > prevEnergy * (1 + threshold)) {
+      onsets.push(start / sampleRate)
     }
+    
+    prevEnergy = energy
   }
-
+  
   return onsets
 }
 
 /**
+ * BPMDetector class for object-oriented usage
+ */
+export class BPMDetector {
+  constructor(options = {}) {
+    this.options = {
+      minBPM: 60,
+      maxBPM: 180,
+      hopLength: 512,
+      windowSize: 1024,
+      useOnsetStrength: true,
+      threshold: 0.1,
+      ...options
+    }
+  }
+  
+  async analyze(audioBuffer) {
+    return detectBPM(audioBuffer, this.options)
+  }
+  
+  detectFast(audioBuffer) {
+    return fastBPMDetect(audioBuffer, this.options)
+  }
+}/**
  * Analyze tempo variations over time
  *
  * @param {AudioBuffer} audioBuffer - Web Audio API AudioBuffer
