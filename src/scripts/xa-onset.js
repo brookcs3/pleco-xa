@@ -171,7 +171,7 @@ export function computeSpectralFlux(stft) {
  *   @param {number} [opts.frame_length=2048]   frame length for STFT
  * @returns {Float32Array}  onset strength envelope
  */
-// eslint-disable-next-line camelcase
+
 export function onset_strength(y_or_stft, opts = {}) {
   const { hop_length = 512, frame_length = 2048 } = opts
 

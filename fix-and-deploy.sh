@@ -43,7 +43,11 @@ done
 
 # 4. Update HTML TODO comment
 HTML=public/frontend/bmp-detection.html
-[ -f "\$HTML" ] && sed -i '' "s/TODO.*/<!-- TODO: Replace inline script with library import once v1.0.3 is released -->/" "\$HTML"
+if [ -f "\$HTML" ]; then
+  TEMP_FILE=$(mktemp)
+  sed "s/TODO.*/<!-- TODO: Replace inline script with library import once v1.0.3 is released -->/" "\$HTML" > "\$TEMP_FILE"
+  mv "\$TEMP_FILE" "\$HTML"
+fi
 
 # 5. Placeholder tests for compression utils
 mkdir -p tests

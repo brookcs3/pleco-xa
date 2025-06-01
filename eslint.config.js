@@ -1,37 +1,55 @@
-import * as js from '@eslint/js'
+import js from '@eslint/js'
 import astro from 'eslint-plugin-astro'
-import * as tseslint from '@typescript-eslint/eslint-plugin'
+import astroParser from 'astro-eslint-parser'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tseslintParser from '@typescript-eslint/parser'
 
 export default [
   js.configs.recommended,
   {
-    files: ['**/*.ts', '**/*.js'],
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
-      parser: '@typescript-eslint/parser',
+      parser: tseslintParser,
       parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: 'module',
+        project: true,
       },
     },
-    plugins: {
-      '@typescript-eslint': tseslint,
+    plugins: { '@typescript-eslint': tseslint },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    files: ['**/*.astro'],
+    plugins: { astro, '@typescript-eslint': tseslint },
+    languageOptions: {
+      parser: astroParser,
+      parserOptions: {
+        parser: tseslintParser,
+        extraFileExtensions: ['.astro'],
+        project: true,
+      },
     },
     rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
   {
-    files: ['**/*.astro'],
-    plugins: { astro },
+    files: ['**/*.js'],
     languageOptions: {
-      parser: astro.parser,
-      parserOptions: {
-        extraFileExtensions: ['.astro'],
-        project: true,
+      globals: {
+        console: true,
+        window: true,
+        document: true,
+        fetch: true,
+        Blob: true,
+        URL: true,
+        setTimeout: true,
+        require: true,
+        log10: true,
+        max: true,
       },
-    },
-    rules: {
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }]
     },
   },
 ]

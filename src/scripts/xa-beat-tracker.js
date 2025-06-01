@@ -881,7 +881,7 @@ export class BeatTrackingUI {
  *
  * It internally instantiates a BeatTracker and forwards the call.
  */
-// eslint-disable-next-line camelcase
+
 export function beat_track(y, sr = 22050, opts = {}) {
   const tracker = new BeatTracker()
   return tracker.beatTrack({ y, sr, ...opts })
@@ -891,7 +891,7 @@ export function beat_track(y, sr = 22050, opts = {}) {
  * Alias matching librosa.beat.tempo().
  * Computes a single global tempo estimate from an onset envelope.
  */
-// eslint-disable-next-line camelcase
+
 export function tempo(
   onsetEnvelope,
   sr = 22050,

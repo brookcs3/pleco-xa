@@ -204,12 +204,10 @@ export function lagToRecurrence(lag, axis = -1) {
  * They simply call the camelCase versions above.
  */
 
-// eslint-disable-next-line camelcase
 export function recurrence_to_lag(rec, pad = true, axis = -1) {
   return recurrenceToLag(rec, pad, axis)
 }
 
-// eslint-disable-next-line camelcase
 export function lag_to_recurrence(lag, axis = -1) {
   return lagToRecurrence(lag, axis)
 }

@@ -346,6 +346,7 @@ export function dp_beat_track(onset_env, period) {
  * @returns {Array} Transition costs
  */
 // This function is defined but not used anywhere in the code
+/* eslint-disable-next-line no-unused-vars */
 function _compute_transition_matrix(period, tightness) {
   const max_transition = Math.round(2 * period)
   const transitions = new Array(max_transition + 1)
