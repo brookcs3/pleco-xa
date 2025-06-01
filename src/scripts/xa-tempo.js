@@ -345,7 +345,8 @@ export function dp_beat_track(onset_env, period) {
  * @param {number} tightness - Tempo consistency parameter
  * @returns {Array} Transition costs
  */
-function compute_transition_matrix(period, tightness) {
+// This function is defined but not used anywhere in the code
+function _compute_transition_matrix(period, tightness) {
   const max_transition = Math.round(2 * period)
   const transitions = new Array(max_transition + 1)
 
@@ -364,7 +365,7 @@ function compute_transition_matrix(period, tightness) {
  * @param {number} sr - Sample rate
  * @returns {Object} Groove analysis
  */
-export function analyze_groove(beat_times, sr) {
+export function analyze_groove(beat_times, _sr) {
   if (beat_times.length < 4) {
     return { swing: 0, timing_variance: 0 }
   }

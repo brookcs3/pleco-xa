@@ -15,7 +15,11 @@ let currentSourceNode = null
 /*───────────────────────────────────────────────────────────────────────────*/
 
 async function decodeBuffer(arrayBuffer) {
-  const tmpCtx = new (window.AudioContext || window.webkitAudioContext || function() { throw new Error('AudioContext not supported'); })()
+  const tmpCtx = new (window.AudioContext ||
+    window.webkitAudioContext ||
+    function () {
+      throw new Error('AudioContext not supported')
+    })()
   const audio = await tmpCtx.decodeAudioData(arrayBuffer)
   await tmpCtx.close()
   return audio
@@ -65,7 +69,10 @@ export function play({ loop = false } = {}) {
 
   if (!globalAudioContext) {
     globalAudioContext = new (window.AudioContext ||
-      window.webkitAudioContext || function() { throw new Error('AudioContext not supported'); })()
+      window.webkitAudioContext ||
+      function () {
+        throw new Error('AudioContext not supported')
+      })()
   }
 
   const { y, sr } = currentAudioBuffer

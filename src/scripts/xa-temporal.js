@@ -224,7 +224,7 @@ export function lag_to_recurrence(lag, axis = -1) {
  * @returns {Uint32Array} Segment boundary indices
  */
 export function agglomerative(data, k, options = {}) {
-  const { axis = -1, linkage = 'ward' } = options
+  const { axis: _axis = -1, linkage = 'ward' } = options
 
   if (!data || k <= 0) {
     throw new ParameterError('Valid data and positive k required')
@@ -700,7 +700,7 @@ function _toSparseMatrix(dense) {
  * Shear transformation for lag conversion
  * @private
  */
-function _shear(matrix, direction, axis) {
+function _shear(matrix, _direction, _axis) {
   // Simplified shear implementation
   // In a full implementation, this would apply the proper shear transformation
   return new Float32Array(matrix)
@@ -710,7 +710,7 @@ function _shear(matrix, direction, axis) {
  * Pad matrix for lag representation
  * @private
  */
-function _padMatrix(matrix, n) {
+function _padMatrix(matrix, _n) {
   // Simplified padding - in practice would pad with zeros
   return new Float32Array(matrix)
 }
@@ -719,7 +719,7 @@ function _padMatrix(matrix, n) {
  * Pad sparse matrix
  * @private
  */
-function _padSparseMatrix(matrix, n) {
+function _padSparseMatrix(matrix, _n) {
   // Simplified sparse padding
   return matrix
 }

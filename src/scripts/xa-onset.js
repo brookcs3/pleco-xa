@@ -173,7 +173,7 @@ export function computeSpectralFlux(stft) {
  */
 // eslint-disable-next-line camelcase
 export function onset_strength(y_or_stft, opts = {}) {
-  const { sr = 22050, hop_length = 512, frame_length = 2048 } = opts
+  const { hop_length = 512, frame_length = 2048 } = opts
 
   // Detect whether we were given a 1‑D Float32Array (raw audio)
   const isAudio =
@@ -221,7 +221,7 @@ export function pickPeaks(onsetStrength, { delta = 0.07, wait = 20 } = {}) {
  * Convert onset times to beat times
  * Simple version - just use onset spacing
  */
-export function onsetsToBeats(onsetTimes, sampleRate) {
+export function onsetsToBeats(onsetTimes) {
   if (onsetTimes.length < 2) return { bpm: 120, beatTimes: [] }
 
   // Calculate intervals between onsets

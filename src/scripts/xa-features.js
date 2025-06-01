@@ -15,7 +15,7 @@ export function zero_crossing_rate(
   y,
   frame_length = 2048,
   hop_length = 512,
-  center = true,
+  _center = true,
 ) {
   const zcr = []
 
@@ -46,7 +46,7 @@ export function zero_crossing_rate(
  * @param {boolean} center - Whether to center frames
  * @returns {Array} RMS energy per frame
  */
-export function rms(y, frame_length = 2048, hop_length = 512, center = true) {
+export function rms(y, frame_length = 2048, hop_length = 512, _center = true) {
   const rms_values = []
 
   for (let i = 0; i <= y.length - frame_length; i += hop_length) {

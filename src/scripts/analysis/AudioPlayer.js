@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * AudioPlayer - Framework-agnostic audio playback controller
  * Wraps Web Audio API with a clean, event-driven interface
@@ -354,11 +355,14 @@ export class AudioPlayer {
       return // SSR safety
     }
 
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    // Add type declaration for Safari's webkitAudioContext
+    /** @type {typeof AudioContext} */
+    // @ts-ignore - webkitAudioContext is not in the type definitions but exists in Safari
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext
     if (!AudioContextClass) {
-      throw new Error('AudioContext not supported');
+      throw new Error('AudioContext not supported')
     }
-    this._audioContext = new AudioContextClass();
+    this._audioContext = new AudioContextClass()
 
     // Handle autoplay policy
     if (this._audioContext.state === 'suspended') {

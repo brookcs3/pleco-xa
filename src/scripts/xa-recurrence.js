@@ -119,14 +119,14 @@ function validateInputData(data) {
  */
 function gen_sim_matrix(
   data,
-  k = null,
-  metric = 'euclidean',
-  sparse = false,
+  _k = null,
+  _metric = 'euclidean',
+  _sparse = false,
   mode = 'connectivity',
-  bandwidth = null,
-  hop_length = 1,
-  win_length = null,
-  axis = -1,
+  _bandwidth = null,
+  _hop_length = 1,
+  _win_length = null,
+  _axis = -1,
 ) {
   console.log('Preparing input data for gen_sim_matrix:', data)
   console.log(`Data dimensions: ${data.length}x${data[0]?.length || 0}`)
@@ -365,7 +365,7 @@ function computeFFT(signal) {
 /**
  * In-place FFT implementation
  */
-function fft(buffer, N) {
+function _fft(buffer, N) {
   if (N <= 1) return
 
   // Separate even and odd

@@ -213,13 +213,12 @@ export class SpatialAudio {
   /**
    * Update spatial node based on scroll position
    */
-  updateSpatialNode(spatialNode, loopId, scrollProgress) {
-    const { panner, dopplerShifter, distanceFilter, reverb, position } =
-      spatialNode
+  updateSpatialNode(spatialNode, _loopId, scrollProgress) {
+    const { dopplerShifter, distanceFilter, reverb, position } = spatialNode
 
     // Calculate distance from listener
     const listenerY = scrollProgress * this.space.height
-    const distance = Math.abs(position.y - listenerY)
+    const distanceValue = Math.abs(position.y - listenerY)
 
     // Update doppler effect
     const dopplerFactor = this.calculateDopplerFactor(position.y, listenerY)
@@ -229,14 +228,14 @@ export class SpatialAudio {
     const maxFreq = 20000
     const minFreq = 2000
     const filterFreq =
-      maxFreq - (distance / this.space.height) * (maxFreq - minFreq)
+      maxFreq - (distanceValue / this.space.height) * (maxFreq - minFreq)
     distanceFilter.frequency.linearRampToValueAtTime(
       filterFreq,
       this.context.currentTime + 0.1,
     )
 
     // Update reverb mix based on distance
-    const reverbAmount = Math.min(distance / this.space.height, 1) * 0.3
+    const reverbAmount = Math.min(distanceValue / this.space.height, 1) * 0.3
     reverb.wetGain.gain.linearRampToValueAtTime(
       reverbAmount,
       this.context.currentTime + 0.1,
@@ -247,7 +246,7 @@ export class SpatialAudio {
     )
 
     // Select appropriate reverb impulse
-    this.updateReverbImpulse(reverb.convolver, distance)
+    this.updateReverbImpulse(reverb.convolver, distanceValue)
   }
 
   /**

@@ -258,7 +258,11 @@ export async function exampleBuffer(
   baseUrl = 'https://librosa.org/data/audio/',
 ) {
   if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext || function() { throw new Error('AudioContext not supported'); })()
+    audioContext = new (window.AudioContext ||
+      window.webkitAudioContext ||
+      function () {
+        throw new Error('AudioContext not supported')
+      })()
   }
 
   const cacheKey = `${key}_${hq}_buffer`
@@ -345,7 +349,11 @@ export function exampleInfo(key) {
  */
 export async function loadFile(file, audioContext = null) {
   if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext || function() { throw new Error('AudioContext not supported'); })()
+    audioContext = new (window.AudioContext ||
+      window.webkitAudioContext ||
+      function () {
+        throw new Error('AudioContext not supported')
+      })()
   }
 
   if (!file) {
@@ -531,7 +539,12 @@ export function createAudioContext(options = {}) {
 
   const contextOptions = { ...defaultOptions, ...options }
 
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext || function() { throw new Error('AudioContext not supported'); }
+  const AudioContextClass =
+    window.AudioContext ||
+    window.webkitAudioContext ||
+    function () {
+      throw new Error('AudioContext not supported')
+    }
   return new AudioContextClass(contextOptions)
 }
 

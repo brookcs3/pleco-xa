@@ -229,7 +229,8 @@ export class BeatTracker {
         ),
       )
       for (let j = 0; j < ftgram[i].length; j++) {
-        const mag = Math.sqrt(
+        // Calculate magnitude but don't need to store it
+        Math.sqrt(
           ftgram[i][j].real * ftgram[i][j].real +
             ftgram[i][j].imag * ftgram[i][j].imag,
         )
@@ -260,7 +261,7 @@ export class BeatTracker {
    * @param {number} hopLength - Hop length
    * @returns {Float32Array} Onset strength envelope
    */
-  onsetStrength(y, sr = 22050, hopLength = 512) {
+  onsetStrength(y, _sr = 22050, hopLength = 512) {
     const frameLength = 2048
     const frames = Math.floor((y.length - frameLength) / hopLength) + 1
     const onset = new Float32Array(frames)
@@ -270,7 +271,8 @@ export class BeatTracker {
 
     for (let i = 0; i < frames; i++) {
       const start = i * hopLength
-      const end = Math.min(start + frameLength, y.length)
+      // end variable is calculated but not used - keeping for clarity
+      const _end = Math.min(start + frameLength, y.length)
 
       // Get frame and apply window
       const frame = new Float32Array(frameLength)
@@ -362,7 +364,7 @@ export class BeatTracker {
    * Fourier tempogram computation for advanced tempo analysis
    * @private
    */
-  fourierTempogram(onset, sr, hopLength, winLength) {
+  fourierTempogram(onset, _sr, hopLength, winLength) {
     const hopFrames = Math.floor(winLength / 4)
     const frames = Math.floor((onset.length - winLength) / hopFrames) + 1
     const tempogram = []

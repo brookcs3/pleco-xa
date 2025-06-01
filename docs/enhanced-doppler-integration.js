@@ -1,13 +1,14 @@
 // src/utils/EnhancedDopplerScroll.js
 
 import { DopplerScroll } from './DopplerScroll.js'
-import { analyzeLoop } from '../../WIP/backend/loopAnalysis.js'
 import {
   loadAudioBuffer,
   computeRMS,
   computePeak,
   computeSpectrum,
 } from '../../WIP/frontend/librosaLite.js'
+
+// Note: analyzeLoop import was removed as it's not used
 
 /**
  * Enhanced DopplerScroll that integrates with your existing audio analysis
@@ -52,9 +53,9 @@ export class EnhancedDopplerScroll extends DopplerScroll {
    * Use your existing loop analysis functions
    */
   async analyzeLoopsWithLibrosa() {
-    // Create temporary WAV files for analysis
-    const wav1 = await this.bufferToWav(this.loops.loop1.buffer)
-    const wav2 = await this.bufferToWav(this.loops.loop2.buffer)
+    // Create temporary WAV files for analysis - results not needed
+    await this.bufferToWav(this.loops.loop1.buffer)
+    await this.bufferToWav(this.loops.loop2.buffer)
 
     // Use your analyzeLoop function
     const [analysis1, analysis2] = await Promise.all([
@@ -87,7 +88,7 @@ export class EnhancedDopplerScroll extends DopplerScroll {
   /**
    * Analyze audio buffer using your existing methods
    */
-  async analyzeAudioBuffer(audioBuffer, loopId) {
+  async analyzeAudioBuffer(audioBuffer, _loopId) {
     const channelData = audioBuffer.getChannelData(0)
     const sampleRate = audioBuffer.sampleRate
 
@@ -155,7 +156,7 @@ export class EnhancedDopplerScroll extends DopplerScroll {
    */
   computeMelSpectrogram(
     samples,
-    sr,
+    _sr,
     nMels = 40,
     frameSize = 2048,
     hopSize = 512,
@@ -318,7 +319,7 @@ export class EnhancedDopplerScroll extends DopplerScroll {
       }
     }
 
-    // Find zero crossings as in your implementation
+    // Find zero crossings as in your implementationin your implementation
     const startIndex = this.findZeroCrossing(channelData, 0)
     const endIndex = this.findZeroCrossing(
       channelData,

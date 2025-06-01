@@ -23,8 +23,8 @@ export function dtw(
   metric = 'euclidean',
   step_sizes_sigma = null,
   weights_add = null,
-  weights_mul = null,
-  subseq = false,
+  _weights_mul = null,
+  _subseq = false,
   backtrack = true,
   global_constraints = null,
   band_rad = 0.25,
@@ -254,7 +254,7 @@ function downsample(X, factor) {
  * @param {number} radius - Constraint radius
  * @returns {Object} DTW result
  */
-function constrainedDTW(X, Y, path, radius) {
+function constrainedDTW(X, Y, _path, _radius) {
   // Implementation would create a constrained search region
   // around the given path with specified radius
   return dtw(X, Y) // Simplified for now

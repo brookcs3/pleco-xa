@@ -447,7 +447,7 @@ export function peakPick(
  * @param {number|Array} x - Value to get precision limit for
  * @returns {number} Tiny value for the data type
  */
-export function tiny(x) {
+export function tiny(_x) {
   // JavaScript uses double precision floats
   return Number.EPSILON
 }
@@ -458,7 +458,7 @@ export function tiny(x) {
  * @param {string} [dtype] - Optional output data type (ignored in JS)
  * @returns {number|Array} Squared magnitude
  */
-export function abs2(x, dtype) {
+export function abs2(x, _dtype) {
   if (isComplex(x)) {
     return x.real * x.real + x.imag * x.imag
   } else if (isComplexArray(x)) {
@@ -640,7 +640,8 @@ function normalize1D(arr, norm, threshold, fill) {
  * @param {number} axis - Axis to apply along
  * @param {Function} fn - Function to apply
  */
-function applyAlongAxis(arr, axis, fn) {
+// This function is defined but not used anywhere in the code
+function _applyAlongAxis(arr, axis, fn) {
   if (axis === 0 && Array.isArray(arr[0])) {
     // Apply to columns
     for (let col = 0; col < arr[0].length; col++) {

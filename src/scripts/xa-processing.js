@@ -129,7 +129,7 @@ export function median(array) {
  * @param {number} bins_per_octave - Bins per octave (default 12)
  * @returns {Float32Array} Pitch-shifted audio
  */
-export function pitch_shift(y, sr, n_steps, bins_per_octave = 12) {
+export function pitch_shift(y, _sr, n_steps, bins_per_octave = 12) {
   // Import STFT functions
   const { stft, istft } = require('./librosa-fft.js')
 

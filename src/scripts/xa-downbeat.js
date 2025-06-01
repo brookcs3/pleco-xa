@@ -72,7 +72,7 @@ export function findDownbeatPhase(audioData, beats, tempo, sampleRate) {
 /**
  * Get onset strength at a specific sample position
  */
-function getOnsetStrength(audioData, samplePos, sampleRate) {
+function getOnsetStrength(audioData, samplePos, _sampleRate) {
   const windowSize = 2048
   const start = Math.max(0, samplePos - windowSize / 2)
   const end = Math.min(audioData.length, samplePos + windowSize / 2)

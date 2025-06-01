@@ -3,7 +3,8 @@
  * High-performance beat detection using onset analysis
  */
 
-import { onsetDetect, computeSTFT } from './xa-onset.js'
+import { onsetDetect } from './xa-onset.js'
+// computeSTFT is imported but not used
 
 /**
  * Port of xa.beat.beat_track()
@@ -16,7 +17,8 @@ export function beatTrack(
     hopLength = 512,
     startBpm = 0,
     tightness = 100,
-    trim = true,
+    // trim is declared but not used
+    _trim = true,
     units = 'time',
   } = {},
 ) {

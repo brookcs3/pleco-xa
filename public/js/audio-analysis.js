@@ -77,11 +77,11 @@ function setupEventListeners() {
           updateTrackInfo(file.name, 'Loading...')
 
           if (!audioContext) {
-            audioContext = new (
-              window.AudioContext ||
+            audioContext = new (window.AudioContext ||
               window.webkitAudioContext ||
-              function() { throw new Error('AudioContext not supported'); }
-            )()
+              function () {
+                throw new Error('AudioContext not supported')
+              })()
             // beatTracker = new BeatTracker(); // Commented out as BeatTracker is not available globally
           }
 
@@ -132,11 +132,12 @@ async function loadSampleFile(url, name) {
     updateTrackInfo(name, 'Loading...')
 
     if (!audioContext) {
-      const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+      const AudioContextConstructor =
+        window.AudioContext || window.webkitAudioContext
       if (!AudioContextConstructor) {
-        throw new Error('AudioContext not supported');
+        throw new Error('AudioContext not supported')
       }
-      audioContext = new AudioContextConstructor();
+      audioContext = new AudioContextConstructor()
       // beatTracker = new BeatTracker(); // Commented out as BeatTracker is not available globally
       console.log(`✅ AudioContext created`)
     }
@@ -851,11 +852,11 @@ dropZone.addEventListener('drop', async (e) => {
       updateTrackInfo(audioFile.name, 'Loading...')
 
       if (!audioContext) {
-        audioContext = new (
-          window.AudioContext ||
+        audioContext = new (window.AudioContext ||
           window.webkitAudioContext ||
-          function() { throw new Error('AudioContext not supported'); }
-        )()
+          function () {
+            throw new Error('AudioContext not supported')
+          })()
         // beatTracker = new BeatTracker(); // Commented out as BeatTracker is not available globally
       }
 
@@ -887,7 +888,6 @@ dropZone.addEventListener('drop', async (e) => {
 // Add spectral visualization (optional)
 function drawSpectrum() {
   if (!currentAudioBuffer) return
-
 
   // Removed unused variable to fix TS warning
   const sampleRate = currentAudioBuffer.sampleRate

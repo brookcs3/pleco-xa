@@ -114,25 +114,25 @@ export function exportBufferAsWav(buffer) {
  * @returns {number} - The RMS energy value.
  */
 export function computeRMS(audioBuffer) {
-  const numChannels = audioBuffer.numberOfChannels;
-  let totalSumOfSquares = 0;
-  let totalSamples = 0;
-  
+  const numChannels = audioBuffer.numberOfChannels
+  let totalSumOfSquares = 0
+  let totalSamples = 0
+
   for (let channel = 0; channel < numChannels; channel++) {
-    const data = audioBuffer.getChannelData(channel);
-    const length = data.length;
-    let sumOfSquares = 0;
-    
+    const data = audioBuffer.getChannelData(channel)
+    const length = data.length
+    let sumOfSquares = 0
+
     for (let i = 0; i < length; i++) {
-      sumOfSquares += data[i] * data[i];
+      sumOfSquares += data[i] * data[i]
     }
-    
-    totalSumOfSquares += sumOfSquares;
-    totalSamples += length;
+
+    totalSumOfSquares += sumOfSquares
+    totalSamples += length
   }
-  
-  if (totalSamples === 0) return 0;
-  return Math.sqrt(totalSumOfSquares / totalSamples);
+
+  if (totalSamples === 0) return 0
+  return Math.sqrt(totalSumOfSquares / totalSamples)
 }
 
 /**

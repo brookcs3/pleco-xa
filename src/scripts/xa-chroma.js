@@ -159,7 +159,7 @@ export function mapToCQTBins(spectrum, sr, fmin, n_bins, n_fft) {
  * @param {number} bins_per_octave - Bins per octave in CQT
  * @returns {Array} Chroma matrix (n_chroma x n_frames)
  */
-export function cqt_to_chroma(cqt, n_chroma = 12, bins_per_octave = 12) {
+export function cqt_to_chroma(cqt, n_chroma = 12, _bins_per_octave = 12) {
   const n_frames = cqt.length
   const chroma = Array(n_chroma)
     .fill(null)

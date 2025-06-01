@@ -14,7 +14,11 @@ export class PlecoXA {
     this.currentSource = null
     this.audioContext =
       options.audioContext ||
-      new (window.AudioContext || window.webkitAudioContext || function() { throw new Error('AudioContext not supported'); })()
+      new (window.AudioContext ||
+        window.webkitAudioContext ||
+        function () {
+          throw new Error('AudioContext not supported')
+        })()
     this.currentLoop = { start: 0, end: 1 }
     this.currentBPM = 0
   }
