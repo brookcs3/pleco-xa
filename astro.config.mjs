@@ -6,7 +6,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig({
-    output: 'static',    server: { host: '0.0.0.0' },
   site: 'https://pleco-xa.com',
 
   scopedStyleStrategy: 'class',
@@ -20,9 +19,10 @@ export default defineConfig({
   outDir: 'dist',
 
   build: {
-    assets: 'assets'
+  build: {
+    assets: 'assets',
+    output: 'static'
   },
-
   vite: {
     resolve: {
       alias: {
