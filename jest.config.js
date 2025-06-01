@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
   moduleNameMapper: {
@@ -10,12 +10,6 @@ export default {
   },
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/src/index.test.js',
-    // '/examples/demos/',
-    // '/examples/astro-demo/',
-    // '/examples/astro-doppler/',
-    // '/examples/astro-site/',
-    // '/examples/frontend/',
-    // '/examples/backend/'
+    '/src/index.test.js'
   ]
 };
