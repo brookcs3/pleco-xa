@@ -1,4 +1,3 @@
-
 // ===== CORE IMPORTS =====
 // Main audio player and file handling
 // import { AudioPlayer } from './analysis/AudioPlayer.js'
@@ -36,7 +35,7 @@ import {
   computeRMS,
   computePeak,
   computeZeroCrossingRate,
-} from '.audio-utils.js'
+} from './audio-utils.js'
 
 // Dynamic zero crossing for clean loops
 import { DynamicZeroCrossing } from './dynamic-zero-crossing.js'
@@ -356,7 +355,23 @@ async function detectLoop() {
       -1,
     )
 
-    /* --- subtle adjustment: nudge start to first strong onset (≤½ beat ahead) -
+    /* --- subtle adjustment: nudge start to first strong onset (≤½ beat ahead) --- */
+    try {
+      const beatDur = 60 / currentBPM // seconds per beat
+      const lookAhead = Math.min(0.5 * beatDur, 0.5) // cap at 0.5 s
+      const searchSamples = Math.floor(lookAhead * sr)
+      const hop = 512,
+        frame = 1024
+      const seg = channel.subarray(startSample, startSample + searchSamples)
+
+      let maxIdx = 0,
+        maxDiff = 0,
+        prevRms = 0
+      for (let i = 0; i + frame < seg.length; i += hop) {
+        const rms = Math.sqrt(
+          seg.subarray(i, i + frame).reduce((s, v) => s + v * v, 0) / frame,
+        )
+        const diff = Math.max(0, rms - prevRms)
         if (diff > maxDiff) {
           maxDiff = diff
           maxIdx = i
@@ -939,6 +954,18 @@ function drawSpectrum() {
 
     if (window.analysisResults.spectral.centroid.centroids[frame]) {
       const centroid = window.analysisResults.spectral.centroid.centroids[frame]
+      // Update UI with current spectral info
+    }
+  }
+}
+
+function exampleFunction() {
+  if (isPlaying && window.analysisResults) {
+    const currentTime = audioContext.currentTime - playheadStartTime;
+    const frame = Math.floor((currentTime * sampleRate) / 512);
+
+    if (window.analysisResults.spectral.centroid.centroids[frame]) {
+      const centroid = window.analysisResults.spectral.centroid.centroids[frame];
       // Update UI with current spectral info
     }
   }
