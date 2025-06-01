@@ -1,0 +1,269 @@
+---
+title: "Pleco-XA: BPM Detection"
+description: "Detect the BPM of audio files with Pleco-XA's advanced analysis."
+---
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: white;
+    padding: 2rem;
+  }
+
+  .main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .main-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 4s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .audio-controls {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .sample-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .sample-btn {
+    padding: 1rem 2rem;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .sample-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-3px);
+  }
+
+  .bpm-detector-container {
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 2rem;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+  }
+
+  .bpm-detector-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #ffd700;
+    text-align: center;
+  }
+
+  .bpm-upload input[type="file"] {
+    display: none;
+  }
+
+  .bpm-upload label {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+    color: white;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .bpm-upload label:hover {
+    background: linear-gradient(45deg, #ff5a5a, #ff7e7e);
+    transform: translateY(-3px);
+  }
+
+  .bpm-display {
+    margin-top: 2rem;
+  }
+
+  .bpm-value {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    margin-bottom: 0.5rem;
+    transition: all 0.1s ease-out;
+    transform-origin: center;
+  }
+
+  .bpm-confidence {
+    font-size: 1.2rem;
+    color: #888;
+    margin-top: 0.5rem;
+  }
+
+  #errorDisplay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ff4444;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    z-index: 1000;
+    max-width: 400px;
+    display: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  @media (max-width: 768px) {
+    .main-title {
+      font-size: 2rem;
+    }
+    
+    .bpm-value {
+      font-size: 2.5rem;
+    }
+  }
+</style>
+
+<div class="main-container">
+  <div class="header">
+    <h1 class="main-title">Pleco-XA: BPM Detection</h1>
+    <p>Analyze audio files to detect tempo and rhythm.</p>
+  </div>
+
+  <div class="audio-controls">
+    <div class="sample-buttons">
+      <button class="sample-btn" data-sample="12-8-Jazzy-Drumset-03.aif">Jazz Drums</button>
+      <button class="sample-btn" data-sample="Bassline For Doppler Song - 11.aif">Bassline</button>
+      <button class="sample-btn" data-sample="Drive Through Beat.aif">Drive Beat</button>
+      <button class="sample-btn" data-sample="ui.m4a">UI Loop Test</button>
+      <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+      <button class="sample-btn" id="uploadBtn">📁 Upload Audio</button>
+    </div>
+  </div>
+
+  <div class="bpm-detector-container">
+    <h3 class="bpm-detector-title">BPM Detector</h3>
+    <div class="bpm-upload">
+      <input type="file" id="bpmFileInput" accept="audio/*" />
+      <label for="bpmFileInput">Detect BPM</label>
+    </div>
+    
+    <div class="bpm-display" id="bpmDisplay">
+      <div class="bpm-value" id="bpmValue">-- BPM</div>
+      <div class="bpm-confidence" id="bpmConfidence">--</div>
+    </div>
+  </div>
+</div>
+
+<div id="errorDisplay"></div>
+
+<script type="module" src="/src/utils/audio-analysis.js"></script>
+
+<script>
+  // Assuming detectBPM is exposed globally or through a loaded module from audio-analysis.js
+  // Remove direct import since types are not available and module is loaded via script tag above
+  declare const detectBPM: (data: Float32Array, sampleRate: number) => { bpm: number, confidence: number };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('bpmFileInput') as HTMLInputElement;
+    const bpmValue = document.getElementById('bpmValue') as HTMLElement;
+    const bpmConfidence = document.getElementById('bpmConfidence') as HTMLElement;
+    const uploadBtn = document.getElementById('uploadBtn') as HTMLElement;
+    const audioFileInput = document.getElementById('audioFileInput') as HTMLInputElement;
+
+    if (fileInput) {
+      fileInput.addEventListener('change', async (e) => {
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
+        if (!file) return;
+
+        try {
+          bpmValue.textContent = 'Analyzing...';
+          
+          // Load and analyze
+          const audioContext = new window.AudioContext();
+          const arrayBuffer = await file.arrayBuffer();
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+          
+          const audioData = audioBuffer.getChannelData(0);
+          const result = detectBPM(audioData, audioBuffer.sampleRate);
+          
+          // Update display
+          bpmValue.textContent = `${result.bpm.toFixed(1)} BPM`;
+          if (bpmConfidence) {
+            bpmConfidence.textContent = `${(result.confidence * 100).toFixed(1)}% confidence`;
+          }
+          
+          // Dispatch event
+          const bpmEvent = new CustomEvent('bpmEvent', {
+            detail: { bpm: result.bpm, confidence: result.confidence }
+          });
+          document.dispatchEvent(bpmEvent);
+          
+        } catch (error) {
+          console.error('BPM detection failed:', error);
+          bpmValue.textContent = 'Error';
+          if (bpmConfidence) {
+            bpmConfidence.textContent = 'Analysis failed';
+          }
+          document.getElementById('errorDisplay')!.textContent = 'Error analyzing audio: ' + (error as Error).message;
+          document.getElementById('errorDisplay')!.style.display = 'block';
+          setTimeout(() => {
+            document.getElementById('errorDisplay')!.style.display = 'none';
+          }, 3000);
+        }
+      });
+    }
+
+    if (uploadBtn && audioFileInput) {
+      uploadBtn.addEventListener('click', () => {
+        audioFileInput.click();
+      });
+      audioFileInput.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+          // Use DataTransfer to set files for the hidden input
+          const dataTransfer = new DataTransfer();
+          for (let i = 0; i < target.files.length; i++) {
+            dataTransfer.items.add(target.files[i]);
+          }
+          fileInput.files = dataTransfer.files;
+          const event = new Event('change', { bubbles: true });
+          fileInput.dispatchEvent(event);
+        }
+      });
+    }
+  });
+</script>

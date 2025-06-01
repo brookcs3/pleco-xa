@@ -3,1245 +3,370 @@ title: "Pleco-XA: Audio Analysis"
 description: "Browser-native audio analysis library for intelligent loop detection and BPM tracking."
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Browser-native audio analysis library for intelligent loop detection and BPM tracking." />
-  <link rel="canonical" href="https://plecoxa.example.com/" />
-  <meta property="og:title" content="Pleco-XA Audio Analysis" />
-  <meta property="og:description" content="Analyze loops and tempo directly in the browser with advanced Web Audio techniques." />
-  <title>Pleco-XA: Audio Analysis</title>
-  <meta name="description" content="Interactive demo of Pleco-XA, a Web Audio analysis toolkit built from a Librosa port.">
-  <link rel="canonical" href="https://example.com/pleco-xa/">
-  <meta property="og:title" content="Pleco-XA Audio Analysis Demo">
-  <meta property="og:description" content="Try advanced beat tracking and loop detection in the browser.">
-  <meta property="og:type" content="website">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
-      background-attachment: fixed;
-      min-height: 100vh;
-      color: white;
-      padding: 2rem;
-    }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: white;
+    padding: 2rem;
+  }
 
-    .main-container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+  .main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 
-    .header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
 
-    .main-title {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 1rem;
-      background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4);
-      background-size: 400% 400%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: gradientShift 4s ease-in-out infinite;
-    }
+  .main-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 4s ease-in-out infinite;
+  }
 
-    @keyframes gradientShift {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
 
-    .audio-controls {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
+  .audio-controls {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
 
-    .sample-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
+  .sample-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
 
-    .sample-btn {
-      padding: 1rem 2rem;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 25px;
-      color: white;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-    }
+  .sample-btn {
+    padding: 1rem 2rem;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
 
-    .sample-btn:hover {
-      background: rgba(255,255,255,0.2);
-      transform: translateY(-3px);
-    }
+  .sample-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-3px);
+  }
 
-    .playback-controls {
-      margin: 2rem 0;
-    }
+  .playback-controls {
+    margin: 2rem 0;
+  }
 
-    .play-btn {
-      padding: 1rem 2rem;
-      background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-      border: none;
-      border-radius: 25px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      margin: 0 0.5rem;
-    }
+  .play-btn {
+    padding: 1rem 2rem;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0 0.5rem;
+  }
 
+  .analysis-display {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  .bpm-display {
+    text-align: center;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .bpm-value {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    margin-bottom: 0.5rem;
+    transition: all 0.1s ease-out;
+    transform-origin: center;
+  }
+
+  .bpm-value.beat-pulse {
+    transform: scale(1.15);
+    color: #ff6b6b;
+    text-shadow: 0 0 40px rgba(255, 107, 107, 0.8);
+  }
+
+  .bpm-label {
+    font-size: 1.2rem;
+    opacity: 0.8;
+  }
+
+  .timeline-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+  }
+
+  .timeline-circle {
+    width: 100%;
+    height: 100%;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-radius: 50%;
+    position: relative;
+    background: radial-gradient(circle, rgba(255,255,255,0.05), transparent);
+  }
+
+  .timeline-hand {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 60px;
+    background: linear-gradient(180deg, #ffd700, #ff6b6b);
+    transform-origin: bottom;
+    transform: translate(-50%, -100%) rotate(0deg);
+    transition: transform 0.1s ease;
+    border-radius: 2px;
+  }
+
+  .timeline-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: #ffd700;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+  }
+
+  .timeline-marker {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    width: 3px;
+    height: 15px;
+    background: #4ecdc4;
+    transform: translateX(-50%);
+    border-radius: 2px;
+  }
+
+  .waveform-container {
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 2rem;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .waveform-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #ffd700;
+    text-align: center;
+  }
+
+  .waveform-canvas {
+    width: 100%;
+    height: 200px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .loop-controls {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .loop-btn {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+  }
+
+  .loop-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+  }
+
+  .analysis-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .analysis-card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 15px;
+    padding: 1.5rem;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #ffd700;
+  }
+
+  .card-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-description {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    line-height: 1.4;
+  }
+
+  #errorDisplay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ff4444;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    z-index: 1000;
+    max-width: 400px;
+    display: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  @media (max-width: 768px) {
     .analysis-display {
-      display: grid;
-      grid-template-columns: 1fr 2fr 1fr;
-      gap: 2rem;
-      margin-top: 2rem;
-    }
-
-    .bpm-display {
-      text-align: center;
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
-      padding: 1.5rem;
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255,255,255,0.1);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      grid-template-columns: 1fr;
       gap: 1rem;
     }
-
+    
+    .main-title {
+      font-size: 2rem;
+    }
+    
     .bpm-value {
-      font-size: 3rem;
-      font-weight: 900;
-      color: #ffd700;
-      text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-      margin-bottom: 0.5rem;
-      transition: all 0.1s ease-out;
-      transform-origin: center;
+      font-size: 2.5rem;
     }
+  }
+</style>
 
-    .bpm-value.beat-pulse {
-      transform: scale(1.15);
-      color: #ff6b6b;
-      text-shadow: 0 0 40px rgba(255, 107, 107, 0.8);
-    }
+<div class="main-container">
+  <div class="header">
+    <h1 class="main-title">Pleco-XA</h1>
+    <p>Professional Audio Analysis Engine</p>
+  </div>
 
-    .bpm-label {
-      font-size: 1.2rem;
-      opacity: 0.8;
-    }
-
-    .timeline-container {
-      position: relative;
-      width: 150px;
-      height: 150px;
-    }
-
-    .timeline-circle {
-      width: 100%;
-      height: 100%;
-      border: 3px solid rgba(255,255,255,0.2);
-      border-radius: 50%;
-      position: relative;
-      background: radial-gradient(circle, rgba(255,255,255,0.05), transparent);
-    }
-
-    .timeline-hand {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 2px;
-      height: 60px;
-      background: linear-gradient(180deg, #ffd700, #ff6b6b);
-      transform-origin: bottom;
-      transform: translate(-50%, -100%) rotate(0deg);
-      transition: transform 0.1s ease;
-      border-radius: 2px;
-    }
-
-    .timeline-center {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 12px;
-      height: 12px;
-      background: #ffd700;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    }
-
-    .timeline-marker {
-      position: absolute;
-      top: 5px;
-      left: 50%;
-      width: 3px;
-      height: 15px;
-      background: #4ecdc4;
-      transform: translateX(-50%);
-      border-radius: 2px;
-    }
-
-    .waveform-container {
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
-      padding: 2rem;
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .waveform-title {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-      color: #ffd700;
-      text-align: center;
-    }
-
-    .waveform-canvas {
-      width: 100%;
-      height: 200px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .loop-controls {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .loop-btn {
-      padding: 0.8rem 1.5rem;
-      background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-      border: none;
-      border-radius: 25px;
-      color: white;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
-    }
-
-    .loop-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.3);
-    }
-
-    .analysis-cards {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .analysis-card {
-      background: rgba(255,255,255,0.05);
-      border-radius: 15px;
-      padding: 1.5rem;
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #ffd700;
-    }
-
-    .card-value {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: white;
-      margin-bottom: 0.5rem;
-    }
-
-    .card-description {
-      font-size: 0.8rem;
-      opacity: 0.7;
-      line-height: 1.4;
-    }
-
-    #errorDisplay {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #ff4444;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      z-index: 1000;
-      max-width: 400px;
-      display: none;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-
-    @media (max-width: 768px) {
-      .analysis-display {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .main-title {
-        font-size: 2rem;
-      }
-      
-      .bpm-value {
-        font-size: 2.5rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="main-container">
-    <div class="header">
-      <h1 class="main-title">Pleco-XA</h1>
-      <p>Professional Audio Analysis Engine</p>
+  <div class="audio-controls">
+    <div class="sample-buttons">
+      <button class="sample-btn" data-sample="12-8-Jazzy-Drumset-03.aif">Jazz Drums</button>
+      <button class="sample-btn" data-sample="Bassline For Doppler Song - 11.aif">Bassline</button>
+      <button class="sample-btn" data-sample="Drive Through Beat.aif">Drive Beat</button>
+      <button class="sample-btn" data-sample="ui.m4a">UI Loop Test</button>
+      <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+      <button class="sample-btn" id="uploadBtn">📁 Upload Audio</button>
     </div>
 
-    <div class="audio-controls">
-      <div class="sample-buttons">
-        <button class="sample-btn" data-sample="12-8-Jazzy-Drumset-03.aif">Jazz Drums</button>
-        <button class="sample-btn" data-sample="Bassline For Doppler Song - 11.aif">Bassline</button>
-        <button class="sample-btn" data-sample="Drive Through Beat.aif">Drive Beat</button>
-        <button class="sample-btn" data-sample="ui.m4a">UI Loop Test</button>
-        <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
-        <button class="sample-btn" id="uploadBtn">📁 Upload Audio</button>
-      </div>
-
-      <div class="playback-controls">
-        <button class="play-btn" id="playBtn">▶️ Play</button>
-        <button class="play-btn" id="stopBtn">⏹️ Stop</button>
-      </div>
-    </div>
-
-    <div class="analysis-display">
-      <div class="bpm-display">
-        <div class="bpm-value" id="bpmValue">--</div>
-        <div class="bpm-label">BPM</div>
-        
-        <div class="timeline-container">
-          <div class="timeline-circle">
-            <div class="timeline-hand" id="timelineHand"></div>
-            <div class="timeline-center"></div>
-            <div class="timeline-marker"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="waveform-container">
-        <h3 class="waveform-title">Waveform & Loop Detection</h3>
-        <canvas class="waveform-canvas" id="waveformCanvas" width="800" height="200"></canvas>
-        <div class="loop-controls">
-          <button class="loop-btn" id="detectLoopBtn">🔍 Detect Loop</button>
-          <button class="loop-btn" id="halfLoopBtn">½ Half Loop</button>
-          <button class="loop-btn" id="doubleLoopBtn">2× Double Loop</button>
-          <button class="loop-btn" id="moveForwardBtn">→ Move Forward</button>
-          <button class="loop-btn" id="reverseLoopBtn">🔄 Reverse Loop</button>
-          <button class="loop-btn" id="resetPlayheadBtn">📏 Reset Playhead</button>
-          <button class="loop-btn" id="resetLoopBtn">♻️ Reset Loop</button>
-        </div>
-      </div>
-
-      <div class="analysis-cards">
-        <div class="analysis-card">
-          <h4 class="card-title">Track Info</h4>
-          <div class="card-value" id="trackName">No track loaded</div>
-          <p class="card-description" id="trackStatus">Load a sample to begin</p>
-        </div>
-
-        <div class="analysis-card">
-          <h4 class="card-title">Loop Status</h4>
-          <div class="card-value" id="loopInfo">Full Track</div>
-          <p class="card-description">Current loop boundaries</p>
-        </div>
-
-        <div class="analysis-card">
-          <h4 class="card-title">Audio Format</h4>
-          <div class="card-value" id="audioFormat">--</div>
-          <p class="card-description">Decoded audio information</p>
-        </div>
-      </div>
+    <div class="playback-controls">
+      <button class="play-btn" id="playBtn">▶️ Play</button>
+      <button class="play-btn" id="stopBtn">⏹️ Stop</button>
     </div>
   </div>
 
+  <div class="analysis-display">
+    <div class="bpm-display">
+      <div class="bpm-value" id="bpmValue">--</div>
+      <div class="bpm-label">BPM</div>
+      
+      <div class="timeline-container">
+        <div class="timeline-circle">
+          <div class="timeline-hand" id="timelineHand"></div>
+          <div class="timeline-center"></div>
+          <div class="timeline-marker"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="waveform-container">
+      <h3 class="waveform-title">Waveform & Loop Detection</h3>
+      <canvas class="waveform-canvas" id="waveformCanvas" width="800" height="200"></canvas>
+      <div class="loop-controls">
+        <button class="loop-btn" id="detectLoopBtn">🔍 Detect Loop</button>
+        <button class="loop-btn" id="halfLoopBtn">½ Half Loop</button>
+        <button class="loop-btn" id="doubleLoopBtn">2× Double Loop</button>
+        <button class="loop-btn" id="moveForwardBtn">→ Move Forward</button>
+        <button class="loop-btn" id="reverseLoopBtn">🔄 Reverse Loop</button>
+        <button class="loop-btn" id="resetPlayheadBtn">📏 Reset Playhead</button>
+        <button class="loop-btn" id="resetLoopBtn">♻️ Reset Loop</button>
+      </div>
+    </div>
+
+    <div class="analysis-cards">
+      <div class="analysis-card">
+        <h4 class="card-title">Track Info</h4>
+        <div class="card-value" id="trackName">No track loaded</div>
+        <p class="card-description" id="trackStatus">Load a sample to begin</p>
+      </div>
+
+      <div class="analysis-card">
+        <h4 class="card-title">Loop Status</h4>
+        <div class="card-value" id="loopInfo">Full Track</div>
+        <p class="card-description">Current loop boundaries</p>
+      </div>
+
+      <div class="analysis-card">
+        <h4 class="card-title">Audio Format</h4>
+        <div class="card-value" id="audioFormat">--</div>
+        <p class="card-description">Decoded audio information</p>
+      </div>
+    </div>
+  </div>
+</div>
+
   <div id="errorDisplay"></div>
 
-  <script type="module">
-    // ===== CORE IMPORTS =====
-    // Main audio player and file handling
-    import { AudioPlayer } from '/src/core/audio/AudioPlayer.js';
-    import { loadFile, example, exampleBuffer } from '/src/core/xa-file.js';
-    
-    // Advanced BPM Detection
-    import { detectBPM, fastBPMDetect } from '/src/core/analysis/BPMDetector.js';
-    
-    // Advanced beat tracking with phase detection
-    import { BeatTracker } from '/src/core/xa-beat-tracker.js';
-    
-    // Onset detection for transients
-    import { onsetDetect, computeSpectralFlux } from '/src/core/xa-onset.js';
-    
-    // Spectral features with RMS energy
-    import { spectralCentroid, spectralRolloff, spectralBandwidth, zeroCrossingRate, rms } from '/src/core/xa-spectral.js';
-    
-    // Chroma features for harmonic analysis
-    import { chroma_stft, enhance_chroma } from '/src/core/xa-chroma.js';
-    
-    // Loop detection algorithms
-    import { fastLoopAnalysis } from '/src/core/xa-loop.js';
-    import { findPreciseLoop } from '/src/core/xa-precise-loop.js';
-    import { findMusicalLoop, findDownbeatPhase } from '/src/core/xa-downbeat.js';
-    
-    // Audio utilities
-    import { computeRMS, computePeak, computeZeroCrossingRate } from '/src/utils/audio-utils.js';
-    
-    // Dynamic zero crossing for clean loops
-    import { DynamicZeroCrossing } from '/src/core/dynamic-zero-crossing.js';
-    
-    // ===== GLOBAL STATE =====
-    let audioContext;
-    let currentAudioBuffer = null;
-    let currentSource = null;
-    let isPlaying = false;
-    let currentBPM = 120;
-    let currentLoop = { start: 0, end: 1 };
-    let playheadStartTime = 0;
-    let playheadAnimationId = null;
-    let beatTracker = null;
-
-    // ===== ERROR HANDLING =====
-    window.addEventListener('error', (e) => {
-      console.error('Global error:', e.error);
-      showError(`Error: ${e.error.message}`);
-    });
-
-    window.addEventListener('unhandledrejection', (e) => {
-      console.error('Unhandled promise rejection:', e.reason);
-      showError(`Promise error: ${e.reason}`);
-    });
-
-    function showError(message) {
-      const errorDiv = document.getElementById('errorDisplay');
-      errorDiv.textContent = message;
-      errorDiv.style.display = 'block';
-      
-      setTimeout(() => {
-        errorDiv.style.display = 'none';
-      }, 5000);
-    }
-
-    // ===== INITIALIZATION =====
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('🎵 Pleco-XA Audio Analysis Engine loading...');
-      try {
-        setupEventListeners();
-        console.log('✅ Event listeners initialized');
-      } catch (error) {
-        console.error('❌ Failed to initialize:', error);
-        showError(`Initialization error: ${error.message}`);
-      }
-    });
-
-    function setupEventListeners() {
-      // Sample buttons
-      document.querySelectorAll('.sample-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (btn.dataset.sample) {
-            loadSampleFile(`/src/audio/${btn.dataset.sample}`, btn.textContent);
-          }
-        });
-      });
-
-      // Upload button
-      document.getElementById('uploadBtn').addEventListener('click', () => {
-        document.getElementById('audioFileInput').click();
-      });
-
-      // File input
-      document.getElementById('audioFileInput').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          try {
-            console.log(`📁 Loading uploaded file: ${file.name}`);
-            updateTrackInfo(file.name, 'Loading...');
-            
-            if (!audioContext) {
-              audioContext = new (window.AudioContext || window.webkitAudioContext)();
-              beatTracker = new BeatTracker();
-            }
-            
-            currentAudioBuffer = await loadFile(file, audioContext);
-            
-            updateTrackInfo(file.name, `${currentAudioBuffer.duration.toFixed(1)}s`);
-            document.getElementById('audioFormat').textContent = 
-              `${currentAudioBuffer.sampleRate}Hz / ${currentAudioBuffer.numberOfChannels}ch`;
-            
-            await analyzeAudio();
-            drawWaveform();
-            
-            console.log('✅ Uploaded file loaded successfully');
-          } catch (error) {
-            console.error('❌ Error loading uploaded file:', error);
-            showError(`Failed to load ${file.name}: ${error.message}`);
-          }
-        }
-      });
-
-      // Playback controls
-      document.getElementById('playBtn').addEventListener('click', playAudio);
-      document.getElementById('stopBtn').addEventListener('click', stopAudio);
-
-      // Loop controls
-      document.getElementById('detectLoopBtn').addEventListener('click', detectLoop);
-      document.getElementById('halfLoopBtn').addEventListener('click', halfLoop);
-      document.getElementById('doubleLoopBtn').addEventListener('click', doubleLoop);
-      document.getElementById('moveForwardBtn').addEventListener('click', moveForward);
-      document.getElementById('reverseLoopBtn').addEventListener('click', reverseLoopSection);
-      document.getElementById('resetPlayheadBtn').addEventListener('click', resetPlayhead);
-      document.getElementById('resetLoopBtn').addEventListener('click', resetLoop);
-    }
-
-    // ===== AUDIO LOADING =====
-    async function loadSampleFile(url, name) {
-      try {
-        console.log(`📥 Loading: ${url}`);
-        updateTrackInfo(name, 'Loading...');
-        
-        if (!audioContext) {
-          audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          beatTracker = new BeatTracker();
-          console.log(`✅ AudioContext created`);
-        }
-        
-        // Load audio file directly
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        // ---- DEBUG: print first 10 samples to verify audio ----
-        try {
-          console.log("First 10 samples:",
-            currentAudioBuffer.getChannelData(0).slice(0, 10));
-        } catch (e) {
-          console.warn("Could not log samples:", e);
-        }
-        // -------------------------------------------------------
-
-        // Reset loop to full track for new audio
-        currentLoop = { start: 0, end: 1 };
-        updateLoopInfo();
-        
-        console.log(`✅ Audio loaded: ${currentAudioBuffer.duration.toFixed(2)}s @ ${currentAudioBuffer.sampleRate}Hz`);
-        
-        updateTrackInfo(name, `${currentAudioBuffer.duration.toFixed(1)}s`);
-        document.getElementById('audioFormat').textContent = `${currentAudioBuffer.sampleRate}Hz`;
-        
-        // Run analysis
-        await analyzeAudio();
-        
-        // Draw waveform
-        drawWaveform();
-        
-        console.log('✅ Audio analysis complete');
-      } catch (error) {
-        console.error('❌ Error loading audio:', error);
-        showError(`Load error: ${error.message}`);
-        updateTrackInfo('Error', error.message);
-      }
-    }
-
-    // ===== AUDIO ANALYSIS =====
-    async function analyzeAudio() {
-      try {
-        console.log('🔍 Starting advanced BPM detection...');
-        
-        // Use fast BPM detection for real-time performance
-        console.log('🥁 Detecting BPM...');
-        let bpm = fastBPMDetect(currentAudioBuffer, {
-          minBPM: 60,
-          maxBPM: 180
-        });
-
-        // Simple sanity correction:
-        // - very fast values (>160) are likely *double*; halve them
-        // - very slow values (<55) are likely *half*; double them
-        if (bpm > 160) {
-          console.log(`⚖️ BPM ${bpm.toFixed(1)} looks like double‑time → halving`);
-          bpm = bpm / 2;
-        } else if (bpm < 55) {
-          console.log(`⚖️ BPM ${bpm.toFixed(1)} looks like half‑time → doubling`);
-          bpm = bpm * 2;
-        }
-        
-        currentBPM = bpm;
-        document.getElementById('bpmValue').textContent = currentBPM.toFixed(1);
-        console.log(`✅ BPM detected: ${currentBPM}`);
-        
-        // Store analysis results
-        window.analysisResults = {
-          tempo: { bpm: currentBPM, confidence: 0.8 },
-          beats: { beat_times: [] },
-          spectral: { 
-            centroid: { centroid: 0, centroids: [] },
-            rolloff: { rolloff: 0, rolloffs: [] }
-          }
-        };
-        
-      } catch (error) {
-        console.error('❌ BPM detection error:', error);
-        // Fallback to default BPM
-        currentBPM = 120;
-        document.getElementById('bpmValue').textContent = '120';
-        console.log('⚠️ Using fallback BPM: 120');
-      }
-    }
-
-    // --- Helper: find nearest zero‑crossing (sign change) ---
-    function findNearestZeroCrossing(channelData, startSample, direction = 1, maxSearch = 2048) {
-      const len = channelData.length;
-      let i = startSample;
-      let steps = 0;
-      while (steps < maxSearch && i > 0 && i < len - 1) {
-        if ((channelData[i] >= 0) !== (channelData[i + 1] >= 0)) {
-          return i;
-        }
-        i += direction;
-        steps++;
-      }
-      // Fallback: original position if none found
-      return startSample;
-    }
-
-    // ===== LOOP DETECTION =====
-    async function detectLoop() {
-      try {
-        console.log('🔍 Running fastLoopAnalysis ...');
-
-        // Use the more sophisticated Librosa‑port algorithm.
-        const result = await fastLoopAnalysis(currentAudioBuffer, { bpmHint: currentBPM });
-
-        const channel = currentAudioBuffer.getChannelData(0);
-        const sr = currentAudioBuffer.sampleRate;
-
-        // Extract boundaries returned by the helper (robust to different key names)
-        let startSec = result?.loopStart ?? result?.start ?? result?.startTime ?? 0;
-        let endSec   = result?.loopEnd   ?? result?.end   ?? result?.endTime   ?? currentAudioBuffer.duration;
-
-        // Sanity‑check & fallback
-        if (endSec <= startSec || !Number.isFinite(startSec) || !Number.isFinite(endSec)) {
-          console.warn('fastLoopAnalysis gave unusable bounds; reverting to 4‑bar guess');
-          const barDur = 60 / currentBPM * 4;
-          startSec = 0;
-          endSec = Math.min(barDur * 4, currentAudioBuffer.duration);
-        }
-
-        // Snap both edges to nearest zero‑crossings for click‑free looping
-        let startSample = findNearestZeroCrossing(channel, Math.floor(startSec * sr),  1);
-        const endSample   = findNearestZeroCrossing(channel, Math.floor(endSec   * sr), -1);
-
-        /* --- subtle adjustment: nudge start to first strong onset (≤½ beat ahead) --- */
-        try {
-          const beatDur = 60 / currentBPM;           // seconds per beat
-          const lookAhead = Math.min(0.5 * beatDur, 0.5); // cap at 0.5 s
-          const searchSamples = Math.floor(lookAhead * sr);
-          const hop = 512, frame = 1024;
-          const seg = channel.subarray(startSample, startSample + searchSamples);
-
-          let maxIdx = 0, maxDiff = 0, prevRms = 0;
-          for (let i = 0; i + frame < seg.length; i += hop) {
-            const rms = Math.sqrt(seg.subarray(i, i + frame)
-                                  .reduce((s, v) => s + v * v, 0) / frame);
-            const diff = Math.max(0, rms - prevRms);
-            if (diff > maxDiff) { maxDiff = diff; maxIdx = i; }
-            prevRms = rms;
-          }
-          if (maxIdx > hop) { // ignore first tiny blips
-            const onsetSample = startSample + maxIdx;
-            startSample = findNearestZeroCrossing(channel, onsetSample, 1, 2048);
-            console.log(`🎯 Start nudged to onset @ ${(startSample / sr).toFixed(3)}s`);
-          }
-        } catch (e) {
-          console.warn('onset‑alignment tweak skipped:', e);
-        }
-
-        currentLoop = {
-          start: startSample / channel.length,
-          end:   endSample   / channel.length
-        };
-
-        updateLoopInfo();
-        drawWaveform();
-
-        console.log(
-          `✅ Loop set to ${ (startSample/sr).toFixed(3) }s – ${(endSample/sr).toFixed(3)}s`,
-          result?.confidence !== undefined ? `(confidence ${result.confidence.toFixed(3)})` : ''
-        );
-      } catch (error) {
-        console.error('❌ Loop detection error:', error);
-        showError(`Loop detection failed: ${error.message}`);
-      }
-    }
-
-    // ===== WAVEFORM VISUALIZATION =====
-    function drawWaveform() {
-      const canvas = document.getElementById('waveformCanvas');
-      const ctx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-      
-      // Clear canvas
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(0, 0, width, height);
-      
-      if (!currentAudioBuffer) return;
-      
-      const audioData = currentAudioBuffer.getChannelData(0);
-      const samplesPerPixel = Math.ceil(audioData.length / width);
-      
-      // Draw waveform
-      ctx.strokeStyle = '#00ff88';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      
-      for (let x = 0; x < width; x++) {
-        let max = -1;
-        let min = 1;
-        
-        // Sample audio data for this pixel
-        const startSample = x * samplesPerPixel;
-        const endSample = Math.min(startSample + samplesPerPixel, audioData.length);
-        
-        for (let i = startSample; i < endSample; i++) {
-          const sample = audioData[i];
-          if (sample > max) max = sample;
-          if (sample < min) min = sample;
-        }
-        
-        // Convert to screen coordinates
-        const yMax = (1 - max) * height / 2;
-        const yMin = (1 - min) * height / 2;
-        
-        if (x === 0) {
-          ctx.moveTo(x, height / 2);
-        }
-        
-        // Draw vertical line from min to max
-        ctx.moveTo(x, yMax);
-        ctx.lineTo(x, yMin);
-      }
-      ctx.stroke();
-      
-      // Draw loop region
-      const startX = currentLoop.start * width;
-      const endX = currentLoop.end * width;
-      
-      ctx.fillStyle = 'rgba(255, 215, 0, 0.15)';
-      ctx.fillRect(startX, 0, endX - startX, height);
-      
-      // Loop markers
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(startX, 0);
-      ctx.lineTo(startX, height);
-      ctx.moveTo(endX, 0);
-      ctx.lineTo(endX, height);
-      ctx.stroke();
-      
-      // Draw playhead if playing
-      if (isPlaying) {
-        drawPlayhead(ctx, width, height);
-      }
-    }
-
-    function drawPlayhead(ctx, width, height) {
-      if (!currentAudioBuffer || !isPlaying) return;
-      
-      const currentTime = audioContext.currentTime;
-      const elapsed = currentTime - playheadStartTime;
-      
-      const loopStartSec = currentLoop.start * currentAudioBuffer.duration;
-      const loopEndSec = currentLoop.end * currentAudioBuffer.duration;
-      const loopDuration = loopEndSec - loopStartSec;
-      
-      const positionInLoop = elapsed % loopDuration;
-      const currentPosition = loopStartSec + positionInLoop;
-      
-      const normalizedPosition = currentPosition / currentAudioBuffer.duration;
-      const playheadX = normalizedPosition * width;
-      
-      // Draw playhead
-      ctx.strokeStyle = '#ff4444';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(playheadX, 0);
-      ctx.lineTo(playheadX, height);
-      ctx.stroke();
-      
-      // Playhead marker
-      ctx.fillStyle = '#ff4444';
-      ctx.beginPath();
-      ctx.moveTo(playheadX, 0);
-      ctx.lineTo(playheadX - 5, 10);
-      ctx.lineTo(playheadX + 5, 10);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    // ===== PLAYBACK CONTROLS =====
-    async function playAudio() {
-      console.log('🎮 Play button clicked');
-      
-      if (!currentAudioBuffer) {
-        console.log('❌ No audio buffer loaded');
-        alert('Please load an audio file first!');
-        return;
-      }
-      
-      if (isPlaying) {
-        console.log('🎮 Already playing, stopping first');
-        stopAudio();
-        return;
-      }
-      
-      try {
-        console.log('🎮 Starting playback...');
-        
-        if (audioContext.state === 'suspended') {
-          console.log('🎮 Resuming suspended audio context');
-          await audioContext.resume();
-        }
-        // ===== DEBUG: confirm context state =====
-        console.log("Context state after resume:", audioContext.state);  // expect "running"
-        // ========================================
-        
-        currentSource = audioContext.createBufferSource();
-        currentSource.buffer = currentAudioBuffer;
-        
-        // Add gain node for volume control and debugging
-        const gainNode = audioContext.createGain();
-        gainNode.gain.value = 0.5; // 50% volume
-        
-        currentSource.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        // ===== DEBUG: peak meter =====
-        const analyser = audioContext.createAnalyser();
-        gainNode.connect(analyser);
-        const debugInterval = setInterval(() => {
-          const data = new Uint8Array(analyser.fftSize);
-          analyser.getByteTimeDomainData(data);
-          const peak = Math.max(...data);        // 128 = silence, >128 => signal
-          console.log("peak", peak);
-        }, 250);
-        // ========================================
-        currentSource.loop = true;
-        
-        console.log(`🎮 Audio context state: ${audioContext.state}`);
-        console.log(`🎮 Audio context destination: ${audioContext.destination.channelCount} channels`);
-
-        // If loop bounds are invalid, default to full track
-        if (currentLoop.end <= currentLoop.start) {
-          console.warn("⚠️ Invalid loop bounds detected, resetting to full track");
-          currentLoop = { start: 0, end: 1 };
-        }
-        
-        const startTime = currentLoop.start * currentAudioBuffer.duration;
-        const endTime = currentLoop.end * currentAudioBuffer.duration;
-        
-        console.log(`🎮 Loop: ${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s`);
-        
-        currentSource.loopStart = startTime;
-        currentSource.loopEnd = endTime;
-        currentSource.start(0, startTime);
-        
-        console.log('🎮 Audio source started');
-        
-        isPlaying = true;
-        playheadStartTime = audioContext.currentTime;
-        startPlayheadAnimation();
-        startTimelineAnimation();
-        startBeatVisualization();
-        document.getElementById('playBtn').textContent = '⏸️ Pause';
-        
-      } catch (error) {
-        console.error('Playback error:', error);
-        showError(`Playback error: ${error.message}`);
-      }
-    }
-
-    function stopAudio() {
-      if (currentSource) {
-        try {
-          currentSource.stop();
-        } catch (error) {
-          // Source may already be stopped
-        }
-        currentSource = null;
-      }
-      isPlaying = false;
-      // ===== DEBUG: clear peak meter =====
-      if (typeof debugInterval !== "undefined") {
-        clearInterval(debugInterval);
-      }
-      // ===================================
-      stopPlayheadAnimation();
-      stopBeatVisualization();
-      document.getElementById('playBtn').textContent = '▶️ Play';
-    }
-
-    // ===== LOOP MANIPULATION =====
-    function halfLoop() {
-      const duration = currentLoop.end - currentLoop.start;
-      const newDuration = duration / 2;
-      
-      if (currentAudioBuffer && newDuration * currentAudioBuffer.duration < 0.05) {
-        console.log('Cannot halve - loop too small');
-        return;
-      }
-      
-      currentLoop.end = currentLoop.start + newDuration;
-      updateLoopInfo();
-      drawWaveform();
-      
-      if (isPlaying) {
-        stopAudio();
-        setTimeout(playAudio, 50);
-      }
-    }
-
-    function doubleLoop() {
-      const duration = currentLoop.end - currentLoop.start;
-      const newEnd = currentLoop.start + duration * 2;
-      
-      if (newEnd > 1) {
-        console.log('Cannot double - exceeds track length');
-        return;
-      }
-      
-      currentLoop.end = newEnd;
-      updateLoopInfo();
-      drawWaveform();
-      
-      if (isPlaying) {
-        stopAudio();
-        setTimeout(playAudio, 50);
-      }
-    }
-
-    function moveForward() {
-      const duration = currentLoop.end - currentLoop.start;
-      
-      if (currentLoop.end + duration > 1) {
-        console.log('Cannot move forward - not enough space');
-        return;
-      }
-      
-      currentLoop.start += duration;
-      currentLoop.end += duration;
-      
-      updateLoopInfo();
-      drawWaveform();
-      
-      if (isPlaying) {
-        stopAudio();
-        setTimeout(playAudio, 50);
-      }
-    }
-
-    function resetLoop() {
-      currentLoop = { start: 0, end: 1 };
-      updateLoopInfo();
-      drawWaveform();
-      
-      if (isPlaying) {
-        stopAudio();
-        setTimeout(playAudio, 50);
-      }
-    }
-
-    function reverseLoopSection() {
-      if (!currentAudioBuffer) {
-        alert('No audio loaded!');
-        return;
-      }
-      
-      const reversedBuffer = reverseAudioLoop(currentAudioBuffer, currentLoop);
-      currentAudioBuffer = reversedBuffer;
-      
-      drawWaveform();
-      
-      if (isPlaying) {
-        stopAudio();
-        setTimeout(playAudio, 50);
-      }
-    }
-
-    function reverseAudioLoop(audioBuffer, loopBounds) {
-      const newBuffer = audioContext.createBuffer(
-        audioBuffer.numberOfChannels,
-        audioBuffer.length,
-        audioBuffer.sampleRate
-     );
-     
-     for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-       const originalData = audioBuffer.getChannelData(channel);
-       const newData = newBuffer.getChannelData(channel);
-       
-       // Copy original data
-       newData.set(originalData);
-       
-       // Calculate loop boundaries in samples
-       const loopStartSample = Math.floor(loopBounds.start * audioBuffer.length);
-       const loopEndSample = Math.floor(loopBounds.end * audioBuffer.length);
-       const loopLength = loopEndSample - loopStartSample;
-       
-       // Reverse just the loop section
-       for (let i = 0; i < loopLength; i++) {
-         const originalIndex = loopStartSample + i;
-         const reversedIndex = loopStartSample + (loopLength - 1 - i);
-         newData[originalIndex] = originalData[reversedIndex];
-       }
-     }
-     
-     return newBuffer;
-   }
-
-   function resetPlayhead() {
-     currentLoop = { start: 0, end: 1 };
-     updateLoopInfo();
-     drawWaveform();
-     
-     if (isPlaying) {
-       stopAudio();
-       setTimeout(playAudio, 50);
-     }
-   }
-
-   // ===== UI UPDATES =====
-   function updateTrackInfo(name, status) {
-     document.getElementById('trackName').textContent = name;
-     document.getElementById('trackStatus').textContent = status;
-   }
-
-   function updateLoopInfo() {
-     if (!currentAudioBuffer) return;
-     
-     const startTime = currentLoop.start * currentAudioBuffer.duration;
-     const endTime = currentLoop.end * currentAudioBuffer.duration;
-     const duration = endTime - startTime;
-     
-     let loopText;
-     if (currentLoop.start === 0 && currentLoop.end === 1) {
-       loopText = 'Full Track';
-     } else {
-       // Calculate musical division if we have BPM
-       if (currentBPM > 0) {
-         const beatDuration = 60 / currentBPM;
-         const barDuration = beatDuration * 4;
-         const bars = duration / barDuration;
-         
-         if (Math.abs(bars - Math.round(bars)) < 0.1) {
-           loopText = `${Math.round(bars)} bar${Math.round(bars) !== 1 ? 's' : ''}`;
-         } else {
-           loopText = `${duration.toFixed(2)}s`;
-         }
-       } else {
-         loopText = `${duration.toFixed(2)}s`;
-       }
-       
-       loopText += ` (${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s)`;
-     }
-     
-     document.getElementById('loopInfo').textContent = loopText;
-   }
-
-   // ===== ANIMATION =====
-   function startPlayheadAnimation() {
-     function animate() {
-       if (isPlaying && currentAudioBuffer) {
-         drawWaveform();
-         playheadAnimationId = requestAnimationFrame(animate);
-       }
-     }
-     playheadAnimationId = requestAnimationFrame(animate);
-   }
-
-   function stopPlayheadAnimation() {
-     if (playheadAnimationId) {
-       cancelAnimationFrame(playheadAnimationId);
-       playheadAnimationId = null;
-     }
-     if (currentAudioBuffer) {
-       drawWaveform();
-     }
-   }
-
-   function startTimelineAnimation() {
-     if (!currentAudioBuffer) return;
-     
-     const loopDuration = (currentLoop.end - currentLoop.start) * currentAudioBuffer.duration;
-     const timelineHand = document.getElementById('timelineHand');
-     
-     // Reset position
-     timelineHand.style.transform = 'translate(-50%, -100%) rotate(0deg)';
-     
-     const startTime = Date.now();
-     
-     function animateTimeline() {
-       if (!isPlaying) return;
-       
-       const elapsed = (Date.now() - startTime) / 1000;
-       const progress = (elapsed % loopDuration) / loopDuration;
-       const rotation = progress * 360;
-       
-       timelineHand.style.transform = `translate(-50%, -100%) rotate(${rotation}deg)`;
-       
-       requestAnimationFrame(animateTimeline);
-     }
-     
-     requestAnimationFrame(animateTimeline);
-   }
-
-    // ===== BEAT VISUALIZATION =====
-    function startBeatVisualization() {
-      if (!currentAudioBuffer || currentBPM <= 0) return;
-      const beatDur = 60 / currentBPM;          // seconds
-      const bpmEl = document.getElementById('bpmValue');
-      let lastBeatCtxTime = audioContext.currentTime;
-
-      function animateBeat() {
-        if (!isPlaying) return;
-        const ctxTime = audioContext.currentTime;
-        const beatsElapsed = Math.floor((ctxTime - lastBeatCtxTime) / beatDur);
-        if (beatsElapsed >= 1) {
-          lastBeatCtxTime += beatsElapsed * beatDur;
-          // Trigger pulse
-          bpmEl.classList.add('beat-pulse');
-          setTimeout(() => bpmEl.classList.remove('beat-pulse'), 100);
-        }
-        requestAnimationFrame(animateBeat);
-      }
-      requestAnimationFrame(animateBeat);
-    }
-
-    function stopBeatVisualization() {
-      // Remove any active pulse
-      const bpmValueElement = document.getElementById('bpmValue');
-      bpmValueElement.classList.remove('beat-pulse');
-    }
-
-   // ===== KEYBOARD SHORTCUTS =====
-   document.addEventListener('keydown', (e) => {
-     if (e.code === 'Space') {
-       e.preventDefault();
-       if (isPlaying) {
-         stopAudio();
-       } else {
-         playAudio();
-       }
-     } else if (e.code === 'KeyL') {
-       detectLoop();
-     } else if (e.code === 'KeyH') {
-       halfLoop();
-     } else if (e.code === 'KeyD') {
-       doubleLoop();
-     } else if (e.code === 'KeyR') {
-       resetLoop();
-     } else if (e.code === 'ArrowRight') {
-       moveForward();
-     }
-   });
-
-   // ===== DRAG AND DROP =====
-   const dropZone = document.body;
-   
-   dropZone.addEventListener('dragover', (e) => {
-     e.preventDefault();
-     e.stopPropagation();
-     dropZone.style.opacity = '0.8';
-   });
-   
-   dropZone.addEventListener('dragleave', (e) => {
-     e.preventDefault();
-     e.stopPropagation();
-     dropZone.style.opacity = '1';
-   });
-   
-   dropZone.addEventListener('drop', async (e) => {
-     e.preventDefault();
-     e.stopPropagation();
-     dropZone.style.opacity = '1';
-     
-     const files = Array.from(e.dataTransfer.files);
-     const audioFile = files.find(file => file.type.startsWith('audio/'));
-     
-     if (audioFile) {
-       try {
-         console.log(`📥 Loading dropped file: ${audioFile.name}`);
-         updateTrackInfo(audioFile.name, 'Loading...');
-         
-         if (!audioContext) {
-           audioContext = new (window.AudioContext || window.webkitAudioContext)();
-           beatTracker = new BeatTracker();
-         }
-         
-         // Use the loadFile utility from xa-file.js
-         currentAudioBuffer = await loadFile(audioFile, audioContext);
-         
-         updateTrackInfo(audioFile.name, `${currentAudioBuffer.duration.toFixed(1)}s`);
-         document.getElementById('audioFormat').textContent = 
-           `${currentAudioBuffer.sampleRate}Hz / ${currentAudioBuffer.numberOfChannels}ch`;
-         
-         await analyzeAudio();
-         drawWaveform();
-         
-         console.log('✅ Dropped file loaded successfully');
-       } catch (error) {
-         console.error('❌ Error loading dropped file:', error);
-         showError(`Failed to load ${audioFile.name}: ${error.message}`);
-       }
-     } else {
-       showError('Please drop an audio file');
-     }
-   });
-
-   // ===== ADVANCED FEATURES =====
-   
-   // Add spectral visualization (optional)
-   function drawSpectrum() {
-     if (!currentAudioBuffer) return;
-     
-     const audioData = currentAudioBuffer.getChannelData(0);
-     const sampleRate = currentAudioBuffer.sampleRate;
-     
-     // Get spectral features at current playhead position if playing
-     if (isPlaying && window.analysisResults) {
-       const currentTime = audioContext.currentTime - playheadStartTime;
-       const frame = Math.floor(currentTime * sampleRate / 512);
-       
-       if (window.analysisResults.spectral.centroid.centroids[frame]) {
-         const centroid = window.analysisResults.spectral.centroid.centroids[frame];
-         // Update UI with current spectral info
-       }
-     }
-   }
+  <script type="module" src="/src/utils/audio-analysis.js"></script>
 
  </script>
-</body>
-</html>

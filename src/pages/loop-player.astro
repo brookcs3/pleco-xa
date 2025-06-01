@@ -1,0 +1,269 @@
+---
+title: "Pleco-XA: Loop Player"
+description: "Play and manipulate audio loops with Pleco-XA's advanced tools."
+---
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: white;
+    padding: 2rem;
+  }
+
+  .main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .main-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 4s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .audio-controls {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .sample-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .sample-btn {
+    padding: 1rem 2rem;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .sample-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-3px);
+  }
+
+  .loop-player-container {
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 2rem;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+  }
+
+  .loop-player-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #ffd700;
+    text-align: center;
+  }
+
+  .loop-upload input[type="file"] {
+    display: none;
+  }
+
+  .loop-upload label {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+    color: white;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .loop-upload label:hover {
+    background: linear-gradient(45deg, #ff5a5a, #ff7e7e);
+    transform: translateY(-3px);
+  }
+
+  .loop-controls {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .loop-btn {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+  }
+
+  .loop-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+  }
+
+  #errorDisplay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ff4444;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    z-index: 1000;
+    max-width: 400px;
+    display: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  @media (max-width: 768px) {
+    .main-title {
+      font-size: 2rem;
+    }
+  }
+</style>
+
+<div class="main-container">
+  <div class="header">
+    <h1 class="main-title">Pleco-XA: Loop Player</h1>
+    <p>Play and manipulate audio loops with precision.</p>
+  </div>
+
+  <div class="audio-controls">
+    <div class="sample-buttons">
+      <button class="sample-btn" data-sample="12-8-Jazzy-Drumset-03.aif">Jazz Drums</button>
+      <button class="sample-btn" data-sample="Bassline For Doppler Song - 11.aif">Bassline</button>
+      <button class="sample-btn" data-sample="Drive Through Beat.aif">Drive Beat</button>
+      <button class="sample-btn" data-sample="ui.m4a">UI Loop Test</button>
+      <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+      <button class="sample-btn" id="uploadBtn">📁 Upload Audio</button>
+    </div>
+  </div>
+
+  <div class="loop-player-container">
+    <h3 class="loop-player-title">Loop Player</h3>
+    <div class="loop-upload">
+      <input type="file" id="loopFileInput" accept="audio/*" />
+      <label for="loopFileInput">Load Loop</label>
+    </div>
+    
+    <div class="loop-controls" id="loopControls" style="display: none;">
+      <button class="loop-btn" id="playLoop">▶️ Play</button>
+      <button class="loop-btn" id="stopLoop">⏹️ Stop</button>
+    </div>
+  </div>
+</div>
+
+<div id="errorDisplay"></div>
+
+<script type="module" src="/src/utils/audio-analysis.js"></script>
+
+<script>
+  // Assuming LoopPlayer is exposed globally or through a loaded module from audio-analysis.js
+  declare class LoopPlayer {
+    constructor(buffer: AudioBuffer);
+    setLoopPoints(start: number, end: number): void;
+    play(): Promise<void>;
+    stop(): void;
+  }
+
+  let player: LoopPlayer | null = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('loopFileInput') as HTMLInputElement;
+    const controls = document.getElementById('loopControls') as HTMLElement;
+    const playBtn = document.getElementById('playLoop') as HTMLButtonElement;
+    const stopBtn = document.getElementById('stopLoop') as HTMLButtonElement;
+    const uploadBtn = document.getElementById('uploadBtn') as HTMLElement;
+    const audioFileInput = document.getElementById('audioFileInput') as HTMLInputElement;
+
+    if (fileInput) {
+      fileInput.addEventListener('change', async (e) => {
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
+        if (!file) return;
+
+        try {
+          const audioContext = new window.AudioContext();
+          const arrayBuffer = await file.arrayBuffer();
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+          player = new LoopPlayer(audioBuffer);
+          player.setLoopPoints(0, audioBuffer.duration);
+
+          controls.style.display = 'flex';
+        } catch (error) {
+          console.error('LoopPlayer component failed:', error);
+          document.getElementById('errorDisplay')!.textContent = 'Error loading audio: ' + (error as Error).message;
+          document.getElementById('errorDisplay')!.style.display = 'block';
+          setTimeout(() => {
+            document.getElementById('errorDisplay')!.style.display = 'none';
+          }, 3000);
+        }
+      });
+    }
+
+    playBtn?.addEventListener('click', async () => {
+      if (player) {
+        await player.play();
+      }
+    });
+
+    stopBtn?.addEventListener('click', () => {
+      if (player) {
+        player.stop();
+      }
+    });
+
+    if (uploadBtn && audioFileInput) {
+      uploadBtn.addEventListener('click', () => {
+        audioFileInput.click();
+      });
+      audioFileInput.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+          const dataTransfer = new DataTransfer();
+          for (let i = 0; i < target.files.length; i++) {
+            dataTransfer.items.add(target.files[i]);
+          }
+          fileInput.files = dataTransfer.files;
+          const event = new Event('change', { bubbles: true });
+          fileInput.dispatchEvent(event);
+        }
+      });
+    }
+  });
+</script>
