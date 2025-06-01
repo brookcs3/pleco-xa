@@ -1,108 +1,111 @@
 <script>
-  import { WaveformEditor } from '../scripts/WaveformEditor.js';
-  import { LoopPlayer } from '../scripts/LoopPlayer.js';
+  import { WaveformEditor } from '../scripts/WaveformEditor.js'
+  import { LoopPlayer } from '../scripts/LoopPlayer.js'
 
-  let editor = null;
-  let player = null;
+  let editor = null
+  let player = null
 
   document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('waveformFileInput');
-    const container = document.getElementById('waveformContainer');
-    const canvas = document.getElementById('waveformCanvas');
-    const loopInfo = document.getElementById('loopInfo');
-    const playBtn = document.getElementById('playWaveform');
-    const stopBtn = document.getElementById('stopWaveform');
-    const resetBtn = document.getElementById('resetLoop');
+    const fileInput = document.getElementById('waveformFileInput')
+    const container = document.getElementById('waveformContainer')
+    const canvas = document.getElementById('waveformCanvas')
+    const loopInfo = document.getElementById('loopInfo')
+    const playBtn = document.getElementById('playWaveform')
+    const stopBtn = document.getElementById('stopWaveform')
+    const resetBtn = document.getElementById('resetLoop')
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (!file) return;
+        const file = (e.target as HTMLInputElement).files?.[0]
+        if (!file) return
 
         try {
           // Load audio
-          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const arrayBuffer = await file.arrayBuffer();
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+          const audioContext = new (window.AudioContext ||
+            (window as any).webkitAudioContext)()
+          const arrayBuffer = await file.arrayBuffer()
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
           // Use placeholder loop points
-          const loopStart = 0;
-          const loopEnd = audioBuffer.duration;
+          const loopStart = 0
+          const loopEnd = audioBuffer.duration
 
           // Create editor
-          editor = new WaveformEditor(canvas, audioBuffer, { loopStart, loopEnd });
+          editor = new WaveformEditor(canvas, audioBuffer, {
+            loopStart,
+            loopEnd,
+          })
           // Create player
-          player = new LoopPlayer(audioBuffer);
-          player.setLoopPoints(loopStart, loopEnd);
+          player = new LoopPlayer(audioBuffer)
+          player.setLoopPoints(loopStart, loopEnd)
 
           // Update loop info
           const updateLoopInfo = (start, end) => {
-            const duration = end - start;
-            loopInfo.textContent = `${start.toFixed(3)}s - ${end.toFixed(3)}s (${duration.toFixed(3)}s)`;
-          };
-          
-          updateLoopInfo(loopStart, loopEnd);
+            const duration = end - start
+            loopInfo.textContent = `${start.toFixed(3)}s - ${end.toFixed(3)}s (${duration.toFixed(3)}s)`
+          }
+
+          updateLoopInfo(loopStart, loopEnd)
 
           // Listen for loop changes
           canvas.addEventListener('loopChange', (e) => {
-            const { loopStart, loopEnd } = (e as CustomEvent).detail;
-            player.setLoopPoints(loopStart, loopEnd);
-            updateLoopInfo(loopStart, loopEnd);
-            
+            const { loopStart, loopEnd } = (e as CustomEvent).detail
+            player.setLoopPoints(loopStart, loopEnd)
+            updateLoopInfo(loopStart, loopEnd)
+
             // Dispatch event for parent components
             const changeEvent = new CustomEvent('waveformLoopChange', {
-              detail: { loopStart, loopEnd, duration: loopEnd - loopStart }
-            });
-            document.dispatchEvent(changeEvent);
-          });
+              detail: { loopStart, loopEnd, duration: loopEnd - loopStart },
+            })
+            document.dispatchEvent(changeEvent)
+          })
 
           // Show container
-          container.style.display = 'block';
-
+          container.style.display = 'block'
         } catch (error) {
-          console.error('Waveform editor failed:', error);
+          console.error('Waveform editor failed:', error)
         }
-      });
+      })
     }
 
     // Controls
     if (playBtn) {
       playBtn.addEventListener('click', async () => {
         if (player) {
-          await player.play();
-          playBtn.classList.add('active');
-          stopBtn?.classList.remove('active');
+          await player.play()
+          playBtn.classList.add('active')
+          stopBtn?.classList.remove('active')
         }
-      });
+      })
     }
 
     if (stopBtn) {
       stopBtn.addEventListener('click', () => {
         if (player) {
-          player.stop();
-          stopBtn.classList.add('active');
-          playBtn?.classList.remove('active');
+          player.stop()
+          stopBtn.classList.add('active')
+          playBtn?.classList.remove('active')
         }
-      });
+      })
     }
 
     if (resetBtn) {
       resetBtn.addEventListener('click', async () => {
         if (editor && player) {
           // Reset loop points to placeholders
-          const loopStart = 0;
-          const loopEnd = editor.audioBuffer.duration;
-          editor.loopStart = loopStart;
-          editor.loopEnd = loopEnd;
-          editor.draw();
-          player.setLoopPoints(loopStart, loopEnd);
-          
+          const loopStart = 0
+          const loopEnd = editor.audioBuffer.duration
+          editor.loopStart = loopStart
+          editor.loopEnd = loopEnd
+          editor.draw()
+          player.setLoopPoints(loopStart, loopEnd)
+
           if (loopInfo) {
-            const duration = loopEnd - loopStart;
-            loopInfo.textContent = `${loopStart.toFixed(3)}s - ${loopEnd.toFixed(3)}s (${duration.toFixed(3)}s)`;
+            const duration = loopEnd - loopStart
+            loopInfo.textContent = `${loopStart.toFixed(3)}s - ${loopEnd.toFixed(3)}s (${duration.toFixed(3)}s)`
           }
         }
-      });
+      })
     }
-  });
+  })
 </script>

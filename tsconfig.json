@@ -5,8 +5,9 @@
     "src",
     "**/*.astro",
     "**/*.ts",
-    "**/*.js"
-, "astro.config.mjs"  ],
+    "**/*.js",
+    "astro.config.mjs"
+  ],
   "exclude": ["dist", "node_modules"],
   "compilerOptions": {
     "baseUrl": ".",

@@ -33,21 +33,21 @@ In your main page or layout where you want the doppler effect:
 ```astro
 ---
 // src/pages/index.astro or your target page
-import Layout from '../layouts/Layout.astro';
-import ScrollAudio from '../components/ScrollAudio.astro';
-import AWaves from '../components/AWaves.astro';
+import Layout from '../layouts/Layout.astro'
+import ScrollAudio from '../components/ScrollAudio.astro'
+import AWaves from '../components/AWaves.astro'
 ---
 
 <Layout>
   <!-- Your existing content -->
-  
+
   <!-- Add the ScrollAudio component -->
-  <ScrollAudio 
+  <ScrollAudio
     loop1Url="/audio/loop1.mp3"
     loop2Url="/audio/loop2.mp3"
     className="doppler-section"
   />
-  
+
   <!-- Rest of your content -->
 </Layout>
 ```
@@ -59,10 +59,10 @@ Update your `AWaves.astro` component to accept audio analysis data:
 ```javascript
 // In AWaves component script section
 window.addEventListener('awaves-audio-data', (event) => {
-  const { frequencyData, waveformData } = event.detail;
+  const { frequencyData, waveformData } = event.detail
   // Update your wireframe visualization based on audio data
-  updateWireframeWithAudio(frequencyData);
-});
+  updateWireframeWithAudio(frequencyData)
+})
 ```
 
 ### 4. Connect to WaveformGrid.js
@@ -71,24 +71,24 @@ Modify your `WaveformGrid.js` to work with DopplerScroll:
 
 ```javascript
 // src/utils/WaveformGrid.js
-import { DopplerScroll } from './DopplerScroll.js';
+import { DopplerScroll } from './DopplerScroll.js'
 
 export class WaveformGrid {
   constructor() {
     // Existing code...
-    
+
     // Listen for doppler scroll events
     if (window.dopplerScroll) {
       window.dopplerScroll.emitter.on('audioAnalysis', (data) => {
-        this.updateFromDopplerData(data);
-      });
+        this.updateFromDopplerData(data)
+      })
     }
   }
-  
+
   updateFromDopplerData({ loop1Data, loop2Data, mixRatio }) {
     // Blend frequency data based on scroll position
-    const blendedData = this.blendFrequencyData(loop1Data, loop2Data, mixRatio);
-    this.updateVisualization(blendedData);
+    const blendedData = this.blendFrequencyData(loop1Data, loop2Data, mixRatio)
+    this.updateVisualization(blendedData)
   }
 }
 ```
@@ -99,30 +99,30 @@ Update your Lenis initialization to work with doppler scrolling:
 
 ```javascript
 // In your main script file
-import Lenis from '@studio-freight/lenis';
+import Lenis from '@studio-freight/lenis'
 
 const lenis = new Lenis({
   smooth: true,
   smoothWheel: 1,
   smoothTouch: false,
-  duration: 1.2
-});
+  duration: 1.2,
+})
 
 // Store globally for doppler scroll access
-window.lenis = lenis;
+window.lenis = lenis
 
 // Reduce smoothing during audio transitions
 lenis.on('scroll', ({ scroll, progress }) => {
   // Doppler scroll will automatically adjust smoothing
   // in transition zones
-});
+})
 
 function raf(time) {
-  lenis.raf(time);
-  requestAnimationFrame(raf);
+  lenis.raf(time)
+  requestAnimationFrame(raf)
 }
 
-requestAnimationFrame(raf);
+requestAnimationFrame(raf)
 ```
 
 ### 6. Update ColorMorph.js
@@ -135,14 +135,14 @@ export class ColorMorph {
   constructor() {
     // Existing code...
   }
-  
+
   updateFromFrequencies(lowFreq, midFreq, highFreq) {
     // Map frequency ranges to color channels
-    const hue = this.mapFrequencyToHue(lowFreq);
-    const saturation = this.mapFrequencyToSaturation(midFreq);
-    const lightness = this.mapFrequencyToLightness(highFreq);
-    
-    this.morphToHSL(hue, saturation, lightness);
+    const hue = this.mapFrequencyToHue(lowFreq)
+    const saturation = this.mapFrequencyToSaturation(midFreq)
+    const lightness = this.mapFrequencyToLightness(highFreq)
+
+    this.morphToHSL(hue, saturation, lightness)
   }
 }
 ```
@@ -153,14 +153,14 @@ export class ColorMorph {
 
 ```javascript
 const dopplerScroll = new DopplerScroll({
-  transitionZone: 0.33,      // Size of transition zone (0-1)
-  crossoverPoint: 0.5,       // When master switches (0-1)
-  dopplerIntensity: 0.3,     // Pitch shift amount (0-1)
+  transitionZone: 0.33, // Size of transition zone (0-1)
+  crossoverPoint: 0.5, // When master switches (0-1)
+  dopplerIntensity: 0.3, // Pitch shift amount (0-1)
   filterRange: {
-    low: 20,                 // Minimum frequency (Hz)
-    high: 20000              // Maximum frequency (Hz)
-  }
-});
+    low: 20, // Minimum frequency (Hz)
+    high: 20000, // Maximum frequency (Hz)
+  },
+})
 ```
 
 ### Audio File Requirements
@@ -190,12 +190,12 @@ const dopplerScroll = new DopplerScroll({
 Enable debug mode to see audio state in console:
 
 ```javascript
-const dopplerScroll = new DopplerScroll({ debug: true });
+const dopplerScroll = new DopplerScroll({ debug: true })
 
 // Listen to all events
 dopplerScroll.emitter.on('*', (eventName, data) => {
-  console.log('DopplerScroll Event:', eventName, data);
-});
+  console.log('DopplerScroll Event:', eventName, data)
+})
 ```
 
 ## Advanced Usage
@@ -205,9 +205,9 @@ dopplerScroll.emitter.on('*', (eventName, data) => {
 ```javascript
 // Override automatic loop detection
 dopplerScroll.setLoopPoints('loop1', {
-  start: 0.5,    // seconds
-  end: 8.75      // seconds
-});
+  start: 0.5, // seconds
+  end: 8.75, // seconds
+})
 ```
 
 ### Dynamic Audio Loading
@@ -215,9 +215,9 @@ dopplerScroll.setLoopPoints('loop1', {
 ```javascript
 // Change loops on the fly
 async function switchLoops(newLoop1Url, newLoop2Url) {
-  dopplerScroll.stop();
-  await dopplerScroll.loadLoops(newLoop1Url, newLoop2Url);
-  dopplerScroll.play();
+  dopplerScroll.stop()
+  await dopplerScroll.loadLoops(newLoop1Url, newLoop2Url)
+  dopplerScroll.play()
 }
 ```
 
@@ -225,24 +225,27 @@ async function switchLoops(newLoop1Url, newLoop2Url) {
 
 ```javascript
 // Connect to existing Web Audio nodes
-const existingGainNode = audioContext.createGain();
-dopplerScroll.connectOutput(existingGainNode);
-existingGainNode.connect(audioContext.destination);
+const existingGainNode = audioContext.createGain()
+dopplerScroll.connectOutput(existingGainNode)
+existingGainNode.connect(audioContext.destination)
 ```
 
 ## Troubleshooting
 
 ### Audio Not Playing
+
 - Check browser console for errors
 - Ensure user has interacted with page (click/tap)
 - Verify audio file URLs are correct
 
 ### Choppy Scrolling
+
 - Reduce `dopplerIntensity` value
 - Check if other heavy animations are running
 - Consider reducing visual effects during transitions
 
 ### Audio Out of Sync
+
 - Ensure both loops have clear, consistent tempo
 - Adjust `hopSize` in TempoSync for better beat detection
 - Manually set BPM if automatic detection fails
@@ -254,5 +257,5 @@ existingGainNode.connect(audioContext.destination);
 - MIDI sync capabilities
 - Audio recording of scroll performances
 - Export scroll automation as audio file
-> **Note:** This guide is under active development. Sections after
-"Export scroll automation as audio file" are work in progress.
+  > **Note:** This guide is under active development. Sections after
+  > "Export scroll automation as audio file" are work in progress.

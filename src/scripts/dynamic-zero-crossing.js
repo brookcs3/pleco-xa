@@ -1,4 +1,3 @@
-// @ts-check
 /**
  * Dynamic Zero Crossing with Micro Crossfades
  * Maintains musical accuracy while ensuring clean audio boundaries
@@ -109,7 +108,7 @@ export class DynamicZeroCrossing {
    * @returns {{ fadeIn: Float32Array, fadeOut: Float32Array, length: number }} - Crossfade data object
    */
   static generateMicroCrossfade(audioData, crossfadeInfo) {
-    const { musicalPoint, zeroPoint, crossfadeDuration } = crossfadeInfo
+    const { crossfadeDuration } = crossfadeInfo
     const fadeLength = Math.min(crossfadeDuration, 441) // Max 10ms at 44.1kHz
 
     // Create fade curve (cosine for smooth transition)

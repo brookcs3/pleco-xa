@@ -49,26 +49,29 @@ npm install pleco-xa
 ## Quick Start
 
 ```javascript
-import { detectBPM, loopAnalysis, WaveformEditor, debugLog } from 'pleco-xa';
+import { detectBPM, loopAnalysis, WaveformEditor, debugLog } from 'pleco-xa'
 
 // Load audio file
-const audioContext = new AudioContext();
-const response = await fetch('audio.wav');
-const arrayBuffer = await response.arrayBuffer();
-const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+const audioContext = new AudioContext()
+const response = await fetch('audio.wav')
+const arrayBuffer = await response.arrayBuffer()
+const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
 // Detect BPM
-const bpmResult = detectBPM(audioBuffer.getChannelData(0), audioBuffer.sampleRate);
-debugLog(`Detected BPM: ${bpmResult.bpm}`);
+const bpmResult = detectBPM(
+  audioBuffer.getChannelData(0),
+  audioBuffer.sampleRate,
+)
+debugLog(`Detected BPM: ${bpmResult.bpm}`)
 
 // Find optimal loop points
-const analysis = await loopAnalysis(audioBuffer);
-debugLog(`Loop: ${analysis.loopStart}s - ${analysis.loopEnd}s`);
-debugLog(`Musical division: ${analysis.musicalDivision} bars`);
+const analysis = await loopAnalysis(audioBuffer)
+debugLog(`Loop: ${analysis.loopStart}s - ${analysis.loopEnd}s`)
+debugLog(`Musical division: ${analysis.musicalDivision} bars`)
 
 // Create interactive waveform editor
-const canvas = document.getElementById('waveform');
-const editor = new WaveformEditor(canvas, audioBuffer, analysis);
+const canvas = document.getElementById('waveform')
+const editor = new WaveformEditor(canvas, audioBuffer, analysis)
 ```
 
 ## Build
@@ -87,7 +90,7 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 ```html
 <script type="module">
-  import { detectBPM } from "https://unpkg.com/pleco-xa@1.0.2/dist/pleco-xa.min.js";
+  import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.2/dist/pleco-xa.min.js'
 </script>
 ```
 
@@ -131,7 +134,12 @@ You can import these from the `pleco-xa/astro` entry point.
 
 ```astro
 ---
-import { PlecoAnalyzer, WaveformEditor, BPMDetector, LoopPlayer } from 'pleco-xa/astro';
+import {
+  PlecoAnalyzer,
+  WaveformEditor,
+  BPMDetector,
+  LoopPlayer,
+} from 'pleco-xa/astro'
 ---
 
 <PlecoAnalyzer src="/song.mp3" />
@@ -262,49 +270,48 @@ Additional Astro components:
 ### Custom Loop Analysis Workflow
 
 ```javascript
-import { 
-  detectBPM, 
+import {
+  detectBPM,
   musicalLoopAnalysis,
   createReferenceTemplate,
-  analyzeWithReference 
-} from 'pleco-xa';
+  analyzeWithReference,
+} from 'pleco-xa'
 
 // Step 1: Analyze a known-good loop
-const referenceBuffer = await loadAudio('perfect-loop.wav');
-const referenceAnalysis = await loopAnalysis(referenceBuffer);
+const referenceBuffer = await loadAudio('perfect-loop.wav')
+const referenceAnalysis = await loopAnalysis(referenceBuffer)
 const template = await createReferenceTemplate(
-  referenceBuffer, 
-  referenceAnalysis.loopStart, 
-  referenceAnalysis.loopEnd
-);
+  referenceBuffer,
+  referenceAnalysis.loopStart,
+  referenceAnalysis.loopEnd,
+)
 
 // Step 2: Use template to find similar loops in longer audio
-const longTrack = await loadAudio('long-track.wav');
-const guidedResult = await analyzeWithReference(longTrack, template);
+const longTrack = await loadAudio('long-track.wav')
+const guidedResult = await analyzeWithReference(longTrack, template)
 ```
 
 ### Real-time Audio Analysis
 
 ```javascript
-import { computeFFT, computeSpectralCentroid } from 'pleco-xa';
+import { computeFFT, computeSpectralCentroid } from 'pleco-xa'
 
 // Analyze live audio input
-navigator.mediaDevices.getUserMedia({ audio: true })
-  .then(stream => {
-    const audioContext = new AudioContext();
-    const source = audioContext.createMediaStreamSource(stream);
-    const analyser = audioContext.createAnalyser();
-    
-    source.connect(analyser);
-    
-    // Get real-time spectral data
-    const dataArray = new Float32Array(analyser.frequencyBinCount);
-    analyser.getFloatFrequencyData(dataArray);
-    
-    // Use Pleco Xa for custom analysis
-    const fftResult = computeFFT(dataArray);
-    // ... custom processing
-  });
+navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+  const audioContext = new AudioContext()
+  const source = audioContext.createMediaStreamSource(stream)
+  const analyser = audioContext.createAnalyser()
+
+  source.connect(analyser)
+
+  // Get real-time spectral data
+  const dataArray = new Float32Array(analyser.frequencyBinCount)
+  analyser.getFloatFrequencyData(dataArray)
+
+  // Use Pleco Xa for custom analysis
+  const fftResult = computeFFT(dataArray)
+  // ... custom processing
+})
 ```
 
 ## Examples
@@ -405,6 +412,6 @@ Some audio analysis techniques were inspired by open-source audio DSP research
 ## Credits
 
 **Pleco Xa** - Bringing musical intelligence to the browser.  
-*Built with ♪ by Cameron Brooks*
+_Built with ♪ by Cameron Brooks_
 
 ![Hits](https://visitor-badge.laobi.icu/badge?page_id=brookcs3.pleco-xa)

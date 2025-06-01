@@ -98,7 +98,10 @@ export class DJLoopAnalyzer {
 
     // Spectral features
     const onset_env = onset_strength(audioData, { sr: sampleRate })
-    const spectral_cent = spectralCentroid({ y: Array.from(audioData), sr: sampleRate })
+    const spectral_cent = spectralCentroid({
+      y: Array.from(audioData),
+      sr: sampleRate,
+    })
 
     // Musical key detection
     const key_result = this.estimateKey(chroma)

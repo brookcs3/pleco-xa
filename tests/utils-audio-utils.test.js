@@ -2,7 +2,7 @@ import {
   findZeroCrossing,
   findAudioStart,
   applyHannWindow,
-} from '../utils/audio-utils.js'
+} from '../src/scripts/audio-utils.js'
 
 describe('findZeroCrossing', () => {
   it('returns the index where a positive to negative transition occurs', () => {
@@ -39,7 +39,7 @@ describe('applyHannWindow', () => {
   it('applies a Hann window to the data', () => {
     const data = new Float32Array([1, 1, 1, 1])
     const result = applyHannWindow(data)
-    console.log('applyHannWindow output:', Array.from(result));
+    console.log('applyHannWindow output:', Array.from(result))
     // Hann window values for a 4-point window: 0, 0.5, 1, 0.5, 0
     // When applied to [1,1,1,1], we get [0, 0.5, 0.5, 0]
     expect(Array.from(result)).toEqual([0, 0.5, 0.5, 0])

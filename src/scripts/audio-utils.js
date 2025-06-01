@@ -19,18 +19,18 @@ export function createLoopBuffer({
   channels = 1,
   loopable = false,
 }) {
-  const ctx = new AudioContext({ sampleRate });
-  const segmentLength = Math.floor(sampleRate * loopLengthSeconds);
-  const totalLength = segmentLength * repeats;
-  const buffer = ctx.createBuffer(channels, totalLength, sampleRate);
+  const ctx = new AudioContext({ sampleRate })
+  const segmentLength = Math.floor(sampleRate * loopLengthSeconds)
+  const totalLength = segmentLength * repeats
+  const buffer = ctx.createBuffer(channels, totalLength, sampleRate)
 
   for (let ch = 0; ch < channels; ch++) {
-    const data = buffer.getChannelData(ch);
+    const data = buffer.getChannelData(ch)
     for (let r = 0; r < repeats; r++) {
-      const start = r * segmentLength;
+      const start = r * segmentLength
       for (let i = 0; i < segmentLength; i++) {
-        const t = i / sampleRate;
-        data[start + i] = waveformFn(t);
+        const t = i / sampleRate
+        data[start + i] = waveformFn(t)
       }
     }
   }
@@ -46,10 +46,10 @@ export function createLoopBuffer({
       buffer,
       loopStart: 0,
       loopEnd: loopLengthSeconds * repeats,
-    };
+    }
   }
 
-  return buffer;
+  return buffer
 }
 
 /**
@@ -59,45 +59,49 @@ export function createLoopBuffer({
  * @returns {Blob} - A Blob representing the .wav file.
  */
 export function exportBufferAsWav(buffer) {
-  const numChannels = buffer.numberOfChannels;
-  const sampleRate = buffer.sampleRate;
-  const length = buffer.length;
-  const wavBuffer = new ArrayBuffer(44 + length * numChannels * 2);
-  const view = new DataView(wavBuffer);
+  const numChannels = buffer.numberOfChannels
+  const sampleRate = buffer.sampleRate
+  const length = buffer.length
+  const wavBuffer = new ArrayBuffer(44 + length * numChannels * 2)
+  const view = new DataView(wavBuffer)
 
   // Write WAV header
   const writeString = (offset, str) => {
     for (let i = 0; i < str.length; i++) {
-      view.setUint8(offset + i, str.charCodeAt(i));
-    }
-  };
-
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + length * numChannels * 2, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, numChannels, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * numChannels * 2, true);
-  view.setUint16(32, numChannels * 2, true);
-  view.setUint16(34, 16, true);
-  writeString(36, 'data');
-  view.setUint32(40, length * numChannels * 2, true);
-
-  // Write PCM data
-  let offset = 44;
-  for (let ch = 0; ch < numChannels; ch++) {
-    const data = buffer.getChannelData(ch);
-    for (let i = 0; i < length; i++) {
-      const sample = Math.max(-1, Math.min(1, data[i]));
-      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-      offset += 2;
+      view.setUint8(offset + i, str.charCodeAt(i))
     }
   }
 
-  return new Blob([view], { type: 'audio/wav' });
+  writeString(0, 'RIFF')
+  view.setUint32(4, 36 + length * numChannels * 2, true)
+  writeString(8, 'WAVE')
+  writeString(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, numChannels, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * numChannels * 2, true)
+  view.setUint16(32, numChannels * 2, true)
+  view.setUint16(34, 16, true)
+  writeString(36, 'data')
+  view.setUint32(40, length * numChannels * 2, true)
+
+  // Write PCM data
+  let offset = 44
+  for (let ch = 0; ch < numChannels; ch++) {
+    const data = buffer.getChannelData(ch)
+    for (let i = 0; i < length; i++) {
+      const sample = Math.max(-1, Math.min(1, data[i]))
+      view.setInt16(
+        offset,
+        sample < 0 ? sample * 0x8000 : sample * 0x7fff,
+        true,
+      )
+      offset += 2
+    }
+  }
+
+  return new Blob([view], { type: 'audio/wav' })
 }
 
 /**
@@ -109,15 +113,15 @@ export function exportBufferAsWav(buffer) {
  * @returns {Array<{loopStart: number, loopEnd: number}>} - Array of loop points.
  */
 export function defineMultipleLoopPoints(buffer, loopLengthSeconds, repeats) {
-  const loopPoints = [];
+  const loopPoints = []
 
   for (let i = 0; i < repeats; i++) {
-    const loopStart = i * loopLengthSeconds;
-    const loopEnd = (i + 1) * loopLengthSeconds;
-    loopPoints.push({ loopStart, loopEnd });
+    const loopStart = i * loopLengthSeconds
+    const loopEnd = (i + 1) * loopLengthSeconds
+    loopPoints.push({ loopStart, loopEnd })
   }
 
-  return loopPoints;
+  return loopPoints
 }
 
 // Example usage:

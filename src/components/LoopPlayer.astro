@@ -5,14 +5,11 @@
  */
 
 export interface Props {
-  autoPlay?: boolean;
-  class?: string;
+  autoPlay?: boolean
+  class?: string
 }
 
-const {
-  autoPlay = false,
-  class: className = ''
-} = Astro.props;
+const { autoPlay = false, class: className = '' } = Astro.props
 ---
 
 <div class={`pleco-loop-player ${className}`}>
@@ -37,7 +34,7 @@ const {
     color: #fff;
   }
 
-  .loop-upload input[type="file"] {
+  .loop-upload input[type='file'] {
     display: none;
   }
 
@@ -71,52 +68,53 @@ const {
 </style>
 
 <script>
-  import { LoopPlayer } from '@/classes/LoopPlayer.js';
+  import { LoopPlayer } from '../scripts/LoopPlayer.js'
 
-  let player = null;
+  let player = null
 
   document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('loopFileInput');
-    const controls = document.getElementById('loopControls');
-    const playBtn = document.getElementById('playLoop');
-    const stopBtn = document.getElementById('stopLoop');
-    const autoPlay = false; // Hardcoded for now, should be passed from props if needed
+    const fileInput = document.getElementById('loopFileInput')
+    const controls = document.getElementById('loopControls')
+    const playBtn = document.getElementById('playLoop')
+    const stopBtn = document.getElementById('stopLoop')
+    const autoPlay = false // Hardcoded for now, should be passed from props if needed
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {
-        const target = e.target as HTMLInputElement;
-        const file = target.files?.[0];
-        if (!file) return;
+        const target = e.target as HTMLInputElement
+        const file = target.files?.[0]
+        if (!file) return
 
         try {
-          const AudioContextConstructor = window.AudioContext || (window as any).webkitAudioContext;
-          const audioContext = new AudioContextConstructor();
-          const arrayBuffer = await file.arrayBuffer();
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+          const AudioContextConstructor =
+            window.AudioContext || (window as any).webkitAudioContext
+          const audioContext = new AudioContextConstructor()
+          const arrayBuffer = await file.arrayBuffer()
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
-          player = new LoopPlayer(audioBuffer);
-          player.setLoopPoints(0, audioBuffer.duration);
+          player = new LoopPlayer(audioBuffer)
+          player.setLoopPoints(0, audioBuffer.duration)
 
-          controls.style.display = 'flex';
+          controls.style.display = 'flex'
           if (autoPlay) {
-            await player.play();
+            await player.play()
           }
         } catch (error) {
-          console.error('LoopPlayer component failed:', error);
+          console.error('LoopPlayer component failed:', error)
         }
-      });
+      })
     }
 
     playBtn?.addEventListener('click', async () => {
       if (player) {
-        await player.play();
+        await player.play()
       }
-    });
+    })
 
     stopBtn?.addEventListener('click', () => {
       if (player) {
-        player.stop();
+        player.stop()
       }
-    });
-  });
+    })
+  })
 </script>

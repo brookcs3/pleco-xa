@@ -5,18 +5,18 @@
  */
 
 export interface Props {
-  showConfidence?: boolean;
-  autoDetect?: boolean;
-  threshold?: number;
-  class?: string;
+  showConfidence?: boolean
+  autoDetect?: boolean
+  threshold?: number
+  class?: string
 }
 
-const { 
+const {
   showConfidence = true,
-  autoDetect = true, 
+  autoDetect = true,
   threshold = 0.3,
-  class: className = ''
-} = Astro.props;
+  class: className = '',
+} = Astro.props
 ---
 
 <div class={`pleco-bpm-detector ${className}`}>
@@ -24,14 +24,18 @@ const {
     <input type="file" id="bpmFileInput" accept="audio/*" />
     <label for="bpmFileInput">Detect BPM</label>
   </div>
-  
+
   <div class="bpm-display" id="bpmDisplay">
     <div class="bpm-value" id="bpmValue">-- BPM</div>
-    {showConfidence && (
-      <div class="bpm-confidence" id="bpmConfidence">--</div>
-    )}
+    {
+      showConfidence && (
+        <div class="bpm-confidence" id="bpmConfidence">
+          --
+        </div>
+      )
+    }
   </div>
-  
+
   <slot />
 </div>
 
@@ -45,11 +49,11 @@ const {
     color: #fff;
     font-family: monospace;
   }
-  
-  .bpm-upload input[type="file"] {
+
+  .bpm-upload input[type='file'] {
     display: none;
   }
-  
+
   .bpm-upload label {
     display: inline-block;
     padding: 8px 16px;
@@ -60,22 +64,22 @@ const {
     font-size: 14px;
     transition: background 0.2s;
   }
-  
+
   .bpm-upload label:hover {
     background: #0052a3;
   }
-  
+
   .bpm-display {
     margin-top: 15px;
   }
-  
+
   .bpm-value {
     font-size: 2.5em;
     font-weight: bold;
     color: #00ff00;
     margin-bottom: 5px;
   }
-  
+
   .bpm-confidence {
     font-size: 12px;
     color: #888;
@@ -83,48 +87,48 @@ const {
 </style>
 
 <script>
-  import { detectBPM } from '@/core/analysis/BPMDetector.js';
+  import { detectBPM } from '../scripts/analysis/BPMDetector.js'
 
   document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('bpmFileInput');
-    const bpmValue = document.getElementById('bpmValue');
-    const bpmConfidence = document.getElementById('bpmConfidence');
+    const fileInput = document.getElementById('bpmFileInput')
+    const bpmValue = document.getElementById('bpmValue')
+    const bpmConfidence = document.getElementById('bpmConfidence')
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {
-        const target = e.target as HTMLInputElement;
-        const file = target.files?.[0];
-        if (!file) return;
+        const target = e.target as HTMLInputElement
+        const file = target.files?.[0]
+        if (!file) return
 
         try {
-          bpmValue.textContent = 'Analyzing...';
-          
+          bpmValue.textContent = 'Analyzing...'
+
           // Load and analyze
-          const AudioContextConstructor = window.AudioContext || (window as any).webkitAudioContext;
-          const audioContext = new AudioContextConstructor();
-          const arrayBuffer = await file.arrayBuffer();
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-          
-          const audioData = audioBuffer.getChannelData(0);
-          const result = await detectBPM(audioData, audioBuffer.sampleRate);
-          
+          const AudioContextConstructor =
+            window.AudioContext || (window as any).webkitAudioContext
+          const audioContext = new AudioContextConstructor()
+          const arrayBuffer = await file.arrayBuffer()
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+
+          const audioData = audioBuffer.getChannelData(0)
+          const result = await detectBPM(audioData, audioBuffer.sampleRate)
+
           // Update display
-          bpmValue.textContent = `${result.bpm.toFixed(1)} BPM`;
+          bpmValue.textContent = `${result.bpm.toFixed(1)} BPM`
           if (bpmConfidence) {
-            bpmConfidence.textContent = `${(result.confidence * 100).toFixed(1)}% confidence`;
+            bpmConfidence.textContent = `${(result.confidence * 100).toFixed(1)}% confidence`
           }
-          
+
           // Dispatch event
           const bpmEvent = new CustomEvent('bpmEvent', {
-            detail: { bpm: result.bpm, confidence: result.confidence }
-          });
-          document.dispatchEvent(bpmEvent);
-          
+            detail: { bpm: result.bpm, confidence: result.confidence },
+          })
+          document.dispatchEvent(bpmEvent)
         } catch (error) {
-          console.error('BPM detection failed:', error);
-          bpmValue.textContent = 'Error';
+          console.error('BPM detection failed:', error)
+          bpmValue.textContent = 'Error'
         }
-      });
+      })
     }
-  });
+  })
 </script>

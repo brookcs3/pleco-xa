@@ -1,11 +1,11 @@
-import { librosaLoopAnalysis } from '../src/core/loop-analyzer.js';
-import { AudioContext } from 'web-audio-test-api';
+import { librosaLoopAnalysis } from '../src/scripts/loop-analyzer.js'
+import { AudioContext } from 'web-audio-test-api'
 
 // Minimal stub for OfflineAudioContext used in spectrum analysis
 class MockOfflineAudioContext {
   constructor() {}
   createBufferSource() {
-    return { connect: () => {}, start: () => {}, buffer: null };
+    return { connect: () => {}, start: () => {}, buffer: null }
   }
   createAnalyser() {
     return {
@@ -13,38 +13,38 @@ class MockOfflineAudioContext {
       frequencyBinCount: 1024,
       connect: () => {},
       getFloatFrequencyData: (arr) => arr.fill(0),
-    };
+    }
   }
   get destination() {
-    return {};
+    return {}
   }
   startRendering() {
-    return Promise.resolve();
+    return Promise.resolve()
   }
 }
 
-global.OfflineAudioContext = MockOfflineAudioContext;
+global.OfflineAudioContext = MockOfflineAudioContext
 
 function createLoopBuffer(loopLengthSeconds, repeats, sampleRate = 8000) {
-  const ctx = new AudioContext({ sampleRate });
-  const length = Math.floor(sampleRate * loopLengthSeconds * repeats);
-  const buffer = ctx.createBuffer(1, length, sampleRate);
-  const data = buffer.getChannelData(0);
-  const segmentLength = Math.floor(sampleRate * loopLengthSeconds);
+  const ctx = new AudioContext({ sampleRate })
+  const length = Math.floor(sampleRate * loopLengthSeconds * repeats)
+  const buffer = ctx.createBuffer(1, length, sampleRate)
+  const data = buffer.getChannelData(0)
+  const segmentLength = Math.floor(sampleRate * loopLengthSeconds)
 
   for (let r = 0; r < repeats; r++) {
     for (let i = 0; i < segmentLength; i++) {
-      const t = i / sampleRate;
-      data[r * segmentLength + i] = Math.sin(2 * Math.PI * 440 * t);
+      const t = i / sampleRate
+      data[r * segmentLength + i] = Math.sin(2 * Math.PI * 440 * t)
     }
   }
-  return buffer;
+  return buffer
 }
 
 describe.skip('librosaLoopAnalysis', () => {
   it('returns analysis object with expected keys', async () => {
-    const buffer = createLoopBuffer(0.5, 2);
-    const result = await librosaLoopAnalysis(buffer);
+    const buffer = createLoopBuffer(0.5, 2)
+    const result = await librosaLoopAnalysis(buffer)
 
     expect(result).toEqual(
       expect.objectContaining({
@@ -55,6 +55,6 @@ describe.skip('librosaLoopAnalysis', () => {
         barDuration: expect.any(Number),
         musicalInfo: expect.any(Object),
       }),
-    );
-  });
-});
+    )
+  })
+})

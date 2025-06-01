@@ -3,10 +3,10 @@ module.exports = {
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest'
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
   testPathIgnorePatterns: [
     '/node_modules/',
@@ -17,5 +17,5 @@ module.exports = {
     // '/examples/astro-site/',
     // '/examples/frontend/',
     // '/examples/backend/'
-  ]
-};
+  ],
+}

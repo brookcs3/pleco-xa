@@ -47,7 +47,7 @@ describe('Pleco-XA Audio Analysis Tests', () => {
     test('halfLoop should correctly halve the loop duration', () => {
       // Setup
       const currentLoop = { start: 0, end: 1 }
-      const result = halfLoop()
+      halfLoop()
 
       expect(currentLoop.end).toBe(0.5)
       expect(currentLoop.start).toBe(0)
@@ -56,7 +56,7 @@ describe('Pleco-XA Audio Analysis Tests', () => {
     test('doubleLoop should correctly double the loop duration', () => {
       // Setup
       const currentLoop = { start: 0, end: 0.25 }
-      const result = doubleLoop()
+      doubleLoop()
 
       expect(currentLoop.end).toBe(0.5)
       expect(currentLoop.start).toBe(0)
@@ -65,7 +65,7 @@ describe('Pleco-XA Audio Analysis Tests', () => {
     test('moveForward should correctly shift the loop position', () => {
       // Setup
       const currentLoop = { start: 0, end: 0.5 }
-      const result = moveForward()
+      moveForward()
 
       expect(currentLoop.start).toBe(0.5)
       expect(currentLoop.end).toBe(1)
@@ -75,7 +75,7 @@ describe('Pleco-XA Audio Analysis Tests', () => {
   describe('Audio Playback Tests', () => {
     test('playAudio should initialize audio playback correctly', async () => {
       // Setup
-      const currentAudioBuffer = mockAudioBuffer
+      mockAudioBuffer
 
       // Execute
       await playAudio()
@@ -113,8 +113,8 @@ describe('Pleco-XA Audio Analysis Tests', () => {
     test('updateLoopInfo should format loop information correctly', () => {
       // Setup
       const currentLoop = { start: 0, end: 0.5 }
-      const currentBPM = 120
-      const currentAudioBuffer = mockAudioBuffer
+      // const currentBPM = 120
+      mockAudioBuffer
 
       // Execute
       updateLoopInfo()
@@ -129,7 +129,7 @@ describe('Pleco-XA Audio Analysis Tests', () => {
   describe('Audio Analysis Tests', () => {
     test('analyzeAudio should calculate BPM correctly', async () => {
       // Setup
-      const currentAudioBuffer = mockAudioBuffer
+      mockAudioBuffer
 
       // Execute
       await analyzeAudio()

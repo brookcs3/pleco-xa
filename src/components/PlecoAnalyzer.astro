@@ -5,60 +5,76 @@
  */
 
 export interface Props {
-  showBPM?: boolean;
-  showLoopPoints?: boolean;
-  showSpectral?: boolean;
-  allowUpload?: boolean;
-  autoAnalyze?: boolean;
-  class?: string;
+  showBPM?: boolean
+  showLoopPoints?: boolean
+  showSpectral?: boolean
+  allowUpload?: boolean
+  autoAnalyze?: boolean
+  class?: string
 }
 
-const { 
-  showBPM = true, 
-  showLoopPoints = true, 
+const {
+  showBPM = true,
+  showLoopPoints = true,
   showSpectral = false,
   allowUpload = true,
   autoAnalyze = true,
-  class: className = ''
-} = Astro.props;
+  class: className = '',
+} = Astro.props
 ---
 
 <div class={`pleco-analyzer ${className}`}>
-  {allowUpload && (
-    <div class="pleco-upload">
-      <input type="file" id="plecoFileInput" accept="audio/*" />
-      <label for="plecoFileInput">Choose Audio File</label>
-    </div>
-  )}
-  
+  {
+    allowUpload && (
+      <div class="pleco-upload">
+        <input type="file" id="plecoFileInput" accept="audio/*" />
+        <label for="plecoFileInput">Choose Audio File</label>
+      </div>
+    )
+  }
+
   <div class="pleco-results" id="plecoResults" style="display: none;">
-    {showBPM && (
-      <div class="pleco-bpm">
-        <h3>BPM Detection</h3>
-        <div class="bpm-value" id="bpmValue">--</div>
-        <div class="bpm-confidence" id="bpmConfidence">--</div>
-      </div>
-    )}
-    
-    {showLoopPoints && (
-      <div class="pleco-loops">
-        <h3>Loop Analysis</h3>
-        <div class="loop-info" id="loopInfo">--</div>
-        <div class="loop-controls">
-          <button id="playLoop">Play Loop</button>
-          <button id="stopLoop">Stop</button>
+    {
+      showBPM && (
+        <div class="pleco-bpm">
+          <h3>BPM Detection</h3>
+          <div class="bpm-value" id="bpmValue">
+            --
+          </div>
+          <div class="bpm-confidence" id="bpmConfidence">
+            --
+          </div>
         </div>
-      </div>
-    )}
-    
-    {showSpectral && (
-      <div class="pleco-spectral">
-        <h3>Spectral Analysis</h3>
-        <div class="spectral-info" id="spectralInfo">--</div>
-      </div>
-    )}
+      )
+    }
+
+    {
+      showLoopPoints && (
+        <div class="pleco-loops">
+          <h3>Loop Analysis</h3>
+          <div class="loop-info" id="loopInfo">
+            --
+          </div>
+          <div class="loop-controls">
+            <button id="playLoop">Play Loop</button>
+            <button id="stopLoop">Stop</button>
+          </div>
+        </div>
+      )
+    }
+
+    {
+      showSpectral && (
+        <div class="pleco-spectral">
+          <h3>Spectral Analysis</h3>
+          <div class="spectral-info" id="spectralInfo">
+            --
+          </div>
+        </div>
+      )
+    }
   </div>
-  
+
   <slot />
 </div>
 
@@ -71,15 +87,15 @@ const {
     color: #fff;
     font-family: monospace;
   }
-  
+
   .pleco-upload {
     margin-bottom: 20px;
   }
-  
-  .pleco-upload input[type="file"] {
+
+  .pleco-upload input[type='file'] {
     display: none;
   }
-  
+
   .pleco-upload label {
     display: inline-block;
     padding: 10px 20px;
@@ -89,33 +105,35 @@ const {
     cursor: pointer;
     transition: background 0.2s;
   }
-  
+
   .pleco-upload label:hover {
     background: #0052a3;
   }
-  
+
   .pleco-results {
     display: grid;
     gap: 20px;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
-  
-  .pleco-bpm, .pleco-loops, .pleco-spectral {
+
+  .pleco-bpm,
+  .pleco-loops,
+  .pleco-spectral {
     background: #222;
     padding: 15px;
     border-radius: 4px;
   }
-  
+
   .bpm-value {
     font-size: 2em;
     font-weight: bold;
     color: #00ff00;
   }
-  
+
   .loop-controls {
     margin-top: 10px;
   }
-  
+
   .loop-controls button {
     margin-right: 10px;
     padding: 8px 16px;
@@ -125,125 +143,133 @@ const {
     border-radius: 4px;
     cursor: pointer;
   }
-  
+
   .loop-controls button:hover {
     background: #555;
   }
-  
+
   .loop-controls button.active {
     background: #0066cc;
   }
 </style>
 
 <script>
-  import { detectBPM } from '@/core/analysis/BPMDetector.js';
-  import { LoopPlayer } from '@/classes/LoopPlayer.js';
+  import { detectBPM } from '../scripts/analysis/BPMDetector.js'
+  import { LoopPlayer } from '../scripts/LoopPlayer.js'
   // Updated import for loop analysis based on user feedback
-  import { analyzeLoop as librosaLoopAnalysis } from '@/core/analysis/LoopAnalyzer.js';
+  import { analyzeLoop as librosaLoopAnalysis } from '../scripts/analysis/LoopAnalyzer.js'
   // Updated import paths for spectral functions based on user feedback
-  import { computeRMS } from '@/utils/audio-utils.js';
-  import { spectralCentroid } from '@/core/xa-spectral.js';
+  import { computeRMS } from '../scripts/audio-utils.js'
+  import { spectralCentroid } from '../scripts/xa-spectral.js'
 
-  let currentPlayer = null;
+  let currentPlayer = null
 
   document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('plecoFileInput');
-    const resultsDiv = document.getElementById('plecoResults');
-    const bpmValue = document.getElementById('bpmValue');
-    const bpmConfidence = document.getElementById('bpmConfidence');
-    const loopInfo = document.getElementById('loopInfo');
-    const spectralInfo = document.getElementById('spectralInfo');
-    const playBtn = document.getElementById('playLoop');
-    const stopBtn = document.getElementById('stopLoop');
+    const fileInput = document.getElementById('plecoFileInput')
+    const resultsDiv = document.getElementById('plecoResults')
+    const bpmValue = document.getElementById('bpmValue')
+    const bpmConfidence = document.getElementById('bpmConfidence')
+    const loopInfo = document.getElementById('loopInfo')
+    const spectralInfo = document.getElementById('spectralInfo')
+    const playBtn = document.getElementById('playLoop')
+    const stopBtn = document.getElementById('stopLoop')
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {
-        const target = e.target as HTMLInputElement;
-        const file = target.files?.[0];
-        if (!file) return;
+        const target = e.target as HTMLInputElement
+        const file = target.files?.[0]
+        if (!file) return
 
         try {
           // Load audio
-          const AudioContextConstructor = window.AudioContext || (window as any).webkitAudioContext;
-          const audioContext = new AudioContextConstructor();
-          const arrayBuffer = await file.arrayBuffer();
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+          const AudioContextConstructor =
+            window.AudioContext || (window as any).webkitAudioContext
+          const audioContext = new AudioContextConstructor()
+          const arrayBuffer = await file.arrayBuffer()
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
           // Analyze with Pleco Xa
-          const audioData = audioBuffer.getChannelData(0);
-          const bpmResult = await detectBPM(audioData, audioBuffer.sampleRate);
-          const analysisResult = await librosaLoopAnalysis(audioBuffer);
-          const analysis = analysisResult.best || { start: 0, end: audioBuffer.duration, length: audioBuffer.duration };
-          
+          const audioData = audioBuffer.getChannelData(0)
+          const bpmResult = await detectBPM(audioData, audioBuffer.sampleRate)
+          const analysisResult = await librosaLoopAnalysis(audioBuffer)
+          const analysis = analysisResult.best || {
+            start: 0,
+            end: audioBuffer.duration,
+            length: audioBuffer.duration,
+          }
+
           // Update UI
           if (bpmValue && bpmConfidence) {
-            bpmValue.textContent = `${bpmResult.bpm.toFixed(1)} BPM`;
-            bpmConfidence.textContent = `Confidence: ${(bpmResult.confidence * 100).toFixed(1)}%`;
+            bpmValue.textContent = `${bpmResult.bpm.toFixed(1)} BPM`
+            bpmConfidence.textContent = `Confidence: ${(bpmResult.confidence * 100).toFixed(1)}%`
           }
-          
+
           if (loopInfo) {
-            const loopDuration = analysis.end - analysis.start;
+            const loopDuration = analysis.end - analysis.start
             loopInfo.innerHTML = `
               <div>Start: ${analysis.start.toFixed(3)}s</div>
               <div>End: ${analysis.end.toFixed(3)}s</div>
               <div>Duration: ${loopDuration.toFixed(3)}s</div>
               <div>Musical: <!-- musicalDivision not available --></div>
-            `;
+            `
           }
-          
+
           if (spectralInfo) {
-            const spectralCentroidValues = spectralCentroid({ y: audioBuffer.getChannelData(0), sr: audioBuffer.sampleRate });
+            const spectralCentroidValues = spectralCentroid({
+              y: audioBuffer.getChannelData(0),
+              sr: audioBuffer.sampleRate,
+            })
             // Compute mean if array, or use directly if single value
-            const spectralCentroidValue = Array.isArray(spectralCentroidValues) 
-              ? spectralCentroidValues.reduce((sum, val) => sum + val, 0) / spectralCentroidValues.length 
-              : spectralCentroidValues;
-            const rms = computeRMS(audioBuffer);
+            const spectralCentroidValue = Array.isArray(spectralCentroidValues)
+              ? spectralCentroidValues.reduce((sum, val) => sum + val, 0) /
+                spectralCentroidValues.length
+              : spectralCentroidValues
+            const rms = computeRMS(audioBuffer)
             spectralInfo.innerHTML = `
               <div>Spectral Centroid: ${spectralCentroidValue.toFixed(0)} Hz</div>
               <div>RMS Energy: ${rms.toFixed(4)}</div>
-            `;
+            `
           }
 
           // Set up player
-          currentPlayer = new LoopPlayer(audioBuffer);
-          currentPlayer.setLoopPoints(analysis.start, analysis.end);
+          currentPlayer = new LoopPlayer(audioBuffer)
+          currentPlayer.setLoopPoints(analysis.start, analysis.end)
 
           // Show results
           if (resultsDiv) {
-            resultsDiv.style.display = 'block';
+            resultsDiv.style.display = 'block'
           }
 
           // Dispatch custom event for parent components
           const analysisEvent = new CustomEvent('plecoAnalysis', {
-            detail: { bpmResult, analysis, audioBuffer }
-          });
-          document.dispatchEvent(analysisEvent);
-
+            detail: { bpmResult, analysis, audioBuffer },
+          })
+          document.dispatchEvent(analysisEvent)
         } catch (error) {
-          console.error('Pleco analysis failed:', error);
+          console.error('Pleco analysis failed:', error)
         }
-      });
+      })
     }
 
     // Play/stop controls
     if (playBtn) {
       playBtn.addEventListener('click', async () => {
         if (currentPlayer) {
-          await currentPlayer.play();
-          playBtn.classList.add('active');
-          stopBtn?.classList.remove('active');
+          await currentPlayer.play()
+          playBtn.classList.add('active')
+          stopBtn?.classList.remove('active')
         }
-      });
+      })
     }
 
     if (stopBtn) {
       stopBtn.addEventListener('click', () => {
         if (currentPlayer) {
-          currentPlayer.stop();
-          stopBtn.classList.add('active');
-          playBtn?.classList.remove('active');
+          currentPlayer.stop()
+          stopBtn.classList.add('active')
+          playBtn?.classList.remove('active')
         }
-      });
+      })
     }
-  });
+  })
 </script>

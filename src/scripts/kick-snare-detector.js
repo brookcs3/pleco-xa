@@ -93,7 +93,7 @@ export function findKickSnareHit(audioData, sampleRate, loop) {
  */
 function checkFrequencySpread(windowData) {
   // Simple energy split - low vs high
-  const midPoint = Math.floor(windowData.length / 2)
+  // const midPoint = Math.floor(windowData.length / 2)
 
   // Apply simple high-pass and low-pass
   let lowEnergy = 0
