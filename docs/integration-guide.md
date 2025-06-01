@@ -43,8 +43,8 @@ import AWaves from '../components/AWaves.astro'
 
   <!-- Add the ScrollAudio component -->
   <ScrollAudio
-    loop1Url="/audio/loop1.mp3"
-    loop2Url="/audio/loop2.mp3"
+    loop1Url="/assets/audio/loop1.mp3"
+    loop2Url="/assets/audio/loop2.mp3"
     className="doppler-section"
   />
 

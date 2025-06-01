@@ -9,7 +9,7 @@ export { LoopAnalyzer } from './core/analysis/LoopAnalyzer.js'
 export { WaveformData } from './core/analysis/WaveformData.js'
 
 // Audio playback and control
-export { AudioPlayer } from './core/audio/AudioPlayer.js'
+export { AudioPlayer } from './core/assets/audio/AudioPlayer.js'
 export { LoopController } from './core/loop-controller.js'
 
 // Visualization components

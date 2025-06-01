@@ -1,6 +1,6 @@
 // ===== CORE IMPORTS =====
 // Main audio player and file handling
-// import { AudioPlayer } from './audio/AudioPlayer.js'
+// import { AudioPlayer } from './assets/audio/AudioPlayer.js'
 // import { loadFile, example, exampleBuffer } from './xa-file.js'
 import { loadFile } from './xa-file.js'
 
@@ -89,7 +89,7 @@ function setupEventListeners() {
   document.querySelectorAll('.sample-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.sample) {
-        loadSampleFile(`src/assets/audio/${btn.dataset.sample}`, btn.textContent)
+        loadSampleFile(`src/assets/assets/audio/${btn.dataset.sample}`, btn.textContent)
       }
     })
   })
@@ -876,7 +876,7 @@ dropZone.addEventListener('drop', async (e) => {
   dropZone.style.opacity = '1'
 
   const files = Array.from(e.dataTransfer.files)
-  const audioFile = files.find((file) => file.type.startsWith('audio/'))
+  const audioFile = files.find((file) => file.type.startsWith('assets/audio/'))
 
   if (audioFile) {
     try {

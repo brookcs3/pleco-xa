@@ -56,7 +56,7 @@ function setupEventListeners() {
   document.querySelectorAll('.sample-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.sample) {
-        loadSampleFile(`/src/audio/${btn.dataset.sample}`, btn.textContent)
+        loadSampleFile(`/src/assets/audio/${btn.dataset.sample}`, btn.textContent)
       }
     })
   })
@@ -844,7 +844,7 @@ dropZone.addEventListener('drop', async (e) => {
   dropZone.style.opacity = '1'
 
   const files = Array.from(e.dataTransfer.files)
-  const audioFile = files.find((file) => file.type.startsWith('audio/'))
+  const audioFile = files.find((file) => file.type.startsWith('assets/audio/'))
 
   if (audioFile) {
     try {

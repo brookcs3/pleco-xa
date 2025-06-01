@@ -9,9 +9,9 @@ examples/
 docs/
 
 # Exclude audio files from other directories
-public/audio/
-examples/frontend/audio/
-examples/demos/public/audio/
+public/assets/audio/
+examples/frontend/assets/audio/
+examples/demos/public/assets/audio/
 
 # Exclude other unnecessary files
 *.tgz

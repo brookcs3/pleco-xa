@@ -316,7 +316,7 @@ navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
 
 ## Examples
 
-See the `/examples` directory for complete working examples. Sample loops for these demos should be placed in the top-level `audio/` folder:
+See the `/examples` directory for complete working examples. Sample loops for these demos should be placed in the top-level `assets/audio/` folder:
 
 - **Demo** - [`demo.html`](examples/demo.html) loads Pleco Xa from the unpkg CDN
   for quick testing

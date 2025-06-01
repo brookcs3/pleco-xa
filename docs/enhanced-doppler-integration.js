@@ -422,6 +422,6 @@ export class EnhancedDopplerScroll extends DopplerScroll {
       offset += 2
     }
 
-    return new Blob([arrayBuffer], { type: 'audio/wav' })
+    return new Blob([arrayBuffer], { type: 'assets/audio/wav' })
   }
 }

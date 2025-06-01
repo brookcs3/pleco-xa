@@ -8,7 +8,7 @@ def test_recurrence_matrix():
     """Test librosa's recurrence_matrix to understand how it works"""
     
     # Load audio file
-    audio_file = "audio/ui.m4a"  # Use the test file
+    audio_file = "assets/audio/ui.m4a"  # Use the test file
     try:
         y, sr = librosa.load(audio_file, sr=None)
         print(f"Loaded audio: {len(y)} samples at {sr} Hz, duration: {len(y)/sr:.2f}s")

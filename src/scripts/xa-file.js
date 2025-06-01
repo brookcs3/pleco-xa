@@ -191,7 +191,7 @@ const audioCache = new AudioCache()
 export async function example(
   key,
   hq = false,
-  baseUrl = 'https://librosa.org/data/audio/',
+  baseUrl = 'https://librosa.org/data/assets/audio/',
 ) {
   // Validate example key
   if (!AUDIO_REGISTRY[key]) {
@@ -219,7 +219,7 @@ export async function example(
 
     const response = await fetch(baseUrl + filename, {
       headers: {
-        Accept: 'audio/*',
+        Accept: 'assets/audio/*',
       },
     })
 
@@ -255,7 +255,7 @@ export async function exampleBuffer(
   key,
   hq = false,
   audioContext = null,
-  baseUrl = 'https://librosa.org/data/audio/',
+  baseUrl = 'https://librosa.org/data/assets/audio/',
 ) {
   if (!audioContext) {
     audioContext = new (window.AudioContext ||
@@ -391,7 +391,7 @@ export function saveAudio(
   const wavData = _encodeWAV(audioData, sampleRate)
 
   // Create download link
-  const blob = new Blob([wavData], { type: 'audio/wav' })
+  const blob = new Blob([wavData], { type: 'assets/audio/wav' })
   const url = URL.createObjectURL(blob)
 
   const link = document.createElement('a')

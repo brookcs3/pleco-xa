@@ -235,7 +235,7 @@
             type="file"
             id="audioFile"
             class="file-input"
-            accept="audio/*"
+            accept="assets/audio/*"
           />
           <label for="audioFile" class="file-label" id="fileLabel">
             🎵 Choose Audio File
@@ -470,7 +470,7 @@
         btn.addEventListener('click', () => {
           console.log('Sample button clicked:', btn.dataset.sample)
           const sample = btn.dataset.sample
-          loadSampleFile(`/audio/${sample}`)
+          loadSampleFile(`/assets/audio/${sample}`)
         })
       })
 
