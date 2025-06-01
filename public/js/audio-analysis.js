@@ -364,7 +364,7 @@ function drawWaveform() {
 
   if (!currentAudioBuffer) return
 
-  // (audioData removed to fix TS warning)
+  const audioData = currentAudioBuffer.getChannelData(0); // Extract channel data
   const samplesPerPixel = Math.ceil(audioData.length / width)
 
   // Draw waveform
