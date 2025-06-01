@@ -5,7 +5,7 @@
  */
 
 // Core audio analysis modules
-export { BPMDetector } from './scripts/analysis/bpm-detector.js'
+export { BPMDetector } from './scripts/analysis/BPMDetector.js'
 export { LoopAnalyzer } from './scripts/analysis/LoopAnalyzer.js'
 export { WaveformData } from './scripts/analysis/WaveformData.js'
 
