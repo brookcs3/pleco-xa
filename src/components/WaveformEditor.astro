@@ -1,118 +1,6 @@
----
-/**
- * WaveformEditor - Interactive waveform component for Astro
- * Provides visual waveform editing with loop points
- */
-
-export interface Props {
-  width?: number;
-  height?: number;
-  showControls?: boolean;
-  class?: string;
-}
-
-const { 
-  width = 700,
-  height = 120,
-  showControls = true,
-  class: className = ''
-} = Astro.props;
----
-
-<div class={`pleco-waveform-editor ${className}`}>
-  <div class="waveform-upload">
-    <input type="file" id="waveformFileInput" accept="audio/*" />
-    <label for="waveformFileInput">Load Audio</label>
-  </div>
-  
-  <div class="waveform-container" id="waveformContainer" style="display: none;">
-    <canvas 
-      id="waveformCanvas" 
-      width={width} 
-      height={height}
-      class="waveform-canvas"
-    ></canvas>
-    
-    {showControls && (
-      <div class="waveform-controls">
-        <button id="playWaveform">Play</button>
-        <button id="stopWaveform">Stop</button>
-        <button id="resetLoop">Reset Loop</button>
-        <span class="loop-info" id="loopInfo">--</span>
-      </div>
-    )}
-  </div>
-  
-  <slot />
-</div>
-
-<style>
-  .pleco-waveform-editor {
-    background: #111;
-    padding: 20px;
-    border-radius: 8px;
-    color: #fff;
-  }
-  
-  .waveform-upload input[type="file"] {
-    display: none;
-  }
-  
-  .waveform-upload label {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #0066cc;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 15px;
-  }
-  
-  .waveform-container {
-    border: 1px solid #333;
-    border-radius: 4px;
-    background: #000;
-  }
-  
-  .waveform-canvas {
-    display: block;
-    cursor: crosshair;
-  }
-  
-  .waveform-controls {
-    padding: 10px;
-    background: #222;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-  
-  .waveform-controls button {
-    padding: 8px 16px;
-    background: #333;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .waveform-controls button:hover {
-    background: #555;
-  }
-  
-  .waveform-controls button.active {
-    background: #0066cc;
-  }
-  
-  .loop-info {
-    font-family: monospace;
-    color: #00ff00;
-    margin-left: auto;
-  }
-</style>
-
 <script>
-  import { librosaLoopAnalysis, WaveformEditor, LoopPlayer } from 'pleco-xa';
+  import WaveformEditor from '../components/WaveformEditor';
+  import LoopPlayer from '../components/LoopPlayer';
 
   let editor = null;
   let player = null;
@@ -137,13 +25,15 @@ const {
           const arrayBuffer = await file.arrayBuffer();
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-          // Analyze for optimal loop points
-          const analysis = await librosaLoopAnalysis(audioBuffer);
+          // Use placeholder loop points
+          const loopStart = 0;
+          const loopEnd = audioBuffer.duration;
 
           // Create editor
-          editor = new WaveformEditor(canvas, audioBuffer, analysis);
+          editor = new WaveformEditor(canvas, audioBuffer, { loopStart, loopEnd });
+          // Create player
           player = new LoopPlayer(audioBuffer);
-          player.setLoopPoints(analysis.loopStart, analysis.loopEnd);
+          player.setLoopPoints(loopStart, loopEnd);
 
           // Update loop info
           const updateLoopInfo = (start, end) => {
@@ -151,7 +41,7 @@ const {
             loopInfo.textContent = `${start.toFixed(3)}s - ${end.toFixed(3)}s (${duration.toFixed(3)}s)`;
           };
           
-          updateLoopInfo(analysis.loopStart, analysis.loopEnd);
+          updateLoopInfo(loopStart, loopEnd);
 
           // Listen for loop changes
           canvas.addEventListener('loopChange', (e) => {
@@ -199,16 +89,17 @@ const {
     if (resetBtn) {
       resetBtn.addEventListener('click', async () => {
         if (editor && player) {
-          // Re-run analysis to get fresh loop points
-          const analysis = await librosaLoopAnalysis(editor.audioBuffer);
-          editor.loopStart = analysis.loopStart;
-          editor.loopEnd = analysis.loopEnd;
+          // Reset loop points to placeholders
+          const loopStart = 0;
+          const loopEnd = editor.audioBuffer.duration;
+          editor.loopStart = loopStart;
+          editor.loopEnd = loopEnd;
           editor.draw();
-          player.setLoopPoints(analysis.loopStart, analysis.loopEnd);
+          player.setLoopPoints(loopStart, loopEnd);
           
           if (loopInfo) {
-            const duration = analysis.loopEnd - analysis.loopStart;
-            loopInfo.textContent = `${analysis.loopStart.toFixed(3)}s - ${analysis.loopEnd.toFixed(3)}s (${duration.toFixed(3)}s)`;
+            const duration = loopEnd - loopStart;
+            loopInfo.textContent = `${loopStart.toFixed(3)}s - ${loopEnd.toFixed(3)}s (${duration.toFixed(3)}s)`;
           }
         }
       });
