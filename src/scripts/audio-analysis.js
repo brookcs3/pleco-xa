@@ -1,6 +1,6 @@
 // ===== CORE IMPORTS =====
 // Main audio player and file handling
-// import { AudioPlayer } from './assets/audio/AudioPlayer.js'
+// import { AudioPlayer } from './audio/AudioPlayer.js'
 // import { loadFile, example, exampleBuffer } from './xa-file.js'
 import { loadFile } from './xa-file.js'
 
@@ -89,7 +89,7 @@ function setupEventListeners() {
   document.querySelectorAll('.sample-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.sample) {
-        loadSampleFile(`src/assets/assets/audio/${btn.dataset.sample}`, btn.textContent)
+        loadSampleFile(`src/assets/audio/${btn.dataset.sample}`, btn.textContent)
       }
     })
   })
@@ -222,10 +222,22 @@ async function analyzeAudio() {
 
     // Use fast BPM detection for real-time performance
     console.log('🥁 Detecting BPM...')
-    let bpm = fastBPMDetect(currentAudioBuffer, {
-      minBPM: 60,
-      maxBPM: 180,
-    })
+    let bpm;
+    try {
+      if (typeof fastBPMDetect !== 'undefined') {
+        bpm = fastBPMDetect(currentAudioBuffer, {
+          minBPM: 60,
+          maxBPM: 180,
+        });
+      } else {
+        throw new Error('fastBPMDetect function not available');
+      }
+    } catch (error) {
+      console.error('❌ fastBPMDetect not found or failed:', error);
+      // Fallback to a default BPM
+      bpm = 120;
+      console.log('⚠️ Using fallback BPM: 120 due to missing fastBPMDetect');
+    }
 
     // Simple sanity correction:
     // - very fast values (>160) are likely *double*; halve them
@@ -876,7 +888,7 @@ dropZone.addEventListener('drop', async (e) => {
   dropZone.style.opacity = '1'
 
   const files = Array.from(e.dataTransfer.files)
-  const audioFile = files.find((file) => file.type.startsWith('assets/audio/'))
+  const audioFile = files.find((file) => file.type.startsWith('audio/'))
 
   if (audioFile) {
     try {
