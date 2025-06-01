@@ -1,7 +1,7 @@
 import {
   musicalLoopAnalysis,
   analyzeLoopPoints,
-} from '../core/loop-analyzer.js'
+} from 'src/core/loop-analyzer'
 import { AudioContext } from 'web-audio-test-api'
 
 function createLoopBuffer(loopLengthSeconds, repeats, sampleRate = 44100) {

@@ -62,8 +62,12 @@ export function computeZeroCrossingRate(audioBuffer) {
  * @param {number} sampleRate - Sample rate
  * @param {number} threshold - Silence threshold (default 0.01)
  * @returns {number} Sample index where audio content starts
+ * @throws {Error} If channelData is undefined or empty
  */
 export function findAudioStart(channelData, sampleRate, threshold = 0.01) {
+  if (!channelData || channelData.length === 0) {
+    throw new Error("Audio channel data is undefined or empty");
+  }
   const windowSize = Math.floor(sampleRate * 0.1) // 100ms windows
 
   for (let i = 0; i < channelData.length - windowSize; i += windowSize) {

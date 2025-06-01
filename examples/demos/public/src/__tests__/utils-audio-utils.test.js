@@ -1,4 +1,4 @@
-import { findZeroCrossing, findAudioStart, applyHannWindow } from '../../../../../src/utils/audio-utils.js';
+import { findZeroCrossing, findAudioStart, applyHannWindow } from 'src/utils/audio-utils';
 
 describe('findZeroCrossing', () => {
   it('returns the index where a positive to negative transition occurs', () => {
