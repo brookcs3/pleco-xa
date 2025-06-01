@@ -89,7 +89,7 @@ function setupEventListeners() {
   document.querySelectorAll('.sample-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.sample) {
-        loadSampleFile(`/src/audio/${btn.dataset.sample}`, btn.textContent)
+        loadSampleFile(`src/assets/audio/${btn.dataset.sample}`, btn.textContent)
       }
     })
   })
@@ -169,8 +169,15 @@ async function loadSampleFile(url, name) {
 
     // Load audio file directly
     const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to load audio: HTTP ${response.status} ${response.statusText}`)
+    }
     const arrayBuffer = await response.arrayBuffer()
-    currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+    try {
+      currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+    } catch (decodeError) {
+      throw new Error(`Decoding failed: ${decodeError.message || 'Unknown decoding error'}`)
+    }
     // ---- DEBUG: print first 10 samples to verify audio ----
     try {
       console.log(
