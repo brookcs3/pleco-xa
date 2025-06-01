@@ -1,43 +1,44 @@
 // ===== CORE IMPORTS =====
 // Main audio player and file handling
-import { AudioPlayer } from '/src/core/audio/AudioPlayer.js'
-import { loadFile, example, exampleBuffer } from '/src/core/xa-file.js'
+// import { AudioPlayer } from './audio/AudioPlayer.js'
+// import { loadFile, example, exampleBuffer } from './xa-file.js'
+import { loadFile } from './xa-file.js'
 
 // Advanced BPM Detection
-import { detectBPM, fastBPMDetect } from '/src/core/analysis/BPMDetector.js'
+import { detectBPM, fastBPMDetect } from './analysis/BPMDetector.js'
 
 // Advanced beat tracking with phase detection
-import { BeatTracker } from '/src/core/xa-beat-tracker.js'
+import { BeatTracker } from './xa-beat-tracker.js'
 
 // Onset detection for transients
-import { onsetDetect, computeSpectralFlux } from '/src/core/xa-onset.js'
+// import { onsetDetect, computeSpectralFlux } from './xa-onset.js' // Commented out as unused per task warning
 
 // Spectral features with RMS energy
-import {
-  spectralCentroid,
-  spectralRolloff,
-  spectralBandwidth,
-  zeroCrossingRate,
-  rms,
-} from '/src/core/xa-spectral.js'
+// import {
+//   spectralCentroid,
+//   spectralRolloff,
+//   spectralBandwidth,
+//   zeroCrossingRate,
+//   rms,
+// } from './xa-spectral.js' // Commented out as unused per task warning
 
 // Chroma features for harmonic analysis
-import { chroma_stft, enhance_chroma } from '/src/core/xa-chroma.js'
+import { chroma_stft, enhance_chroma } from './xa-chroma.js'
 
 // Loop detection algorithms
-import { fastLoopAnalysis } from '/src/core/xa-loop.js'
-import { findPreciseLoop } from '/src/core/xa-precise-loop.js'
-import { findMusicalLoop, findDownbeatPhase } from '/src/core/xa-downbeat.js'
+import { fastLoopAnalysis } from './xa-loop.js'
+import { findPreciseLoop } from './xa-precise-loop.js'
+import { findMusicalLoop, findDownbeatPhase } from './xa-downbeat.js'
 
 // Audio utilities
 import {
   computeRMS,
   computePeak,
   computeZeroCrossingRate,
-} from '/src/utils/audio-utils.js'
+} from '../utils/audio-utils.js'
 
 // Dynamic zero crossing for clean loops
-import { DynamicZeroCrossing } from '/src/core/dynamic-zero-crossing.js'
+import { DynamicZeroCrossing } from './dynamic-zero-crossing.js'
 
 // ===== GLOBAL STATE =====
 let audioContext

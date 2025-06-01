@@ -3,9 +3,9 @@
  * Replaces the slow loop-analyzer.js with optimized implementations
  */
 
-import { onsetDetect, computeSTFT } from './xa-onset.js'
-import { beatTrack, estimateTempo } from './xa-beat.js'
-import { spectralCentroid, rms } from './xa-spectral.js'
+import { onsetDetect } from './xa-onset.js' // Commented out computeSTFT as unused per task warning
+import { beatTrack } from './xa-beat.js' // Commented out estimateTempo as unused per task warning
+// import { spectralCentroid, rms } from './xa-spectral.js' // Commented out as unused per task warning
 import { findMusicalLoop, findDownbeatPhase } from './xa-downbeat.js'
 import { findPreciseLoop } from './xa-precise-loop.js'
 
@@ -225,211 +225,211 @@ function smoothArray(arr, windowSize) {
 /**
  * Find downbeats (beat 1 of each bar) using onset strength patterns
  */
-function findDownbeats(audioData, beatResult, sampleRate) {
-  const beats = beatResult.beats
-  const tempo = beatResult.tempo
-  const beatsPerBar = 4 // Assume 4/4 time
-  const barDuration = (60 / tempo) * beatsPerBar
-
-  // Analyze onset strength at each beat
-  const beatStrengths = []
-  const frameSize = 2048
-
-  for (let i = 0; i < beats.length; i++) {
-    const beatTime = beats[i]
-    const beatSample = Math.floor(beatTime * sampleRate)
-
-    // Get a window around this beat
-    const startSample = Math.max(0, beatSample - frameSize / 2)
-    const endSample = Math.min(audioData.length, beatSample + frameSize / 2)
-
-    // Calculate energy/onset strength
-    let energy = 0
-    for (let j = startSample; j < endSample; j++) {
-      energy += audioData[j] * audioData[j]
-    }
-    energy = energy / (endSample - startSample)
-
-    beatStrengths.push({
-      time: beatTime,
-      strength: energy,
-      beatIndex: i,
-    })
-  }
-
-  // Find patterns - downbeats typically have higher energy
-  const downbeats = []
-
-  // Method 1: Every 4th beat (simple but effective for 4/4)
-  for (let i = 0; i < beatStrengths.length; i += 4) {
-    downbeats.push(beatStrengths[i].time)
-  }
-
-  // Method 2: Find local maxima in beat strength (more sophisticated)
-  const strongDownbeats = []
-  for (let i = 0; i < beatStrengths.length - 4; i++) {
-    // Check if this beat is stronger than surrounding beats
-    const current = beatStrengths[i].strength
-    let isStrongest = true
-
-    // Compare with next 3 beats
-    for (let j = 1; j <= 3; j++) {
-      if (
-        i + j < beatStrengths.length &&
-        beatStrengths[i + j].strength > current
-      ) {
-        isStrongest = false
-        break
-      }
-    }
-
-    if (isStrongest) {
-      strongDownbeats.push(beatStrengths[i].time)
-      i += 3 // Skip ahead to avoid duplicates
-    }
-  }
-
-  // Prefer strong downbeats if we found enough
-  if (strongDownbeats.length >= 4) {
-    console.log('Using energy-based downbeats')
-    return strongDownbeats
-  }
-
-  console.log('Using simple 4-beat downbeats')
-  return downbeats
-}
+// function findDownbeats(audioData, beatResult, sampleRate) {
+//   const beats = beatResult.beats
+//   const tempo = beatResult.tempo
+//   const beatsPerBar = 4 // Assume 4/4 time
+//   const barDuration = (60 / tempo) * beatsPerBar
+// 
+//   // Analyze onset strength at each beat
+//   const beatStrengths = []
+//   const frameSize = 2048
+// 
+//   for (let i = 0; i < beats.length; i++) {
+//     const beatTime = beats[i]
+//     const beatSample = Math.floor(beatTime * sampleRate)
+// 
+//     // Get a window around this beat
+//     const startSample = Math.max(0, beatSample - frameSize / 2)
+//     const endSample = Math.min(audioData.length, beatSample + frameSize / 2)
+// 
+//     // Calculate energy/onset strength
+//     let energy = 0
+//     for (let j = startSample; j < endSample; j++) {
+//       energy += audioData[j] * audioData[j]
+//     }
+//     energy = energy / (endSample - startSample)
+// 
+//     beatStrengths.push({
+//       time: beatTime,
+//       strength: energy,
+//       beatIndex: i,
+//     })
+//   }
+// 
+//   // Find patterns - downbeats typically have higher energy
+//   const downbeats = []
+// 
+//   // Method 1: Every 4th beat (simple but effective for 4/4)
+//   for (let i = 0; i < beatStrengths.length; i += 4) {
+//     downbeats.push(beatStrengths[i].time)
+//   }
+// 
+//   // Method 2: Find local maxima in beat strength (more sophisticated)
+//   const strongDownbeats = []
+//   for (let i = 0; i < beatStrengths.length - 4; i++) {
+//     // Check if this beat is stronger than surrounding beats
+//     const current = beatStrengths[i].strength
+//     let isStrongest = true
+// 
+//     // Compare with next 3 beats
+//     for (let j = 1; j <= 3; j++) {
+//       if (
+//         i + j < beatStrengths.length &&
+//         beatStrengths[i + j].strength > current
+//       ) {
+//         isStrongest = false
+//         break
+//       }
+//     }
+// 
+//     if (isStrongest) {
+//       strongDownbeats.push(beatStrengths[i].time)
+//       i += 3 // Skip ahead to avoid duplicates
+//     }
+//   }
+// 
+//   // Prefer strong downbeats if we found enough
+//   if (strongDownbeats.length >= 4) {
+//     console.log('Using energy-based downbeats')
+//     return strongDownbeats
+//   }
+// 
+//   console.log('Using simple 4-beat downbeats')
+//   return downbeats
+// } // Commented out as unused per task warning
 
 /**
  * Find loop candidates using beat positions and onset analysis
  */
-function findLoopCandidates(
-  audioData,
-  beatResult,
-  onsetResult,
-  sampleRate,
-  mainSection = null,
-  downbeats = [],
-) {
-  const beats = beatResult.beats
-  const onsets = onsetResult.onsetTimes
-  const duration = audioData.length / sampleRate
-  const beatDuration = 60 / beatResult.tempo
-
-  const candidates = []
-
-  // Musical divisions to test (in beats) - prioritize common loop lengths
-  const musicalDivisions = [8, 16, 4, 32, 2] // 2 bars, 4 bars, 1 bar, 8 bars, 1/2 bar (in priority order)
-
-  for (const numBeats of musicalDivisions) {
-    const loopDuration = numBeats * beatDuration
-
-    // Skip if loop would be too long
-    if (loopDuration > duration * 0.8 || loopDuration > 16) continue
-
-    // If we have downbeats, use them as starting points
-    if (downbeats.length > 0) {
-      // Try each downbeat as a potential loop start
-      for (const downbeatTime of downbeats) {
-        const endTime = downbeatTime + loopDuration
-
-        // Skip if outside main section
-        if (mainSection) {
-          if (downbeatTime < mainSection.start || endTime > mainSection.end)
-            continue
-        }
-
-        // Make sure we don't go past the end
-        if (endTime > duration) continue
-
-        // Find the closest downbeat for the end
-        let actualEndTime = endTime
-        for (const db of downbeats) {
-          if (Math.abs(db - endTime) < beatDuration / 2) {
-            actualEndTime = db
-            break
-          }
-        }
-
-        // Analyze this downbeat-aligned candidate
-        const candidate = analyzeLoopCandidate(
-          audioData,
-          downbeatTime,
-          actualEndTime,
-          numBeats,
-          sampleRate,
-          onsets,
-          1.2, // Boost confidence for downbeat-aligned loops
-        )
-
-        candidates.push(candidate)
-      }
-    } else {
-      // Fallback: Try different starting positions within main section
-      for (
-        let startBeatIdx = 0;
-        startBeatIdx < beats.length - numBeats;
-        startBeatIdx += Math.max(1, Math.floor(numBeats / 4))
-      ) {
-        const startTime = beats[startBeatIdx]
-        const endTime = startTime + loopDuration
-
-        // Skip if outside main section
-        if (mainSection) {
-          if (startTime < mainSection.start || endTime > mainSection.end)
-            continue
-        }
-
-        // Make sure we don't go past the end
-        if (endTime > duration) continue
-
-        // Find actual beat position for end (snap to grid)
-        const endBeatIdx = startBeatIdx + numBeats
-        const actualEndTime =
-          endBeatIdx < beats.length ? beats[endBeatIdx] : endTime
-
-        // Analyze this loop candidate
-        const candidate = analyzeLoopCandidate(
-          audioData,
-          startTime,
-          actualEndTime,
-          numBeats,
-          sampleRate,
-          onsets,
-        )
-
-        candidates.push(candidate)
-      }
-    }
-  }
-
-  // Add some onset-based candidates for non-beat-aligned loops
-  for (let i = 0; i < onsets.length - 1; i++) {
-    for (let j = i + 1; j < Math.min(i + 10, onsets.length); j++) {
-      const startTime = onsets[i]
-      const endTime = onsets[j]
-      const loopDuration = endTime - startTime
-
-      // Only consider reasonable loop lengths
-      if (loopDuration > 0.5 && loopDuration < 8) {
-        const numBeats = Math.round(loopDuration / beatDuration)
-
-        const candidate = analyzeLoopCandidate(
-          audioData,
-          startTime,
-          endTime,
-          numBeats,
-          sampleRate,
-          onsets,
-          0.8, // Lower confidence for non-beat-aligned
-        )
-
-        candidates.push(candidate)
-      }
-    }
-  }
-
-  return candidates
-}
+// function findLoopCandidates(
+//   audioData,
+//   beatResult,
+//   onsetResult,
+//   sampleRate,
+//   mainSection = null,
+//   downbeats = [],
+// ) {
+//   const beats = beatResult.beats
+//   const onsets = onsetResult.onsetTimes
+//   const duration = audioData.length / sampleRate
+//   const beatDuration = 60 / beatResult.tempo
+// 
+//   const candidates = []
+// 
+//   // Musical divisions to test (in beats) - prioritize common loop lengths
+//   const musicalDivisions = [8, 16, 4, 32, 2] // 2 bars, 4 bars, 1 bar, 8 bars, 1/2 bar (in priority order)
+// 
+//   for (const numBeats of musicalDivisions) {
+//     const loopDuration = numBeats * beatDuration
+// 
+//     // Skip if loop would be too long
+//     if (loopDuration > duration * 0.8 || loopDuration > 16) continue
+// 
+//     // If we have downbeats, use them as starting points
+//     if (downbeats.length > 0) {
+//       // Try each downbeat as a potential loop start
+//       for (const downbeatTime of downbeats) {
+//         const endTime = downbeatTime + loopDuration
+// 
+//         // Skip if outside main section
+//         if (mainSection) {
+//           if (downbeatTime < mainSection.start || endTime > mainSection.end)
+//             continue
+//         }
+// 
+//         // Make sure we don't go past the end
+//         if (endTime > duration) continue
+// 
+//         // Find the closest downbeat for the end
+//         let actualEndTime = endTime
+//         for (const db of downbeats) {
+//           if (Math.abs(db - endTime) < beatDuration / 2) {
+//             actualEndTime = db
+//             break
+//           }
+//         }
+// 
+//         // Analyze this downbeat-aligned candidate
+//         const candidate = analyzeLoopCandidate(
+//           audioData,
+//           downbeatTime,
+//           actualEndTime,
+//           numBeats,
+//           sampleRate,
+//           onsets,
+//           1.2, // Boost confidence for downbeat-aligned loops
+//         )
+// 
+//         candidates.push(candidate)
+//       }
+//     } else {
+//       // Fallback: Try different starting positions within main section
+//       for (
+//         let startBeatIdx = 0;
+//         startBeatIdx < beats.length - numBeats;
+//         startBeatIdx += Math.max(1, Math.floor(numBeats / 4))
+//       ) {
+//         const startTime = beats[startBeatIdx]
+//         const endTime = startTime + loopDuration
+// 
+//         // Skip if outside main section
+//         if (mainSection) {
+//           if (startTime < mainSection.start || endTime > mainSection.end)
+//             continue
+//         }
+// 
+//         // Make sure we don't go past the end
+//         if (endTime > duration) continue
+// 
+//         // Find actual beat position for end (snap to grid)
+//         const endBeatIdx = startBeatIdx + numBeats
+//         const actualEndTime =
+//           endBeatIdx < beats.length ? beats[endBeatIdx] : endTime
+// 
+//         // Analyze this loop candidate
+//         const candidate = analyzeLoopCandidate(
+//           audioData,
+//           startTime,
+//           actualEndTime,
+//           numBeats,
+//           sampleRate,
+//           onsets,
+//         )
+// 
+//         candidates.push(candidate)
+//       }
+//     }
+//   }
+// 
+//   // Add some onset-based candidates for non-beat-aligned loops
+//   for (let i = 0; i < onsets.length - 1; i++) {
+//     for (let j = i + 1; j < Math.min(i + 10, onsets.length); j++) {
+//       const startTime = onsets[i]
+//       const endTime = onsets[j]
+//       const loopDuration = endTime - startTime
+// 
+//       // Only consider reasonable loop lengths
+//       if (loopDuration > 0.5 && loopDuration < 8) {
+//         const numBeats = Math.round(loopDuration / beatDuration)
+// 
+//         const candidate = analyzeLoopCandidate(
+//           audioData,
+//           startTime,
+//           endTime,
+//           numBeats,
+//           sampleRate,
+//           onsets,
+//           0.8, // Lower confidence for non-beat-aligned
+//         )
+// 
+//         candidates.push(candidate)
+//       }
+//     }
+//   }
+// 
+//   return candidates
+// } // Commented out as unused per task warning
 
 /**
  * Analyze a specific loop candidate for quality
@@ -541,111 +541,111 @@ function crossCorrelation(segment1, segment2) {
 /**
  * Analyze musical structure when we can't test looping
  */
-function analyzeMusicalStructure(segment, sampleRate) {
-  // Simple energy analysis - good loops have consistent energy
-  const frameSize = 1024
-  const numFrames = Math.floor(segment.length / frameSize)
-
-  if (numFrames < 2) return 0
-
-  const energies = []
-  for (let i = 0; i < numFrames; i++) {
-    const start = i * frameSize
-    const frame = segment.slice(start, start + frameSize)
-    const energy =
-      frame.reduce((sum, sample) => sum + sample * sample, 0) / frameSize
-    energies.push(energy)
-  }
-
-  // Calculate energy variance (lower variance = more consistent = better loop)
-  const meanEnergy = energies.reduce((sum, e) => sum + e, 0) / energies.length
-  const variance =
-    energies.reduce((sum, e) => sum + Math.pow(e - meanEnergy, 2), 0) /
-    energies.length
-
-  // Convert to confidence (lower variance = higher confidence)
-  return Math.max(0, 1 - variance / (meanEnergy * meanEnergy))
-}
+// function analyzeMusicalStructure(segment, sampleRate) {
+//   // Simple energy analysis - good loops have consistent energy
+//   const frameSize = 1024
+//   const numFrames = Math.floor(segment.length / frameSize)
+// 
+//   if (numFrames < 2) return 0
+// 
+//   const energies = []
+//   for (let i = 0; i < numFrames; i++) {
+//     const start = i * frameSize
+//     const frame = segment.slice(start, start + frameSize)
+//     const energy =
+//       frame.reduce((sum, sample) => sum + sample * sample, 0) / frameSize
+//     energies.push(energy)
+//   }
+// 
+//   // Calculate energy variance (lower variance = more consistent = better loop)
+//   const meanEnergy = energies.reduce((sum, e) => sum + e, 0) / energies.length
+//   const variance =
+//     energies.reduce((sum, e) => sum + Math.pow(e - meanEnergy, 2), 0) /
+//     energies.length
+// 
+//   // Convert to confidence (lower variance = higher confidence)
+//   return Math.max(0, 1 - variance / (meanEnergy * meanEnergy))
+// } // Commented out as unused per task warning
 
 /**
  * Select the best loop from candidates
  */
-function selectBestLoop(candidates, audioData, sampleRate) {
-  if (candidates.length === 0) {
-    // Fallback: use middle section of track
-    const duration = audioData.length / sampleRate
-    const loopDuration = Math.min(4, duration * 0.5)
-    const startTime = (duration - loopDuration) / 2
-
-    return {
-      start: startTime,
-      end: startTime + loopDuration,
-      confidence: 0.5,
-      musicalDivision: 2,
-      correlation: 0,
-    }
-  }
-
-  // Sort by confidence
-  candidates.sort((a, b) => b.confidence - a.confidence)
-
-  const best = candidates[0]
-
-  console.log(
-    `🏆 Best loop: ${best.start.toFixed(3)}s - ${best.end.toFixed(3)}s`,
-  )
-  console.log(
-    `🎵 ${best.musicalDivision} bars, confidence: ${best.confidence.toFixed(3)}`,
-  )
-
-  return best
-}
+// function selectBestLoop(candidates, audioData, sampleRate) {
+//   if (candidates.length === 0) {
+//     // Fallback: use middle section of track
+//     const duration = audioData.length / sampleRate
+//     const loopDuration = Math.min(4, duration * 0.5)
+//     const startTime = (duration - loopDuration) / 2
+// 
+//     return {
+//       start: startTime,
+//       end: startTime + loopDuration,
+//       confidence: 0.5,
+//       musicalDivision: 2,
+//       correlation: 0,
+//     }
+//   }
+// 
+//   // Sort by confidence
+//   candidates.sort((a, b) => b.confidence - a.confidence)
+// 
+//   const best = candidates[0]
+// 
+//   console.log(
+//     `🏆 Best loop: ${best.start.toFixed(3)}s - ${best.end.toFixed(3)}s`,
+//   )
+//   console.log(
+//     `🎵 ${best.musicalDivision} bars, confidence: ${best.confidence.toFixed(3)}`,
+//   )
+// 
+//   return best
+// } // Commented out as unused per task warning
 
 /**
  * Snap loop boundaries to nearest beat if within tolerance
  */
-function snapToNearestBeat(loop, beats, tempo) {
-  const beatDuration = 60 / tempo
-  const tolerance = beatDuration * 0.25 // Within 1/4 beat
-
-  // Find nearest beat to start
-  let nearestStartBeat = loop.start
-  let minStartDiff = tolerance
-
-  for (const beat of beats) {
-    const diff = Math.abs(beat - loop.start)
-    if (diff < minStartDiff) {
-      minStartDiff = diff
-      nearestStartBeat = beat
-    }
-  }
-
-  // Find nearest beat to end
-  let nearestEndBeat = loop.end
-  let minEndDiff = tolerance
-
-  for (const beat of beats) {
-    const diff = Math.abs(beat - loop.end)
-    if (diff < minEndDiff) {
-      minEndDiff = diff
-      nearestEndBeat = beat
-    }
-  }
-
-  // Log if we made corrections
-  if (nearestStartBeat !== loop.start || nearestEndBeat !== loop.end) {
-    console.log(
-      `🔧 Phase correction: moved start ${(nearestStartBeat - loop.start).toFixed(3)}s, end ${(nearestEndBeat - loop.end).toFixed(3)}s`,
-    )
-  }
-
-  return {
-    ...loop,
-    start: nearestStartBeat,
-    end: nearestEndBeat,
-    phaseCorrection: {
-      startDiff: nearestStartBeat - loop.start,
-      endDiff: nearestEndBeat - loop.end,
-    },
-  }
-}
+// function snapToNearestBeat(loop, beats, tempo) {
+//   const beatDuration = 60 / tempo
+//   const tolerance = beatDuration * 0.25 // Within 1/4 beat
+// 
+//   // Find nearest beat to start
+//   let nearestStartBeat = loop.start
+//   let minStartDiff = tolerance
+// 
+//   for (const beat of beats) {
+//     const diff = Math.abs(beat - loop.start)
+//     if (diff < minStartDiff) {
+//       minStartDiff = diff
+//       nearestStartBeat = beat
+//     }
+//   }
+// 
+//   // Find nearest beat to end
+//   let nearestEndBeat = loop.end
+//   let minEndDiff = tolerance
+// 
+//   for (const beat of beats) {
+//     const diff = Math.abs(beat - loop.end)
+//     if (diff < minEndDiff) {
+//       minEndDiff = diff
+//       nearestEndBeat = beat
+//     }
+//   }
+// 
+//   // Log if we made corrections
+//   if (nearestStartBeat !== loop.start || nearestEndBeat !== loop.end) {
+//     console.log(
+//       `🔧 Phase correction: moved start ${(nearestStartBeat - loop.start).toFixed(3)}s, end ${(nearestEndBeat - loop.end).toFixed(3)}s`,
+//     )
+//   }
+// 
+//   return {
+//     ...loop,
+//     start: nearestStartBeat,
+//     end: nearestEndBeat,
+//     phaseCorrection: {
+//       startDiff: nearestStartBeat - loop.start,
+//       endDiff: nearestEndBeat - loop.end,
+//     },
+//   }
+// } // Commented out as unused per task warning

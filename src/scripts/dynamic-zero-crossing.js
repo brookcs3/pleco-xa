@@ -107,7 +107,7 @@ export class DynamicZeroCrossing {
    * @param {Object} crossfadeInfo - Crossfade configuration
    * @returns {{ fadeIn: Float32Array, fadeOut: Float32Array, length: number }} - Crossfade data object
    */
-  static generateMicroCrossfade(audioData, crossfadeInfo) {
+  static generateMicroCrossfade(crossfadeInfo) {
     const { crossfadeDuration } = crossfadeInfo
     const fadeLength = Math.min(crossfadeDuration, 441) // Max 10ms at 44.1kHz
 

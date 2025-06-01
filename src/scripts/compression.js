@@ -4,7 +4,7 @@
  * Part of Pleco Xa audio analysis engine
  */
 
-import { debugLog } from '../utils/debug.js'
+import { debugLog } from './debug.js'
 
 /**
  * Pitch-based audio compression (changes both pitch and tempo)

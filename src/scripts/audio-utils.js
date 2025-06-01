@@ -1,3 +1,6 @@
+/**
+ * Audio utility functions for processing and manipulating audio data.
+ */
 // @ts-check
 /**
  * Create a loopable AudioBuffer with custom waveform, multichannel support, and export options.
@@ -102,6 +105,34 @@ export function exportBufferAsWav(buffer) {
   }
 
   return new Blob([view], { type: 'audio/wav' })
+}
+
+/**
+ * Compute the Root Mean Square (RMS) energy of an audio buffer.
+ *
+ * @param {AudioBuffer} audioBuffer - The AudioBuffer to analyze.
+ * @returns {number} - The RMS energy value.
+ */
+export function computeRMS(audioBuffer) {
+  const numChannels = audioBuffer.numberOfChannels;
+  let totalSumOfSquares = 0;
+  let totalSamples = 0;
+  
+  for (let channel = 0; channel < numChannels; channel++) {
+    const data = audioBuffer.getChannelData(channel);
+    const length = data.length;
+    let sumOfSquares = 0;
+    
+    for (let i = 0; i < length; i++) {
+      sumOfSquares += data[i] * data[i];
+    }
+    
+    totalSumOfSquares += sumOfSquares;
+    totalSamples += length;
+  }
+  
+  if (totalSamples === 0) return 0;
+  return Math.sqrt(totalSumOfSquares / totalSamples);
 }
 
 /**

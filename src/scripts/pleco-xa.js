@@ -3,8 +3,8 @@
  * This is the main entry point for the Pleco-XA library
  */
 
-import { AudioPlayer } from './core/audio/AudioPlayer.js'
-import { LoopController } from './core/loop-controller.js'
+import { AudioPlayer } from './analysis/AudioPlayer.js'
+import { LoopController } from './loop-controller.js'
 
 export class PlecoXA {
   constructor(options = {}) {
@@ -14,7 +14,7 @@ export class PlecoXA {
     this.currentSource = null
     this.audioContext =
       options.audioContext ||
-      new (window.AudioContext || window.webkitAudioContext)()
+      new (window.AudioContext || window.webkitAudioContext || function() { throw new Error('AudioContext not supported'); })()
     this.currentLoop = { start: 0, end: 1 }
     this.currentBPM = 0
   }

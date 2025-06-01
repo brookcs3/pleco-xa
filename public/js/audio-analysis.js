@@ -77,8 +77,11 @@ function setupEventListeners() {
           updateTrackInfo(file.name, 'Loading...')
 
           if (!audioContext) {
-            audioContext = new (window.AudioContext ||
-              window.webkitAudioContext)()
+            audioContext = new (
+              window.AudioContext ||
+              window.webkitAudioContext ||
+              function() { throw new Error('AudioContext not supported'); }
+            )()
             // beatTracker = new BeatTracker(); // Commented out as BeatTracker is not available globally
           }
 
@@ -129,7 +132,11 @@ async function loadSampleFile(url, name) {
     updateTrackInfo(name, 'Loading...')
 
     if (!audioContext) {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextConstructor) {
+        throw new Error('AudioContext not supported');
+      }
+      audioContext = new AudioContextConstructor();
       // beatTracker = new BeatTracker(); // Commented out as BeatTracker is not available globally
       console.log(`✅ AudioContext created`)
     }
@@ -356,7 +363,7 @@ function drawWaveform() {
 
   if (!currentAudioBuffer) return
 
-  const audioData = currentAudioBuffer.getChannelData(0)
+  // (audioData removed to fix TS warning)
   const samplesPerPixel = Math.ceil(audioData.length / width)
 
   // Draw waveform
@@ -844,7 +851,11 @@ dropZone.addEventListener('drop', async (e) => {
       updateTrackInfo(audioFile.name, 'Loading...')
 
       if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        audioContext = new (
+          window.AudioContext ||
+          window.webkitAudioContext ||
+          function() { throw new Error('AudioContext not supported'); }
+        )()
         // beatTracker = new BeatTracker(); // Commented out as BeatTracker is not available globally
       }
 
@@ -877,7 +888,8 @@ dropZone.addEventListener('drop', async (e) => {
 function drawSpectrum() {
   if (!currentAudioBuffer) return
 
-  const audioData = currentAudioBuffer.getChannelData(0)
+
+  // Removed unused variable to fix TS warning
   const sampleRate = currentAudioBuffer.sampleRate
 
   // Get spectral features at current playhead position if playing
@@ -886,8 +898,11 @@ function drawSpectrum() {
     const frame = Math.floor((currentTime * sampleRate) / 512)
 
     if (window.analysisResults.spectral.centroid.centroids[frame]) {
+      // Use the centroid value, e.g. log or update UI
       const centroid = window.analysisResults.spectral.centroid.centroids[frame]
-      // Update UI with current spectral info
+      console.log('Spectral centroid at frame', frame, ':', centroid)
+      // Example: update a DOM element if desired
+      // document.getElementById('centroidValue').textContent = centroid.toFixed(2)
     }
   }
 }

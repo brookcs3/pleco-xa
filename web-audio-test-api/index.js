@@ -26,3 +26,5 @@ class AudioContext {
 }
 
 module.exports = { AudioContext, AudioBuffer }
+
+const ctx = new (window.AudioContext || window.webkitAudioContext || function() { throw new Error('AudioContext not supported'); })()
