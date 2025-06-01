@@ -83,6 +83,8 @@ export function findAudioStart(channelData, sampleRate, threshold = 0.01) {
     }
   }
 
+  // If no audio content is found, log for debugging and return fallback
+  console.warn("No audio content found above the threshold");
   return 0 // Fallback to beginning
 }
 

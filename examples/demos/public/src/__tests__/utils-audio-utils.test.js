@@ -29,6 +29,11 @@ describe('findAudioStart', () => {
     const sampleRate = 10;
     expect(findAudioStart(channelData, sampleRate)).toBe(0);
   });
+
+  it('throws an error when channelData is undefined or empty', () => {
+    expect(() => findAudioStart(undefined, 10)).toThrow("Audio channel data is undefined or empty");
+    expect(() => findAudioStart(new Float32Array(), 10)).toThrow("Audio channel data is undefined or empty");
+  });
 });
 
 describe('applyHannWindow', () => {
