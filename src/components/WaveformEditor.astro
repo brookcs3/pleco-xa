@@ -1,6 +1,6 @@
 <script>
-  import WaveformEditor from '../components/WaveformEditor';
-  import LoopPlayer from '../components/LoopPlayer';
+  import { WaveformEditor } from '../scripts/WaveformEditor.js';
+  import { LoopPlayer } from '../scripts/LoopPlayer.js';
 
   let editor = null;
   let player = null;
@@ -16,12 +16,12 @@
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
+        const file = (e.target as HTMLInputElement).files?.[0];
         if (!file) return;
 
         try {
           // Load audio
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
           const arrayBuffer = await file.arrayBuffer();
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
@@ -45,7 +45,7 @@
 
           // Listen for loop changes
           canvas.addEventListener('loopChange', (e) => {
-            const { loopStart, loopEnd } = e.detail;
+            const { loopStart, loopEnd } = (e as CustomEvent).detail;
             player.setLoopPoints(loopStart, loopEnd);
             updateLoopInfo(loopStart, loopEnd);
             
