@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'astro/config';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
@@ -13,10 +12,10 @@ export default defineConfig({
 
   scopedStyleStrategy: 'class',
 
-server: {
+  server: {
     host: true,
   },
-vite: {
+  vite: {
     resolve: {
       alias: {
         '@/': `${path.resolve(__dirname, 'src')}/`
@@ -31,6 +30,9 @@ vite: {
     },
     build: {
       assetsInlineLimit: 0,
+    },
+    preview: {
+      allowedHosts: ['healthcheck.railway.app'],
     },
   },
 
