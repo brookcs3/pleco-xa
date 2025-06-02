@@ -7,7 +7,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "npm start",
+    "startCommand": "node ./dist/server/entry.mjs",
     "sleepApplication": false,
     "healthcheckPath": "/health",
     "healthcheckTimeout": 10,
