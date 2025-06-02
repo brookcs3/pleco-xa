@@ -1,21 +1,17 @@
 import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// https://astro.build/config
-
 export default defineConfig({
   site: 'https://pleco-xa.com',
-
   scopedStyleStrategy: 'class',
-
   server: {
     host: true,
   },
-
   vite: {
     resolve: {
       alias: {
@@ -36,7 +32,8 @@ export default defineConfig({
       allowedHosts: ['healthcheck.railway.app'],
     },
   },
-
+  adapter: node(),
+  output: 'server',
   devToolbar: {
     enabled: false,
   },

@@ -10,6 +10,7 @@
     "start": "astro preview --port $PORT --host"
   },
   "dependencies": {
+    "@astrojs/node": "^9.2.2",
     "astro": "5.8.1",
     "autoprefixer": "^10.4.21",
     "gsap": "^3.13.0",
