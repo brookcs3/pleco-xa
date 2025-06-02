@@ -5,7 +5,8 @@
   "description": "Browser-native audio analysis library for intelligent loop detection and BPM tracking",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "start": "npm build" ,
+    "build": "npm install && astro build",
     "analyze": "node analyze.js"
   },
   "dependencies": {
