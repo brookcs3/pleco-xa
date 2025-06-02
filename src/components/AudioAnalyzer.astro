@@ -359,7 +359,7 @@ const {
   let animationFrameId = null;
   
   // Import analysis modules
-  import { detectBPM } from '../scripts/xa-bpm-detection.js';
+  import { detectBPM, detectBPMWindow } from '../scripts/analysis/BPMDetector.js';
   import { findLoop, manipulateLoop } from '../scripts/xa-loop-detection.js';
   
   // Initialize state
@@ -367,6 +367,7 @@ const {
   let audioProcessor;
   let currentAudioBuffer = null;
   let isPlaying = false;
+  let currentBeats = []; // Store beat times from BPM detection
   
   // Initialize audio processor when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
@@ -402,7 +403,7 @@ const {
     
     // File input
     document.getElementById('audioFileInput')?.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
+      const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         try {
           updateTrackInfo(file.name, 'Loading...');
@@ -442,14 +443,40 @@ const {
     
     // Loop controls
     document.getElementById('detectLoopBtn')?.addEventListener('click', async () => {
-      if (!currentAudioBuffer) return;
+      if (!currentAudioBuffer) {
+        showError('No audio loaded. Please load an audio file first.');
+        return;
+      }
       
       try {
-        const loopResult = await findLoop(currentAudioBuffer);
+        // Show loading state
+        const detectBtn = document.getElementById('detectLoopBtn');
+        const originalText = detectBtn.textContent;
+        detectBtn.textContent = '⏳ Detecting...';
+        detectBtn.disabled = true;
+        
+        // Force a small delay to ensure UI updates
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        // Run loop detection
+        const loopResult = await findLoop(currentAudioBuffer, {
+          bpmHint: parseFloat(document.getElementById('bpmValue').textContent) || 120
+        });
+        
+        // Apply loop points
         audioProcessor.setLoopPoints(loopResult.start, loopResult.end);
         updateLoopInfo(loopResult);
         drawWaveform(currentAudioBuffer, 'waveformCanvas', loopResult);
+        
+        // Reset button state
+        detectBtn.textContent = originalText;
+        detectBtn.disabled = false;
+        
+        // Show success message
+        showError('Loop detected successfully!');
       } catch (error) {
+        document.getElementById('detectLoopBtn').textContent = '🔍 Detect Loop';
+        document.getElementById('detectLoopBtn').disabled = false;
         showError(`Loop detection failed: ${error.message}`);
       }
     });
@@ -608,13 +635,27 @@ const {
       // Then do BPM analysis in the background with setTimeout
       setTimeout(async () => {
         try {
-          // Analyze the audio (BPM detection)
+          // Detect initial BPM for all files using the accurate method
           const bpmResult = await detectBPM(currentAudioBuffer);
-          document.getElementById('bpmValue').textContent = bpmResult.bpm.toFixed(1);
-          console.log('✅ BPM analysis complete');
+          let bpm = bpmResult.bpm;
+          
+          // Adjust BPM if it's likely a half-time misinterpretation
+          if (bpm < 80) {
+            const doubledBpm = bpm * 2;
+            if (doubledBpm <= 160) {
+              bpm = doubledBpm;
+              console.log('✅ Adjusted BPM from half-time:', bpm);
+            }
+          }
+          
+          // Store BPM for live updates and beat times for precise pulsing
+          window.currentBPM = bpm;
+          currentBeats = bpmResult.beats || [];
+          document.getElementById('bpmValue').textContent = bpm.toFixed(1);
+          console.log('✅ Initial BPM detected:', bpmResult.bpm, 'Adjusted to:', bpm, 'Beats stored:', currentBeats.length);
         } catch (bpmError) {
           console.error('❌ BPM detection error:', bpmError);
-          document.getElementById('bpmValue').textContent = '120';
+          document.getElementById('bpmValue').textContent = '--';
         }
       }, 100);
       
@@ -659,11 +700,17 @@ const {
     }
   }
   
-  // Animate waveform with playhead
+  // Animate waveform with playhead and perform live BPM detection
   function startWaveformAnimation() {
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
     }
+    
+    let lastBeatTime = 0;
+    let lastBPMUpdateTime = 0;
+    let currentBeatIndex = 0;
+    const beatInterval = window.currentBPM ? (60 / window.currentBPM) : 0.5; // Default to 120 BPM if not set
+    const bpmUpdateInterval = 2.0; // Update BPM every 2 seconds
     
     function animate() {
       if (!isPlaying || !currentAudioBuffer || !audioProcessor) return;
@@ -671,12 +718,100 @@ const {
       // Get current playback position
       const position = audioProcessor.getCurrentPosition();
       const loopPoints = audioProcessor.getLoopPoints();
+      const currentTimeInSeconds = position * currentAudioBuffer.duration;
       
       // Draw waveform with playhead
       drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints, {
         isPlaying: true,
         position: position
       });
+      
+      // Handle live BPM feedback with beat pulses and periodic updates
+      if (audioContext) {
+        const currentTime = audioContext.currentTime;
+        
+        // Pulse on beat using stored beat times if available
+        if (currentBeats.length > 0) {
+          // Determine loop boundaries in seconds
+          const loopStartTime = loopPoints.start * currentAudioBuffer.duration;
+          const loopEndTime = loopPoints.end * currentAudioBuffer.duration;
+          const isLooping = loopStartTime < loopEndTime && loopEndTime <= currentAudioBuffer.duration;
+          
+          // Find current beat based on playback position
+          if (isLooping) {
+            // Adjust for looping: map current time to within loop bounds for beat checking
+            if (currentTimeInSeconds >= loopStartTime && currentTimeInSeconds <= loopEndTime) {
+              // Find beats within loop range
+              if (currentBeatIndex >= currentBeats.length || currentBeats[currentBeatIndex] > loopEndTime) {
+                currentBeatIndex = currentBeats.findIndex(t => t >= loopStartTime);
+              }
+            } else if (currentTimeInSeconds > loopEndTime) {
+              // Reset to start of loop if past end
+              currentBeatIndex = currentBeats.findIndex(t => t >= loopStartTime);
+            }
+          }
+          
+          while (currentBeatIndex < currentBeats.length) {
+            const beatTime = currentBeats[currentBeatIndex];
+            if (isLooping && (beatTime < loopStartTime || beatTime > loopEndTime)) {
+              currentBeatIndex++;
+              continue; // Skip beats outside loop range
+            }
+            if (currentTimeInSeconds >= beatTime - 0.05 && currentTimeInSeconds <= beatTime + 0.05) {
+              const bpmElement = document.getElementById('bpmValue');
+              if (bpmElement) {
+                bpmElement.classList.add('beat-pulse');
+                setTimeout(() => bpmElement.classList.remove('beat-pulse'), 100);
+              }
+              currentBeatIndex++;
+              break;
+            } else if (currentTimeInSeconds < beatTime - 0.05) {
+              break; // Wait for next frame
+            }
+            currentBeatIndex++;
+          }
+          
+          // Reset index if past relevant beats, considering loop
+          if (currentBeatIndex >= currentBeats.length || (isLooping && currentBeats[currentBeatIndex] > loopEndTime)) {
+            currentBeatIndex = currentBeats.findIndex(t => t >= loopStartTime);
+            if (currentBeatIndex === -1) {
+              currentBeatIndex = 0;
+            }
+          }
+        } else if (window.currentBPM && currentTime - lastBeatTime >= beatInterval) {
+          // Fallback to interval-based pulsing if no beat data
+          const bpmElement = document.getElementById('bpmValue');
+          if (bpmElement) {
+            bpmElement.classList.add('beat-pulse');
+            setTimeout(() => bpmElement.classList.remove('beat-pulse'), 100);
+          }
+          lastBeatTime = currentTime;
+        }
+        
+        // Periodically update BPM with windowed analysis
+        if (currentTime - lastBPMUpdateTime >= bpmUpdateInterval) {
+          // Calculate current sample position
+          const currentSample = Math.floor(position * currentAudioBuffer.length);
+          // Perform windowed BPM detection (use a 4-second window)
+          detectBPMWindow(currentAudioBuffer, currentSample, 4.0).then(result => {
+            let bpm = result.bpm;
+            // Adjust BPM if it's likely a half-time misinterpretation
+            if (bpm < 80) {
+              const doubledBpm = bpm * 2;
+              if (doubledBpm <= 160) {
+                bpm = doubledBpm;
+                console.log('✅ Live adjusted BPM from half-time:', bpm);
+              }
+            }
+            window.currentBPM = bpm;
+            document.getElementById('bpmValue').textContent = bpm.toFixed(1);
+            console.log('✅ Live BPM updated:', bpm);
+          }).catch(error => {
+            console.error('❌ Live BPM update error:', error);
+          });
+          lastBPMUpdateTime = currentTime;
+        }
+      }
       
       animationFrameId = requestAnimationFrame(animate);
     }

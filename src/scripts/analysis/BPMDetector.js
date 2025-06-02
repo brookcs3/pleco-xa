@@ -35,6 +35,8 @@
  *
  * @param {AudioBuffer} audioBuffer - Web Audio API AudioBuffer
  * @param {BPMDetectionOptions} [options={}] - Detection options
+ * @param {number} [startSample=0] - Start sample index for windowed analysis
+ * @param {number} [endSample=null] - End sample index for windowed analysis
  * @returns {Promise<BPMResult>} Promise resolving to BPM detection result
  *
  * @example
@@ -55,7 +57,7 @@
  * console.log(`Confidence: ${result.confidence}`);
  * ```
  */
-export async function detectBPM(audioBuffer, options = {}) {
+export async function detectBPM(audioBuffer, options = {}, startSample = 0, endSample = null) {
   const opts = {
     minBPM: 60,
     maxBPM: 180,
@@ -67,20 +69,23 @@ export async function detectBPM(audioBuffer, options = {}) {
   }
 
   // Get mono channel data
-  const audioData = getMonoChannelData(audioBuffer)
-  const sampleRate = audioBuffer.sampleRate
+  const fullAudioData = getMonoChannelData(audioBuffer);
+  const sampleRate = audioBuffer.sampleRate;
+  
+  // Use a window of data if startSample and endSample are provided
+  const audioData = endSample ? fullAudioData.slice(startSample, endSample) : fullAudioData;
 
   // Calculate onset strength
   const onsetStrength = opts.useOnsetStrength
     ? await calculateOnsetStrength(audioData, sampleRate, opts)
-    : audioData
+    : audioData;
 
   // Find tempo using autocorrelation
-  const tempoResult = await findTempo(onsetStrength, sampleRate, opts)
+  const tempoResult = await findTempo(onsetStrength, sampleRate, opts);
 
   // Extract beats and onsets
-  const beats = extractBeats(onsetStrength, tempoResult.bpm, sampleRate, opts)
-  const onsets = extractOnsets(audioData, sampleRate, opts)
+  const beats = extractBeats(onsetStrength, tempoResult.bpm, sampleRate, opts);
+  const onsets = extractOnsets(audioData, sampleRate, opts);
 
   return {
     bpm: Math.round(tempoResult.bpm * 10) / 10,
@@ -93,6 +98,24 @@ export async function detectBPM(audioBuffer, options = {}) {
       sampleRate: sampleRate,
     },
   }
+}
+
+/**
+ * Detects BPM from a sliding window of audio data for live updates
+ *
+ * @param {AudioBuffer} audioBuffer - Web Audio API AudioBuffer
+ * @param {number} centerSample - Center sample index for the window
+ * @param {number} windowDuration - Duration of the window in seconds
+ * @param {BPMDetectionOptions} [options={}] - Detection options
+ * @returns {Promise<BPMResult>} Promise resolving to BPM detection result
+ */
+export async function detectBPMWindow(audioBuffer, centerSample, windowDuration, options = {}) {
+  const sampleRate = audioBuffer.sampleRate;
+  const windowSamples = Math.floor(windowDuration * sampleRate);
+  const startSample = Math.max(0, centerSample - Math.floor(windowSamples / 2));
+  const endSample = Math.min(audioBuffer.length, startSample + windowSamples);
+  
+  return await detectBPM(audioBuffer, options, startSample, endSample);
 }
 
 /**
