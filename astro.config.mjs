@@ -1,35 +1,31 @@
-import { defineConfig } from 'astro/config'
-import path, { dirname } from 'path'
-import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+import { defineConfig } from 'astro/config';
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// https://astro.build/config
 
 export default defineConfig({
   site: 'https://pleco-xa.com',
 
   scopedStyleStrategy: 'class',
 
-  server: {
+server: {
     host: true,
-    port: 3000,
   },
-
-  build: {
-    output: 'static',
-    assets: 'assets',
-  },
-
-  vite: {
+vite: {
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
-      },
+        '@/': `${path.resolve(__dirname, 'src')}/`
+      }
     },
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: `@use 'sass:math'; @use 'sass:map'; @use "@/styles/import" as *;`,
+          additionalData: `@use 'sass:math'; @use 'sass:map'; @use "@/styles/import" as *;`
         },
       },
     },
@@ -41,4 +37,4 @@ export default defineConfig({
   devToolbar: {
     enabled: false,
   },
-})
+});

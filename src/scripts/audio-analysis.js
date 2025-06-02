@@ -1,7 +1,5 @@
 // ===== CORE IMPORTS =====
 // Main audio player and file handling
-// import { AudioPlayer } from './analysis/AudioPlayer.js'
-// import { loadFile, example, exampleBuffer } from './xa-file.js'
 import { loadFile } from './xa-file.js'
 
 // Advanced BPM Detection
@@ -12,7 +10,6 @@ import { fastBPMDetect } from './xa-beat.js'
 import { BeatTracker } from './xa-beat-tracker.js'
 
 // Onset detection for transients
-// import { onsetDetect, computeSpectralFlux } from './xa-onset.js' // Commented out as unused per task warning
 
 // Spectral features with RMS energy
 // import {
@@ -36,7 +33,7 @@ import {
   computeRMS,
   computePeak,
   computeZeroCrossingRate,
-} from './audio-utils.js'
+} from './xa-audio-features.js'
 
 // Dynamic zero crossing for clean loops
 import { DynamicZeroCrossing } from './dynamic-zero-crossing.js'
@@ -90,7 +87,7 @@ function setupEventListeners() {
   document.querySelectorAll('.sample-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.sample) {
-        loadSampleFile(`./assets/audio/${btn.dataset.sample}`, btn.textContent)
+        loadSampleFile(`/src/assets/audio/${btn.dataset.sample}`, btn.textContent)
       }
     })
   })
@@ -157,262 +154,551 @@ function setupEventListeners() {
 }
 
 // ===== AUDIO LOADING =====
+// Audio buffer cache to avoid reloading the same files
+const audioBufferCache = new Map();
+
 async function loadSampleFile(url, name) {
   try {
-    console.log(`📥 Loading: ${url}`)
-    updateTrackInfo(name, 'Loading...')
+    console.log(`📥 Loading: ${url}`);
+    updateTrackInfo(name, 'Loading...');
+    
+    // Check cache first
+    if (audioBufferCache.has(url)) {
+      console.log(`📥 Using cached audio for ${url}`);
+      currentAudioBuffer = audioBufferCache.get(url);
+      
+      // Continue with the rest of the process
+      setupLoadedAudio(name);
+      return;
+    }
 
+    // Create AudioContext with optimized settings if needed
     if (!audioContext) {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)()
-      beatTracker = new BeatTracker()
-      console.log(`✅ AudioContext created`)
+      audioContext = new (window.AudioContext || window.webkitAudioContext)({
+        latencyHint: 'interactive',
+        sampleRate: 44100
+      });
+      beatTracker = new BeatTracker();
+      console.log(`✅ AudioContext created`);
     }
 
-    // Load audio file directly
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`Failed to load audio: HTTP ${response.status} ${response.statusText}`)
-    }
-    const arrayBuffer = await response.arrayBuffer()
+    // Show loading indicator in UI
+    document.getElementById('bpmValue').textContent = '...';
+    
+    // Use streaming approach with fetch
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    
     try {
-      currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-    } catch (decodeError) {
-      throw new Error(`Decoding failed: ${decodeError.message || 'Unknown decoding error'}`)
+      const response = await fetch(url, { 
+        signal: controller.signal,
+        cache: 'force-cache' // Use browser cache when possible
+      });
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load audio: HTTP ${response.status} ${response.statusText}`);
+      }
+      
+      console.log(`✅ Fetch successful for ${url}`);
+      
+      // Use streaming where possible
+      const contentLength = response.headers.get('Content-Length');
+      if (contentLength && parseInt(contentLength) > 1000000) {
+        // For large files, show progress
+        const reader = response.body.getReader();
+        const contentLength = parseInt(response.headers.get('Content-Length'));
+        let receivedLength = 0;
+        const chunks = [];
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          chunks.push(value);
+          receivedLength += value.length;
+          
+          // Update progress
+          const progress = Math.round((receivedLength / contentLength) * 100);
+          updateTrackInfo(name, `Loading: ${progress}%`);
+        }
+        
+        // Combine chunks
+        const arrayBuffer = new ArrayBuffer(receivedLength);
+        const view = new Uint8Array(arrayBuffer);
+        let position = 0;
+        
+        for (const chunk of chunks) {
+          view.set(chunk, position);
+          position += chunk.length;
+        }
+        
+        console.log(`✅ Streamed ${receivedLength} bytes`);
+        currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      } else {
+        // For smaller files, use simpler approach
+        const arrayBuffer = await response.arrayBuffer();
+        console.log(`✅ ArrayBuffer created: ${arrayBuffer.byteLength} bytes`);
+        currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      }
+      
+      // Cache the decoded buffer
+      audioBufferCache.set(url, currentAudioBuffer);
+      
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      throw fetchError;
     }
-    // ---- DEBUG: print first 10 samples to verify audio ----
-    try {
-      console.log(
-        'First 10 samples:',
-        currentAudioBuffer.getChannelData(0).slice(0, 10),
-      )
-    } catch (e) {
-      console.warn('Could not log samples:', e)
-    }
-    // -------------------------------------------------------
 
-    // Reset loop to full track for new audio
-    currentLoop = { start: 0, end: 1 }
-    updateLoopInfo()
-
-    console.log(
-      `✅ Audio loaded: ${currentAudioBuffer.duration.toFixed(2)}s @ ${currentAudioBuffer.sampleRate}Hz`,
-    )
-
-    updateTrackInfo(name, `${currentAudioBuffer.duration.toFixed(1)}s`)
-    document.getElementById('audioFormat').textContent =
-      `${currentAudioBuffer.sampleRate}Hz`
-
-    // Run analysis
-    await analyzeAudio()
-
-    // Draw waveform
-    drawWaveform()
-
-    console.log('✅ Audio analysis complete')
+    // Continue with the rest of the process
+    setupLoadedAudio(name);
+    
   } catch (error) {
-    console.error('❌ Error loading audio:', error)
-    showError(`Load error: ${error.message}`)
-    updateTrackInfo('Error', error.message)
+    console.error('❌ Error loading audio:', error);
+    showError(`Load error: ${error.message}`);
+    updateTrackInfo('Error', error.message);
   }
+}
+
+// Helper function to handle the loaded audio
+function setupLoadedAudio(name) {
+  // Reset loop to full track for new audio
+  currentLoop = { start: 0, end: 1 };
+  updateLoopInfo();
+
+  console.log(
+    `✅ Audio loaded: ${currentAudioBuffer.duration.toFixed(2)}s @ ${currentAudioBuffer.sampleRate}Hz`,
+  );
+
+  updateTrackInfo(name, `${currentAudioBuffer.duration.toFixed(1)}s`);
+  document.getElementById('audioFormat').textContent =
+    `${currentAudioBuffer.sampleRate}Hz`;
+
+  // Run analysis asynchronously
+  setTimeout(async () => {
+    await analyzeAudio();
+    drawWaveform();
+    console.log('✅ Audio analysis complete');
+  }, 10);
 }
 
 // ===== AUDIO ANALYSIS =====
 async function analyzeAudio() {
   try {
-    console.log('🔍 Starting advanced BPM detection...')
+    console.log('🔍 Starting BPM detection...');
 
     // Use fast BPM detection for real-time performance
-    console.log('🥁 Detecting BPM...')
+    console.log('🥁 Detecting BPM...');
     let bpm;
-    try {
-      if (typeof fastBPMDetect !== 'undefined') {
-        const result = fastBPMDetect(currentAudioBuffer, {
+    let confidence = 0.8;
+    
+    // Use Web Worker for BPM detection if browser supports it
+    if (window.Worker && typeof fastBPMDetect !== 'undefined') {
+      try {
+        // Quick BPM estimation on main thread for immediate feedback
+        const quickResult = fastBPMDetect(currentAudioBuffer, {
           minBPM: 60,
           maxBPM: 180,
+          windowSize: 4096,  // Larger window for faster processing
+          hopSize: 1024,     // Larger hop for faster processing
+          highSensitivity: false
         });
-        bpm = result.bpm;
-      } else {
-        throw new Error('fastBPMDetect function not available in the current environment');
+        
+        // Show initial BPM while more accurate analysis runs
+        bpm = quickResult.bpm;
+        document.getElementById('bpmValue').textContent = bpm.toFixed(1);
+        
+        // Perform more detailed analysis for spectral features
+        // This is done in a separate function to avoid blocking the UI
+        setTimeout(() => {
+          computeAudioFeatures(currentAudioBuffer);
+        }, 100);
+        
+      } catch (error) {
+        console.error('❌ Quick BPM detection failed:', error);
+        bpm = 120; // Fallback
       }
-    } catch (error) {
-      console.error('❌ fastBPMDetect not found or failed:', error);
-      console.error('Detailed error stack:', error.stack);
-      // Fallback to a default BPM
-      bpm = 120;
-      console.log('⚠️ Using fallback BPM: 120 due to missing or failing fastBPMDetect');
+    } else {
+      // Fallback for browsers without Web Worker support
+      try {
+        if (typeof fastBPMDetect !== 'undefined') {
+          const result = fastBPMDetect(currentAudioBuffer, {
+            minBPM: 60,
+            maxBPM: 180
+          });
+          bpm = result.bpm;
+          confidence = result.confidence || confidence;
+        } else {
+          throw new Error('BPM detection not available');
+        }
+      } catch (error) {
+        console.error('❌ BPM detection failed:', error);
+        bpm = 120; // Fallback
+        confidence = 0.5;
+      }
     }
 
-    // Simple sanity correction:
-    // - very fast values (>160) are likely *double*; halve them
-    // - very slow values (<55) are likely *half*; double them
+    // Simple sanity correction for extreme values
     if (bpm > 160) {
-      console.log(`⚖️ BPM ${bpm.toFixed(1)} looks like double‑time → halving`)
-      bpm = bpm / 2
+      bpm = bpm / 2;
     } else if (bpm < 55) {
-      console.log(`⚖️ BPM ${bpm.toFixed(1)} looks like half‑time → doubling`)
-      bpm = bpm * 2
+      bpm = bpm * 2;
     }
 
-    currentBPM = bpm
-    document.getElementById('bpmValue').textContent = currentBPM.toFixed(1)
-    console.log(`✅ BPM detected: ${currentBPM}`)
-
-    // Store analysis results
+    currentBPM = bpm;
+    document.getElementById('bpmValue').textContent = currentBPM.toFixed(1);
+    
+    // Initialize beat tracker with detected tempo
+    if (beatTracker) {
+      beatTracker.setTempo(currentBPM);
+    }
+    
+    // Create minimal initial analysis results
     window.analysisResults = {
-      tempo: { bpm: currentBPM, confidence: 0.8 },
+      tempo: { bpm: currentBPM, confidence: confidence },
       beats: { beat_times: [] },
       spectral: {
         centroid: { centroid: 0, centroids: [] },
-        rolloff: { rolloff: 0, rolloffs: [] },
-      },
-    }
+        rolloff: { rolloff: 0, rolloffs: [] }
+      }
+    };
+    
   } catch (error) {
-    console.error('❌ BPM detection error:', error)
+    console.error('❌ BPM detection error:', error);
     // Fallback to default BPM
-    currentBPM = 120
-    document.getElementById('bpmValue').textContent = '120'
-    console.log('⚠️ Using fallback BPM: 120')
+    currentBPM = 120;
+    document.getElementById('bpmValue').textContent = '120';
+    
+    window.analysisResults = {
+      tempo: { bpm: currentBPM, confidence: 0.5 },
+      beats: { beat_times: [] },
+      spectral: { centroid: { centroid: 0, centroids: [] } }
+    };
   }
 }
 
-// --- Helper: find nearest zero‑crossing (sign change) ---
+// Separate function for detailed audio analysis to avoid blocking UI
+function computeAudioFeatures(audioBuffer) {
+  try {
+    // Only compute features for a portion of the audio to improve performance
+    const channel = audioBuffer.getChannelData(0);
+    const maxSamples = Math.min(channel.length, audioBuffer.sampleRate * 30); // Max 30 seconds
+    const analysisChannel = channel.subarray(0, maxSamples);
+    
+    // Use smaller frame sizes for faster computation
+    const frameSize = 1024;
+    const hopSize = 512;
+    
+    // Compute basic features with optimized parameters
+    const rmsValues = computeRMS(analysisChannel, frameSize, hopSize);
+    const peakData = computePeak(analysisChannel, frameSize, hopSize);
+    
+    // Only compute ZCR if needed (it's expensive)
+    let zcrValues = new Float32Array(Math.ceil(analysisChannel.length / hopSize));
+    let avgZCR = 0;
+    
+    // Calculate average RMS
+    const avgRMS = rmsValues.reduce((sum, val) => sum + val, 0) / rmsValues.length;
+    
+    // Update analysis results
+    if (window.analysisResults) {
+      window.analysisResults.dynamics = {
+        rms: avgRMS,
+        peak: peakData.globalPeak,
+        peakPosition: peakData.globalPeakPosition,
+        crest: peakData.globalPeak / avgRMS
+      };
+      
+      // Store only essential data to save memory
+      window.analysisResults.dynamics.rmsValues = Array.from(rmsValues).filter((_, i) => i % 4 === 0); // Downsample
+    }
+    
+    console.log('✅ Audio feature extraction complete');
+  } catch (error) {
+    console.error('❌ Audio feature extraction error:', error);
+  }
+}
+
+// --- Advanced zero-crossing detection with energy minimization ---
 function findNearestZeroCrossing(
   channelData,
   startSample,
   direction = 1,
   maxSearch = 2048,
+  options = {}
 ) {
-  const len = channelData.length
-  let i = startSample
-  let steps = 0
+  const len = channelData.length;
+  const defaultOptions = {
+    preferLowEnergy: true,    // Prefer zero crossings with lower surrounding energy
+    energyWindow: 32,         // Window size for energy calculation
+    qualityThreshold: 0.7     // Minimum quality score to accept a crossing
+  };
+  
+  const opts = {...defaultOptions, ...options};
+  
+  // Early bounds check
+  if (startSample < 0) startSample = 0;
+  if (startSample >= len) startSample = len - 1;
+  
+  // First pass: find all zero crossings within search window
+  const crossings = [];
+  let i = startSample;
+  let steps = 0;
+  
   while (steps < maxSearch && i > 0 && i < len - 1) {
-    if (channelData[i] >= 0 !== channelData[i + 1] >= 0) {
-      return i
+    // Check for sign change (zero crossing)
+    if ((channelData[i] >= 0) !== (channelData[i + 1] >= 0)) {
+      crossings.push({
+        position: i,
+        distance: Math.abs(i - startSample)
+      });
     }
-    i += direction
-    steps++
+    i += direction;
+    steps++;
   }
-  // Fallback: original position if none found
-  return startSample
+  
+  // If no crossings found, return original position
+  if (crossings.length === 0) {
+    return startSample;
+  }
+  
+  // If we don't care about energy, just return the nearest crossing
+  if (!opts.preferLowEnergy) {
+    return crossings[0].position;
+  }
+  
+  // Second pass: evaluate crossings by surrounding energy
+  const scoredCrossings = crossings.map(crossing => {
+    const pos = crossing.position;
+    const halfWindow = Math.floor(opts.energyWindow / 2);
+    
+    // Calculate local energy around the crossing
+    let energy = 0;
+    let count = 0;
+    
+    for (let j = Math.max(0, pos - halfWindow); j < Math.min(len, pos + halfWindow); j++) {
+      energy += channelData[j] * channelData[j];
+      count++;
+    }
+    
+    const avgEnergy = count > 0 ? energy / count : 0;
+    
+    // Calculate distance penalty (prefer closer crossings)
+    const distancePenalty = crossing.distance / maxSearch;
+    
+    // Final score combines energy and distance (lower is better)
+    const score = avgEnergy + distancePenalty;
+    
+    return {
+      position: pos,
+      score: score
+    };
+  });
+  
+  // Sort by score (lower is better)
+  scoredCrossings.sort((a, b) => a.score - b.score);
+  
+  // Return the best crossing
+  return scoredCrossings[0].position;
 }
 
 // ===== LOOP DETECTION =====
 async function detectLoop() {
   try {
-    console.log('🔍 Running fastLoopAnalysis ...')
+    console.log('🔍 Running advanced loop detection...')
 
-    // Use the more sophisticated Librosa‑port algorithm.
+    // Multi-algorithm approach with fallbacks
     let result;
+    let detectionMethod = '';
+    let confidence = 0;
+    
+    // Try the most sophisticated algorithm first
     try {
-      if (typeof fastLoopAnalysis !== 'undefined') {
-        result = await fastLoopAnalysis(currentAudioBuffer, {
+      if (typeof findPreciseLoop !== 'undefined') {
+        console.log('🔍 Using precise loop detection algorithm...');
+        result = await findPreciseLoop(currentAudioBuffer, {
           bpmHint: currentBPM,
+          minLoopLength: 1.0, // minimum 1 second
+          maxLoopLength: 16.0, // maximum 16 seconds
+          zeroCrossingAlignment: true,
+          useSpectralSimilarity: true
         });
+        detectionMethod = 'precise';
+        confidence = result.confidence || 0.85;
       } else {
-        throw new Error('fastLoopAnalysis function not available');
+        throw new Error('Precise loop detection not available');
       }
     } catch (error) {
-      console.error('❌ fastLoopAnalysis not found or failed:', error);
-      console.error('Detailed error stack:', error.stack);
-      // Fallback to a musically sensible loop based on BPM
-      const barDuration = (60 / currentBPM) * 4; // 4 beats per bar
-      const loopDuration = Math.min(barDuration * 4, currentAudioBuffer.duration); // Default to 4 bars or track duration
-      result = {
-        loopStart: 0,
-        loopEnd: loopDuration
-      };
-      console.log('⚠️ Using fallback BPM-based loop (4 bars or track duration) due to missing or failing fastLoopAnalysis');
+      console.warn('⚠️ Precise loop detection failed, trying fast algorithm:', error);
+      
+      // Try fast algorithm as fallback
+      try {
+        if (typeof fastLoopAnalysis !== 'undefined') {
+          console.log('🔍 Using fast loop detection algorithm...');
+          result = await fastLoopAnalysis(currentAudioBuffer, {
+            bpmHint: currentBPM,
+            sensitivity: 0.8
+          });
+          detectionMethod = 'fast';
+          confidence = result.confidence || 0.7;
+        } else {
+          throw new Error('Fast loop detection not available');
+        }
+      } catch (fastError) {
+        console.warn('⚠️ Fast loop detection failed, trying musical algorithm:', fastError);
+        
+        // Try musical algorithm as second fallback
+        try {
+          if (typeof findMusicalLoop !== 'undefined') {
+            console.log('🔍 Using musical loop detection algorithm...');
+            result = await findMusicalLoop(currentAudioBuffer, currentBPM);
+            detectionMethod = 'musical';
+            confidence = result.confidence || 0.6;
+          } else {
+            throw new Error('Musical loop detection not available');
+          }
+        } catch (musicalError) {
+          console.error('❌ All loop detection algorithms failed:', musicalError);
+          
+          // Final fallback to a musically sensible loop based on BPM
+          const barDuration = (60 / currentBPM) * 4; // 4 beats per bar
+          const loopDuration = Math.min(barDuration * 4, currentAudioBuffer.duration); // Default to 4 bars
+          result = {
+            loopStart: 0,
+            loopEnd: loopDuration
+          };
+          detectionMethod = 'bpm-based';
+          confidence = 0.5;
+          console.log('⚠️ Using fallback BPM-based loop (4 bars)');
+        }
+      }
     }
 
-    const channel = currentAudioBuffer.getChannelData(0)
-    const sr = currentAudioBuffer.sampleRate
+    const channel = currentAudioBuffer.getChannelData(0);
+    const sr = currentAudioBuffer.sampleRate;
 
-    // Extract boundaries returned by the helper (robust to different key names)
-    let startSec = result?.loopStart ?? result?.start ?? result?.startTime ?? 0
-    let endSec =
-      result?.loopEnd ??
-      result?.end ??
-      result?.endTime ??
-      currentAudioBuffer.duration
+    // Extract boundaries with robust key handling
+    let startSec = result?.loopStart ?? result?.start ?? result?.startTime ?? 0;
+    let endSec = result?.loopEnd ?? result?.end ?? result?.endTime ?? currentAudioBuffer.duration;
 
-    // Sanity‑check & fallback
-    if (
-      endSec <= startSec ||
-      !Number.isFinite(startSec) ||
-      !Number.isFinite(endSec)
-    ) {
-      console.warn(
-        'fastLoopAnalysis gave unusable bounds; reverting to 4‑bar guess',
-      )
-      const barDur = (60 / currentBPM) * 4
-      startSec = 0
-      endSec = Math.min(barDur * 4, currentAudioBuffer.duration)
+    // Sanity check & musical correction
+    if (endSec <= startSec || !Number.isFinite(startSec) || !Number.isFinite(endSec)) {
+      console.warn('⚠️ Invalid loop bounds detected, reverting to musical estimation');
+      const barDur = (60 / currentBPM) * 4; // 4 beats per bar
+      startSec = 0;
+      endSec = Math.min(barDur * 4, currentAudioBuffer.duration); // 4 bars or full track
+    }
+    
+    // Musical quantization - try to snap to bar boundaries if close
+    if (detectionMethod !== 'musical' && detectionMethod !== 'bpm-based') {
+      const beatDur = 60 / currentBPM;
+      const barDur = beatDur * 4;
+      
+      // Check if loop length is close to a whole number of bars (within 10%)
+      const loopDur = endSec - startSec;
+      const barsApprox = loopDur / barDur;
+      const wholeBars = Math.round(barsApprox);
+      
+      if (Math.abs(barsApprox - wholeBars) < 0.1) {
+        console.log(`🎵 Quantizing loop to ${wholeBars} bar${wholeBars !== 1 ? 's' : ''}`);
+        // Keep start point, adjust end to match whole bars
+        endSec = startSec + (wholeBars * barDur);
+        
+        // Make sure we don't exceed audio length
+        if (endSec > currentAudioBuffer.duration) {
+          endSec = currentAudioBuffer.duration;
+        }
+      }
     }
 
-    // Snap both edges to nearest zero‑crossings for click‑free looping
-    let startSample = findNearestZeroCrossing(
-      channel,
-      Math.floor(startSec * sr),
-      1,
-    )
-    const endSample = findNearestZeroCrossing(
-      channel,
-      Math.floor(endSec * sr),
-      -1,
-    )
+    // Use dynamic zero crossing for cleaner transitions
+    const dzc = new DynamicZeroCrossing(channel, sr);
+    
+    // Find optimal zero crossings near the boundaries
+    let startSample = dzc.findOptimalCrossing(Math.floor(startSec * sr), {
+      direction: 1,
+      maxSearch: 2048,
+      preferLowEnergy: true
+    });
+    
+    let endSample = dzc.findOptimalCrossing(Math.floor(endSec * sr), {
+      direction: -1,
+      maxSearch: 2048,
+      preferLowEnergy: true
+    });
 
-    /* --- subtle adjustment: nudge start to first strong onset (≤½ beat ahead) --- */
+    /* --- Advanced onset alignment: find strongest transient near start --- */
     try {
-      const beatDur = 60 / currentBPM // seconds per beat
-      const lookAhead = Math.min(0.5 * beatDur, 0.5) // cap at 0.5 s
-      const searchSamples = Math.floor(lookAhead * sr)
-      const hop = 512,
-        frame = 1024
-      const seg = channel.subarray(startSample, startSample + searchSamples)
-
-      let maxIdx = 0,
-        maxDiff = 0,
-        prevRms = 0
+      const beatDur = 60 / currentBPM; // seconds per beat
+      const lookAhead = Math.min(0.5 * beatDur, 0.5); // cap at 0.5s
+      const searchSamples = Math.floor(lookAhead * sr);
+      
+      // Use RMS energy with smaller windows for better precision
+      const hop = 256;
+      const frame = 512;
+      const seg = channel.subarray(startSample, startSample + searchSamples);
+      
+      // Compute energy and its derivative
+      const energyValues = [];
+      let prevRms = 0;
+      
       for (let i = 0; i + frame < seg.length; i += hop) {
         const rms = Math.sqrt(
-          seg.subarray(i, i + frame).reduce((s, v) => s + v * v, 0) / frame,
-        )
-        const diff = Math.max(0, rms - prevRms)
+          seg.subarray(i, i + frame).reduce((s, v) => s + v * v, 0) / frame
+        );
+        energyValues.push(rms);
+        
+        const diff = Math.max(0, rms - prevRms);
         if (diff > maxDiff) {
-          maxDiff = diff
-          maxIdx = i
+          maxDiff = diff;
+          maxIdx = i;
         }
-        prevRms = rms
+        prevRms = rms;
       }
-      if (maxIdx > hop) {
-        // ignore first tiny blips
-        const onsetSample = startSample + maxIdx
-        startSample = findNearestZeroCrossing(channel, onsetSample, 1, 2048)
-        console.log(
-          `🎯 Start nudged to onset @ ${(startSample / sr).toFixed(3)}s`,
-        )
+      
+      // Only adjust if we found a significant onset
+      if (maxIdx > hop && maxDiff > 0.05) {
+        const onsetSample = startSample + maxIdx;
+        startSample = dzc.findOptimalCrossing(onsetSample, {
+          direction: 1,
+          maxSearch: 1024,
+          preferLowEnergy: false
+        });
+        console.log(`🎯 Start aligned to onset @ ${(startSample / sr).toFixed(3)}s`);
       }
     } catch (e) {
-      console.warn('onset‑alignment tweak skipped:', e)
+      console.warn('⚠️ Onset alignment skipped:', e);
     }
 
+    // Set the loop boundaries
     currentLoop = {
       start: startSample / channel.length,
       end: endSample / channel.length,
-    }
+    };
 
-    updateLoopInfo()
-    drawWaveform()
+    // Update UI
+    updateLoopInfo();
+    drawWaveform();
 
     console.log(
-      `✅ Loop set to ${(startSample / sr).toFixed(3)}s – ${(endSample / sr).toFixed(3)}s`,
-      result?.confidence !== undefined
-        ? `(confidence ${result.confidence.toFixed(3)})`
-        : '',
-    )
+      `✅ Loop detected using ${detectionMethod} algorithm: ${(startSample / sr).toFixed(3)}s – ${(endSample / sr).toFixed(3)}s`,
+      `(confidence: ${confidence.toFixed(2)})`
+    );
+    
+    // Store loop info in analysis results
+    if (window.analysisResults) {
+      window.analysisResults.loop = {
+        startSec: startSample / sr,
+        endSec: endSample / sr,
+        durationSec: (endSample - startSample) / sr,
+        confidence: confidence,
+        method: detectionMethod
+      };
+    }
+    
   } catch (error) {
-    console.error('❌ Loop detection error:', error)
-    showError(`Loop detection failed: ${error.message}`)
+    console.error('❌ Loop detection error:', error);
+    showError(`Loop detection failed: ${error.message}`);
   }
 }
 

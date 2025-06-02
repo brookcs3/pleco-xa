@@ -1,10 +1,6 @@
 ---
-/**
- * LoopPlayer - Astro wrapper component for the LoopPlayer class
- * Provides basic file upload and playback controls
- */
-
-export interface Props {
+/** LoopPlayer - file upload and playback controls */
+interface Props {
   autoPlay?: boolean
   class?: string
 }
@@ -12,9 +8,9 @@ export interface Props {
 const { autoPlay = false, class: className = '' } = Astro.props
 ---
 
-<div class={`pleco-loop-player ${className}`}>
+<div class={`pleco-loop-player ${className}`} data-autoplay={autoPlay.toString()}>
   <div class="loop-upload">
-    <input type="file" id="loopFileInput" accept="assets/audio/*" />
+    <input type="file" id="loopFileInput" accept="audio/*" />
     <label for="loopFileInput">Load Loop</label>
   </div>
 
@@ -34,9 +30,7 @@ const { autoPlay = false, class: className = '' } = Astro.props
     color: #fff;
   }
 
-  .loop-upload input[type='file'] {
-    display: none;
-  }
+  .loop-upload input[type='file'] { display: none; }
 
   .loop-upload label {
     display: inline-block;
@@ -62,59 +56,84 @@ const { autoPlay = false, class: className = '' } = Astro.props
     cursor: pointer;
   }
 
-  .loop-controls button:hover {
-    background: #555;
-  }
+  .loop-controls button:hover { background: #555; }
 </style>
 
 <script>
   import { LoopPlayer } from '../scripts/LoopPlayer.js'
 
-  let player = null
-
+  // Create AudioContext once at the module level for better performance
+  let audioContext = null;
+  let player = null;
+  
   document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('loopFileInput')
-    const controls = document.getElementById('loopControls')
-    const playBtn = document.getElementById('playLoop')
-    const stopBtn = document.getElementById('stopLoop')
-    const autoPlay = false // Hardcoded for now, should be passed from props if needed
+    const elements = {
+      fileInput: document.getElementById('loopFileInput') as HTMLInputElement,
+      controls: document.getElementById('loopControls') as HTMLDivElement,
+      playBtn: document.getElementById('playLoop') as HTMLButtonElement,
+      stopBtn: document.getElementById('stopLoop') as HTMLButtonElement
+    }
+    
+    const autoPlay = (document.querySelector('.pleco-loop-player') as HTMLElement)?.dataset.autoplay === 'true'
 
-    if (fileInput) {
-      fileInput.addEventListener('change', async (e) => {
-        const target = e.target as HTMLInputElement
-        const file = target.files?.[0]
-        if (!file) return
-
-        try {
-          const AudioContextConstructor =
-            window.AudioContext || (window as any).webkitAudioContext
-          const audioContext = new AudioContextConstructor()
-          const arrayBuffer = await file.arrayBuffer()
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-
-          player = new LoopPlayer(audioBuffer)
-          player.setLoopPoints(0, audioBuffer.duration)
-
-          controls.style.display = 'flex'
-          if (autoPlay) {
-            await player.play()
-          }
-        } catch (error) {
-          console.error('LoopPlayer component failed:', error)
+    async function loadAudio(file) {
+      try {
+        // Show loading indicator
+        elements.fileInput.disabled = true;
+        elements.fileInput.nextElementSibling.textContent = "Loading...";
+        
+        // Create AudioContext only once
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
+            latencyHint: 'interactive',
+            sampleRate: 44100
+          });
         }
-      })
+        
+        // Use a more efficient approach to load audio
+        const reader = new FileReader();
+        
+        reader.onload = async (e) => {
+          try {
+            const arrayBuffer = e.target.result as ArrayBuffer;
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            
+            player = new LoopPlayer(audioBuffer, audioContext);
+            player.setLoopPoints(0, audioBuffer.duration);
+
+            elements.controls.style.display = 'flex';
+            elements.fileInput.disabled = false;
+            elements.fileInput.nextElementSibling.textContent = "Load Loop";
+            
+            if (autoPlay) await player.play();
+          } catch (decodeError) {
+            console.error('Audio decoding failed:', decodeError);
+            elements.fileInput.disabled = false;
+            elements.fileInput.nextElementSibling.textContent = "Load Loop (Error - Try Again)";
+          }
+        };
+        
+        reader.onerror = (err) => {
+          console.error('FileReader error:', err);
+          elements.fileInput.disabled = false;
+          elements.fileInput.nextElementSibling.textContent = "Load Loop (Error - Try Again)";
+        };
+        
+        // Start reading the file
+        reader.readAsArrayBuffer(file);
+      } catch (error) {
+        console.error('LoopPlayer component failed:', error);
+        elements.fileInput.disabled = false;
+        elements.fileInput.nextElementSibling.textContent = "Load Loop";
+      }
     }
 
-    playBtn?.addEventListener('click', async () => {
-      if (player) {
-        await player.play()
-      }
+    elements.fileInput?.addEventListener('change', e => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) loadAudio(file)
     })
 
-    stopBtn?.addEventListener('click', () => {
-      if (player) {
-        player.stop()
-      }
-    })
+    elements.playBtn?.addEventListener('click', () => player?.play())
+    elements.stopBtn?.addEventListener('click', () => player?.stop())
   })
 </script>

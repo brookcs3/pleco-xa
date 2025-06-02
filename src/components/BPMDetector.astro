@@ -1,27 +1,18 @@
 ---
-/**
- * BPMDetector - Simple BPM detection component for Astro
- * Focused component for just BPM analysis
- */
-
-export interface Props {
+/** BPM detection component for Astro */
+interface Props {
   showConfidence?: boolean
   autoDetect?: boolean
   threshold?: number
   class?: string
 }
 
-const {
-  showConfidence = true,
-  autoDetect = true,
-  threshold = 0.3,
-  class: className = '',
-} = Astro.props
+const { showConfidence = true, autoDetect = true, threshold = 0.3, class: className = '' } = Astro.props
 ---
 
 <div class={`pleco-bpm-detector ${className}`}>
   <div class="bpm-upload">
-    <input type="file" id="bpmFileInput" accept="assets/audio/*" />
+    <input type="file" id="bpmFileInput" accept="audio/*" />
     <label for="bpmFileInput">Detect BPM</label>
   </div>
 
@@ -110,12 +101,7 @@ const {
           const arrayBuffer = await file.arrayBuffer()
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
-          let result;
-          if (typeof fastBPMDetect !== 'undefined') {
-            result = fastBPMDetect(audioBuffer);
-          } else {
-            throw new Error('fastBPMDetect function not available in the current environment');
-          }
+          const result = fastBPMDetect(audioBuffer, { minBPM: 60, maxBPM: 180 })
 
           // Update display
           bpmValue.textContent = `${result.bpm.toFixed(1)} BPM`
