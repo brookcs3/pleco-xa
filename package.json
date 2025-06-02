@@ -2,6 +2,17 @@
   "name": "@brookcs3/pleco-xa",
   "version": "1.0.5",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Loop-aware audio analysis tools and utilities for Astro + WebAudio projects.",
+  "keywords": ["audio", "web-audio", "astro", "pleco", "bpm", "visualization"],
+  "license": "MIT",
+  "author": "Cameron Brooks <ca.br@me.com>",
+  "main": "dist/pleco-xa.js",
+  "exports": {
+    ".": "./dist/pleco-xa.js"
+  },
   "engines": {
     "node": ">=18.20.8"
   },

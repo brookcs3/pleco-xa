@@ -1,5 +1,0 @@
-// ${M}.js  – stub created by fix-and-deploy.sh
-export default () => {
-  console.warn('${M} is a stub – implementation coming soon.');
-  return null;
-};
