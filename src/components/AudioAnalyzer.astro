@@ -391,7 +391,7 @@ const {
     document.querySelectorAll('.sample-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         if (btn.dataset.sample) {
-          loadSampleFile(`/src/assets/audio/${btn.dataset.sample}`, btn.textContent);
+          loadSampleFile(`/audio/${btn.dataset.sample}`, btn.textContent);
         }
       });
     });
