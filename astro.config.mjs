@@ -32,7 +32,7 @@ export default defineConfig({
       allowedHosts: ['healthcheck.railway.app'],
     },
   },
-  adapter: node(),
+  adapter: node({ mode: 'standalone' }), 
   output: 'server',
   devToolbar: {
     enabled: false,
