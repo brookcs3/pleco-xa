@@ -6,9 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "npm build" ,
-    "build": "npm install && astro build",
-    "analyze": "node analyze.js"
-  },
+    "build": "npm install && astro build"
+    },
   "dependencies": {
     "astro": "5.8.1",
     "autoprefixer": "^10.4.21",
