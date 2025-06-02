@@ -190,10 +190,16 @@ async function analyzeAudio() {
 
     // Use fast BPM detection for real-time performance
     console.log('🥁 Detecting BPM...')
-    let bpm = fastBPMDetect(currentAudioBuffer, {
-      minBPM: 60,
-      maxBPM: 180,
-    })
+    let bpm;
+    if (typeof fastBPMDetect !== 'undefined') {
+      bpm = fastBPMDetect(currentAudioBuffer, {
+        minBPM: 60,
+        maxBPM: 180,
+      });
+    } else {
+      console.warn('⚠️ fastBPMDetect not available, using fallback BPM');
+      bpm = 120;
+    }
 
     // Simple sanity correction:
     // - very fast values (>160) are likely *double*; halve them
@@ -255,9 +261,18 @@ async function detectLoop() {
     console.log('🔍 Running fastLoopAnalysis ...')
 
     // Use the more sophisticated Librosa‑port algorithm.
-    const result = await fastLoopAnalysis(currentAudioBuffer, {
-      bpmHint: currentBPM,
-    })
+    let result;
+    if (typeof fastLoopAnalysis !== 'undefined') {
+      result = await fastLoopAnalysis(currentAudioBuffer, {
+        bpmHint: currentBPM,
+      });
+    } else {
+      console.warn('⚠️ fastLoopAnalysis not available, using fallback loop bounds');
+      result = {
+        loopStart: 0,
+        loopEnd: currentAudioBuffer.duration
+      };
+    }
 
     const channel = currentAudioBuffer.getChannelData(0)
     const sr = currentAudioBuffer.sampleRate

@@ -5,7 +5,8 @@
 import { loadFile } from './xa-file.js'
 
 // Advanced BPM Detection
-import { detectBPM, fastBPMDetect } from './analysis/BPMDetector.js'
+import { detectBPM } from './analysis/BPMDetector.js'
+import { fastBPMDetect } from './xa-beat.js'
 
 // Advanced beat tracking with phase detection
 import { BeatTracker } from './xa-beat-tracker.js'
@@ -225,18 +226,20 @@ async function analyzeAudio() {
     let bpm;
     try {
       if (typeof fastBPMDetect !== 'undefined') {
-        bpm = fastBPMDetect(currentAudioBuffer, {
+        const result = fastBPMDetect(currentAudioBuffer, {
           minBPM: 60,
           maxBPM: 180,
         });
+        bpm = result.bpm;
       } else {
-        throw new Error('fastBPMDetect function not available');
+        throw new Error('fastBPMDetect function not available in the current environment');
       }
     } catch (error) {
       console.error('❌ fastBPMDetect not found or failed:', error);
+      console.error('Detailed error stack:', error.stack);
       // Fallback to a default BPM
       bpm = 120;
-      console.log('⚠️ Using fallback BPM: 120 due to missing fastBPMDetect');
+      console.log('⚠️ Using fallback BPM: 120 due to missing or failing fastBPMDetect');
     }
 
     // Simple sanity correction:
@@ -310,12 +313,15 @@ async function detectLoop() {
       }
     } catch (error) {
       console.error('❌ fastLoopAnalysis not found or failed:', error);
-      // Fallback to full track loop
+      console.error('Detailed error stack:', error.stack);
+      // Fallback to a musically sensible loop based on BPM
+      const barDuration = (60 / currentBPM) * 4; // 4 beats per bar
+      const loopDuration = Math.min(barDuration * 4, currentAudioBuffer.duration); // Default to 4 bars or track duration
       result = {
         loopStart: 0,
-        loopEnd: currentAudioBuffer.duration
+        loopEnd: loopDuration
       };
-      console.log('⚠️ Using fallback full track loop due to missing fastLoopAnalysis');
+      console.log('⚠️ Using fallback BPM-based loop (4 bars or track duration) due to missing or failing fastLoopAnalysis');
     }
 
     const channel = currentAudioBuffer.getChannelData(0)

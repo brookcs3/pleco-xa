@@ -154,11 +154,9 @@ const {
 </style>
 
 <script>
-  import { detectBPM } from '../scripts/analysis/BPMDetector.js'
+  import { fastBPMDetect } from '../scripts/xa-beat.js'
+  import { fastLoopAnalysis } from '../scripts/xa-loop.js'
   import { LoopPlayer } from '../scripts/LoopPlayer.js'
-  // Updated import for loop analysis based on user feedback
-  import { analyzeLoop as librosaLoopAnalysis } from '../scripts/analysis/LoopAnalyzer.js'
-  // Updated import paths for spectral functions based on user feedback
   import { computeRMS } from '../scripts/audio-utils.js'
   import { spectralCentroid } from '../scripts/xa-spectral.js'
 
@@ -188,15 +186,41 @@ const {
           const arrayBuffer = await file.arrayBuffer()
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
-          // Analyze with Pleco Xa
-          const audioData = audioBuffer.getChannelData(0)
-          const bpmResult = await detectBPM(audioData, audioBuffer.sampleRate)
-          const analysisResult = await librosaLoopAnalysis(audioBuffer)
-          const analysis = analysisResult.best || {
-            start: 0,
-            end: audioBuffer.duration,
-            length: audioBuffer.duration,
+          // Analyze with Pleco Xa using fast functions
+          let bpmResult;
+          try {
+            if (typeof fastBPMDetect !== 'undefined') {
+              bpmResult = fastBPMDetect(audioBuffer);
+            } else {
+              throw new Error('fastBPMDetect function not available in the current environment');
+            }
+          } catch (error) {
+            console.error('❌ fastBPMDetect not found or failed:', error);
+            console.error('Detailed error stack:', error.stack);
+            bpmResult = { bpm: 120, confidence: 0 };
+            console.log('⚠️ Using fallback BPM: 120 due to missing or failing fastBPMDetect');
           }
+
+          let loopResult;
+          try {
+            if (typeof fastLoopAnalysis !== 'undefined') {
+              loopResult = await fastLoopAnalysis(audioBuffer);
+            } else {
+              throw new Error('fastLoopAnalysis function not available in the current environment');
+            }
+          } catch (error) {
+            console.error('❌ fastLoopAnalysis not found or failed:', error);
+            console.error('Detailed error stack:', error.stack);
+            const barDuration = (60 / bpmResult.bpm) * 4;
+            const loopDuration = Math.min(barDuration * 4, audioBuffer.duration);
+            loopResult = { loopStart: 0, loopEnd: loopDuration, confidence: 0 };
+            console.log('⚠️ Using fallback BPM-based loop due to missing or failing fastLoopAnalysis');
+          }
+
+          const analysis = {
+            start: loopResult.loopStart,
+            end: loopResult.loopEnd
+          };
 
           // Update UI
           if (bpmValue && bpmConfidence) {
@@ -210,7 +234,7 @@ const {
               <div>Start: ${analysis.start.toFixed(3)}s</div>
               <div>End: ${analysis.end.toFixed(3)}s</div>
               <div>Duration: ${loopDuration.toFixed(3)}s</div>
-              <div>Musical: <!-- musicalDivision not available --></div>
+              <div>Musical: ${loopResult.musicalDivision ? loopResult.musicalDivision.toFixed(1) + ' bars' : 'N/A'}</div>
             `
           }
 
