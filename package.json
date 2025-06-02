@@ -2,9 +2,6 @@
   "name": "@brookcs3/pleco-xa",
   "version": "1.0.5",
   "type": "module",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
   "engines": {
     "node": ">=18.20.8"
   },
