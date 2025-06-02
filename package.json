@@ -25,9 +25,8 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "start": "node server/entry.mjs",
+    "start": "astro preview",
     "build": "ROLLUP_NO_BINARY=true astro build",
-    "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write \"src/**/*.{js,astro,ts,jsx,tsx}\"",
     "prepublishOnly": "npm run bundle",
