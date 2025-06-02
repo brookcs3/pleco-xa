@@ -5,8 +5,9 @@
   "description": "Browser-native audio analysis library for intelligent loop detection and BPM tracking",
   "scripts": {
     "dev": "astro dev",
-    "start": "astro preview",
-    "build": "astro build"
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "astro preview"
     },
   "dependencies": {
     "astro": "5.8.1",
