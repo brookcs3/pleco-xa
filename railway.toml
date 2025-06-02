@@ -14,7 +14,7 @@ buildCommand = "npm install && npm run build"
 [deploy]
 runtime = "V2"
 numReplicas = 1
-startCommand = "astro preview"
+startCommand = "npm start"
 sleepApplication = false
 healthcheckPath = "/health"
 healthcheckTimeout = 10
