@@ -2,12 +2,12 @@
   "name": "pleco-xa",
   "version": "1.0.6",
   "type": "module",
+  "description": "Browser-native audio analysis library for intelligent loop detection and BPM tracking",
   "scripts": {
     "dev": "astro dev",
-    "start": "astro dev",
+    "start": "astro preview",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "analyze": "node analyze.js"
   },
   "dependencies": {
     "astro": "5.8.1",
@@ -18,8 +18,3 @@
     "sass": "^1.89.0"
   }
 }
-
-
-
-  
-

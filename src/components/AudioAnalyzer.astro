@@ -455,30 +455,139 @@ const {
     });
     
     // Other loop manipulation buttons
-    document.getElementById('halfLoopBtn')?.addEventListener('click', () => 
-      manipulateLoop('half', audioProcessor, currentAudioBuffer));
+    document.getElementById('halfLoopBtn')?.addEventListener('click', () => {
+      if (!currentAudioBuffer || !audioProcessor) return;
+      const newLoop = manipulateLoop('half', audioProcessor, currentAudioBuffer);
+      updateLoopInfo(newLoop);
+      drawWaveform(currentAudioBuffer, 'waveformCanvas', newLoop);
+    });
     
-    document.getElementById('doubleLoopBtn')?.addEventListener('click', () => 
-      manipulateLoop('double', audioProcessor, currentAudioBuffer));
+    document.getElementById('doubleLoopBtn')?.addEventListener('click', () => {
+      if (!currentAudioBuffer || !audioProcessor) return;
+      const newLoop = manipulateLoop('double', audioProcessor, currentAudioBuffer);
+      updateLoopInfo(newLoop);
+      drawWaveform(currentAudioBuffer, 'waveformCanvas', newLoop);
+    });
     
-    document.getElementById('moveForwardBtn')?.addEventListener('click', () => 
-      manipulateLoop('forward', audioProcessor, currentAudioBuffer));
+    document.getElementById('moveForwardBtn')?.addEventListener('click', () => {
+      if (!currentAudioBuffer || !audioProcessor) return;
+      const newLoop = manipulateLoop('forward', audioProcessor, currentAudioBuffer);
+      updateLoopInfo(newLoop);
+      drawWaveform(currentAudioBuffer, 'waveformCanvas', newLoop);
+    });
     
-    document.getElementById('resetLoopBtn')?.addEventListener('click', () => 
-      manipulateLoop('reset', audioProcessor, currentAudioBuffer));
+    document.getElementById('resetLoopBtn')?.addEventListener('click', () => {
+      if (!currentAudioBuffer || !audioProcessor) return;
+      const newLoop = manipulateLoop('reset', audioProcessor, currentAudioBuffer);
+      updateLoopInfo(newLoop);
+      drawWaveform(currentAudioBuffer, 'waveformCanvas', newLoop);
+    });
+    
+    document.getElementById('resetPlayheadBtn')?.addEventListener('click', () => {
+      if (!currentAudioBuffer || !audioProcessor) return;
+      
+      // Stop playback if playing
+      if (isPlaying) {
+        audioProcessor.stop();
+        isPlaying = false;
+        document.getElementById('playBtn').textContent = '▶️ Play';
+        stopWaveformAnimation();
+      }
+      
+      // Reset playhead to start of loop
+      const loopPoints = audioProcessor.getLoopPoints();
+      drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints, {
+        isPlaying: false,
+        position: loopPoints.start
+      });
+    });
+    
+    document.getElementById('reverseLoopBtn')?.addEventListener('click', async () => {
+      if (!currentAudioBuffer || !audioProcessor) return;
+      
+      try {
+        // Get current loop points
+        const loopPoints = audioProcessor.getLoopPoints();
+        
+        // Stop playback if playing
+        const wasPlaying = isPlaying;
+        if (isPlaying) {
+          audioProcessor.stop();
+          isPlaying = false;
+          document.getElementById('playBtn').textContent = '▶️ Play';
+          stopWaveformAnimation();
+        }
+        
+        // Create a new buffer for the reversed audio
+        const ctx = audioProcessor.getAudioContext();
+        const newBuffer = ctx.createBuffer(
+          currentAudioBuffer.numberOfChannels,
+          currentAudioBuffer.length,
+          currentAudioBuffer.sampleRate
+        );
+        
+        // Process each channel
+        for (let channel = 0; channel < currentAudioBuffer.numberOfChannels; channel++) {
+          const originalData = currentAudioBuffer.getChannelData(channel);
+          const newData = newBuffer.getChannelData(channel);
+          
+          // Copy original data
+          newData.set(originalData);
+          
+          // Calculate loop boundaries in samples
+          const loopStartSample = Math.floor(loopPoints.start * currentAudioBuffer.length);
+          const loopEndSample = Math.floor(loopPoints.end * currentAudioBuffer.length);
+          const loopLength = loopEndSample - loopStartSample;
+          
+          // Reverse just the loop section
+          for (let i = 0; i < loopLength; i++) {
+            const originalIndex = loopStartSample + i;
+            const reversedIndex = loopStartSample + (loopLength - 1 - i);
+            newData[originalIndex] = originalData[reversedIndex];
+          }
+        }
+        
+        // Replace current buffer with reversed one
+        currentAudioBuffer = newBuffer;
+        
+        // Update waveform
+        drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints);
+        
+        // Resume playback if it was playing
+        if (wasPlaying) {
+          await audioProcessor.play(currentAudioBuffer);
+          isPlaying = true;
+          document.getElementById('playBtn').textContent = '⏸️ Pause';
+          startTimelineAnimation();
+          startWaveformAnimation();
+        }
+        
+        showError('Loop section reversed successfully');
+      } catch (error) {
+        console.error('❌ Error reversing loop:', error);
+        showError(`Failed to reverse loop: ${error.message}`);
+      }
+    });
   }
   
   // Load a sample audio file
   async function loadSampleFile(url, name) {
     try {
-      updateTrackInfo(name, 'Loading...');
+      // Disable all sample buttons during loading
+      document.querySelectorAll('.sample-btn').forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+      });
       
-      // Load and analyze the file
+      updateTrackInfo(name, 'Loading...');
+      document.getElementById('bpmValue').textContent = '...';
+      
+      // First just load the audio file
       const result = await loadAudioFile(url);
       currentAudioBuffer = result.audioBuffer;
       audioContext = result.audioContext;
       
-      // Update UI with file info
+      // Update UI with file info immediately
       updateTrackInfo(
         name,
         `${currentAudioBuffer.duration.toFixed(1)}s`
@@ -487,17 +596,38 @@ const {
       document.getElementById('audioFormat').textContent =
         `${currentAudioBuffer.sampleRate}Hz`;
       
-      // Analyze the audio (BPM detection)
-      const bpmResult = await detectBPM(currentAudioBuffer);
-      document.getElementById('bpmValue').textContent = bpmResult.bpm.toFixed(1);
-      
-      // Draw waveform with loop points
+      // Draw waveform right away
       drawWaveform(currentAudioBuffer, 'waveformCanvas', { start: 0, end: 1 });
       
-      console.log('✅ Audio loaded and analyzed');
+      // Re-enable buttons now that audio is loaded
+      document.querySelectorAll('.sample-btn').forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      });
+      
+      // Then do BPM analysis in the background with setTimeout
+      setTimeout(async () => {
+        try {
+          // Analyze the audio (BPM detection)
+          const bpmResult = await detectBPM(currentAudioBuffer);
+          document.getElementById('bpmValue').textContent = bpmResult.bpm.toFixed(1);
+          console.log('✅ BPM analysis complete');
+        } catch (bpmError) {
+          console.error('❌ BPM detection error:', bpmError);
+          document.getElementById('bpmValue').textContent = '120';
+        }
+      }, 100);
+      
+      console.log('✅ Audio loaded');
     } catch (error) {
       console.error('❌ Error loading audio:', error);
       showError(`Load error: ${error.message}`);
+      
+      // Re-enable buttons on error
+      document.querySelectorAll('.sample-btn').forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      });
     }
   }
   
