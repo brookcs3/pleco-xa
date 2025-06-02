@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "start": "astro preview"
+    "start": "astro start"
     },
   "dependencies": {
     "astro": "5.8.1",
@@ -16,9 +16,6 @@
     "lenis": "^1.3.3",
     "modern-normalize": "^3.0.1",
     "sass": "^1.89.0"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "license": "MIT"
+  }
+  
 }
