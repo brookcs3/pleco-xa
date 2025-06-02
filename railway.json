@@ -7,7 +7,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "astro build && astro preview --port $PORT --host",
+    "startCommand": "npm start",
     "sleepApplication": false,
     "healthcheckPath": "/health",
     "healthcheckTimeout": 10,
