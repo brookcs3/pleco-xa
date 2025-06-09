@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { detectBPM } from '../src/scripts/analysis/BPMDetector.ts'
 
 function createPulseSample(bpm, sampleRate, durationSeconds) {
