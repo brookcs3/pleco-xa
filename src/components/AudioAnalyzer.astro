@@ -7,10 +7,7 @@ interface Props {
   showControls?: boolean;
   class?: string;
 }
-import RandomizerButton from './RandomizerButton.astro';
-
 import SignatureDemoButton from './SignatureDemoButton.astro';
-
 import RandomizerButton from './RandomizerButton.astro';
 
 const { 
@@ -81,7 +78,7 @@ const {
         <h4 class="card-title">Track Info</h4>
         <div class="card-value" id="trackName">No track loaded</div>
         <p class="card-description" id="trackStatus">Load a sample to begin</p>
-        <RandomizerButton audioBufferVar="currentAudioBuffer" ctxVar="audioContext" applyLoopVar="applyLoop" />
+        <RandomizerButton audioBuffer={currentAudioBuffer} ctx={audioContext} applyLoop={applyLoop} />
       </div>
 
       <div class="analysis-card">
