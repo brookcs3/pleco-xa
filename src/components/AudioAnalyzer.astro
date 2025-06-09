@@ -12,11 +12,15 @@ import SignatureDemoButton from './SignatureDemoButton.astro';
 import RandomizerButton from './RandomizerButton.astro';
 import GlitchBurstButton from './GlitchBurstButton.astro';
 
-const { 
-  title = 'Audio Analysis', 
+const {
+  title = 'Audio Analysis',
   showControls = true,
-  class: className = '' 
+  class: className = ''
 } = Astro.props;
+
+let currentAudioBuffer = null;
+let audioContext = null;
+function applyLoop() {}
 ---
 
 <div class={`pleco-audio-analyzer ${className}`}>
@@ -384,9 +388,8 @@ const {
   let analysisWorker = null;
   
   // Initialize state
-  let audioContext;
   let audioProcessor;
-  let currentAudioBuffer = null;
+  currentAudioBuffer = null;
   if (typeof window !== 'undefined') {
     window.currentAudioBuffer ||= null;
     window.audioContext ||= null;
