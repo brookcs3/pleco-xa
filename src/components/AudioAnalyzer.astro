@@ -17,7 +17,7 @@ const {
   showControls = true,
   class: className = ''
 } = Astro.props;
-=
+
 let currentAudioBuffer = null;
 let audioContext = null;
 function applyLoop() {}
@@ -380,7 +380,7 @@ function applyLoop() {}
   let animationFrameId = null;
   
   // Import analysis modules
-  import { detectBPM, detectBPMWindow } from '../scripts/analysis/BPMDetector.ts';
+  import { detectBPM } from '../scripts/xa-bpm-detection.js';
 
   import { findLoop, manipulateLoop } from '../scripts/xa-loop-detection.js';
   import { enqueueToast } from '../scripts/ui/toastQueue.js';

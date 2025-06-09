@@ -1,6 +1,5 @@
-import { detectBPM } from '../scripts/analysis/BPMDetector.ts';
-import { analyzeLoop } from '../scripts/analysis/LoopAnalyzer.ts';
-import { fastBPMDetect } from '../scripts/analysis/BPMDetector.ts';
+import { detectBPM } from '../scripts/xa-bpm-detection.js';
+import { fastBPMDetect } from '../scripts/xa-beat.js';
 import { fastLoopAnalysis } from '../scripts/xa-loop.js';
 
 self.onmessage = async (event) => {
