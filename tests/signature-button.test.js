@@ -32,8 +32,7 @@ function setupDom() {
 
   const el = document.getElementById('sigDemoBtn')
   el.addEventListener('click', () => {
-    if (!audioBuffer || typeof applyLoop !== 'function') return
-    runDemo(audioBuffer, applyLoop)
+    runDemo()
   })
 
   btn = el
