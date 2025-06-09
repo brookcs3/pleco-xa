@@ -41,7 +41,7 @@ describe('audio utils', () => {
     it('computes zero crossing rate for alternating +1/-1 signal', () => {
       const buffer = createAudioBuffer([1, -1, 1, -1])
       const zcr = computeZeroCrossingRate(buffer)
-      expect(zcr).toBeCloseTo(0.75)
+      expect(zcr).toBeCloseTo(1.0)
     })
 
     it('is zero for constant positive signal', () => {

@@ -23,7 +23,6 @@ export class GibClock {
 
   _tick() {
     for (const cb of this.listeners) cb();
-    if (!this.timer) return;
     const now = performance.now();
     this.nextTime += this.intervalMs;
     const delay = Math.max(0, this.nextTime - now);

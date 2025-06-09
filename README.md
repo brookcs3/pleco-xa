@@ -227,7 +227,12 @@ Skip silence at beginning of audio.
 
 #### `applyHannWindow(data)`
 
-Apply windowing for spectral analysis.
+Apply windowing for spectral analysis. This uses the symmetric Hann window
+formula:
+
+```
+w[n] = 0.5 * (1 - cos(2πn / (N - 1)))
+```
 
 #### `calculateBeatAlignment(loopLength, bpm)`
 

@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.{js,ts,mjs}'],
     globals: true,
-    environment: 'node'
+    environment: 'node',
+    environmentMatchGlobs: [
+      ['tests/signature-*.test.js', 'jsdom']
+    ]
   }
 })

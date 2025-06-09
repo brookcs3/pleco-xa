@@ -140,7 +140,8 @@ export class TempoSync {
   }
 
   /**
-   * Apply Hann window to reduce spectral leakage
+   * Apply Hann window to reduce spectral leakage.
+   * Uses the symmetric formula w[n] = 0.5 * (1 - cos(2 * Math.PI * n / (N - 1)))
    */
   applyHannWindow(data) {
     const windowed = new Float32Array(data.length)
