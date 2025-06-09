@@ -1,4 +1,6 @@
+import { describe, it, expect } from 'vitest'
+
 // compression.test.js – placeholder
 describe('compression utilities (placeholder)', () => {
-  test('work-in-progress', () => expect(true).toBe(true))
+  it('work-in-progress', () => expect(true).toBe(true))
 })

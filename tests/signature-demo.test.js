@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { signatureDemo } from '../src/core/index.js';
 import { AudioContext } from 'web-audio-test-api';
 

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { librosaLoopAnalysis } from '../src/scripts/loop-analyzer.js'
 import { AudioContext } from 'web-audio-test-api'
 

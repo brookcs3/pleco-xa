@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { calculateBeatAlignment } from '../src/scripts/musical-timing.js'
 
 describe('calculateBeatAlignment', () => {
