@@ -25,6 +25,7 @@ export async function POST({ request }) {
       'assets/audio/m4a',
       'assets/audio/aiff',
       'assets/audio/x-aiff',
+
     ]
     if (!allowedTypes.includes(audioFile.type)) {
       return new Response(JSON.stringify({ error: 'Invalid file type' }), {

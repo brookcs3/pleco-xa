@@ -20,7 +20,7 @@ function createLoopBuffer(loopLengthSeconds, repeats, sampleRate = 44100) {
   return buffer
 }
 
-describe.skip('musicalLoopAnalysis', () => {
+describe('musicalLoopAnalysis', () => {
   it('detects loop boundaries for repeating audio', async () => {
     const buffer = createLoopBuffer(2, 2)
     const bpmData = { bpm: 120 }
@@ -32,7 +32,7 @@ describe.skip('musicalLoopAnalysis', () => {
   })
 })
 
-describe.skip('analyzeLoopPoints', () => {
+describe('analyzeLoopPoints', () => {
   it('finds loop points in repeating audio', async () => {
     const buffer = createLoopBuffer(2, 2)
     const result = await analyzeLoopPoints(buffer)

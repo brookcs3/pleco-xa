@@ -219,7 +219,7 @@ export async function example(
 
     const response = await fetch(baseUrl + filename, {
       headers: {
-        Accept: 'assets/audio/*',
+        Accept: 'audio/*',
       },
     })
 

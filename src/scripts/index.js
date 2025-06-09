@@ -5,12 +5,12 @@
  */
 
  // Core audio analysis modules
-export { BPMDetector } from './analysis/BPMDetector.js'
-export { LoopAnalyzer } from './analysis/LoopAnalyzer.js'
-export { WaveformData } from './analysis/WaveformData.js'
+export { BPMDetector } from './analysis/BPMDetector.ts'
+export { LoopAnalyzer } from './analysis/LoopAnalyzer.ts'
+export { WaveformData } from './analysis/WaveformData.ts'
 
  // Audio playback and control
-export { AudioPlayer } from './analysis/AudioPlayer.js'
+export { AudioPlayer } from './analysis/AudioPlayer.ts'
 export { LoopController } from './loop-controller.js'
 
  // Visualization components
