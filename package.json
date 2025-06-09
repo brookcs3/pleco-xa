@@ -24,6 +24,7 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "jsdom": "^26.1.0",
     "rollup-plugin-esbuild": "^6.2.1",
-    "vitest": "^3.1.4"
+    "vitest": "^3.1.4",
+    "jsdom": "^24.0.0"
   }
 }

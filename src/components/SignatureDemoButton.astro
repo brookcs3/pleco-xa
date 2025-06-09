@@ -30,8 +30,7 @@ async function runDemo() {
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('sigDemoBtn');
     btn?.addEventListener('click', () => {
-      if (!audioBuffer || typeof applyLoop !== 'function') return;
-      runDemo(audioBuffer, applyLoop);
+      runDemo();
     });
   });
 </script>

@@ -199,13 +199,15 @@ export function glitchBurst(buffer, {
   };
 
   const clock = new GibClock(100);
+  let iterations = 0;
 
   const step = () => {
-    if (performance.now() - start >= durationMs) {
-      clock.stop();
+    if (performance.now() - start >= durationMs || iterations > 1000) {
+      setTimeout(() => clock.stop(), 0);
       return;
     }
 
+    iterations++;
     const op = pickOp();
     const subOps = applyOp(op);
     onUpdate(buffer, loop, op, subOps);

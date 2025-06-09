@@ -31,6 +31,7 @@ describe('musicalLoopAnalysis', () => {
     expect(result.loopStart).toBeCloseTo(0, 2)
     expect(result.loopEnd).toBeGreaterThan(1)
     expect(result.loopEnd).toBeLessThanOrEqual(buffer.duration)
+
   })
 })
 

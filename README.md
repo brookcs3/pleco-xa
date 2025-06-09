@@ -78,12 +78,7 @@ const editor = new WaveformEditor(canvas, audioBuffer, analysis)
 ## Build
 
 Run `npm run build` to generate distributable bundles in the `dist/` directory.
-This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
-use in the browser or with bundlers. `dist/pleco-xa.js` is the main entry point
-referenced by `package.json`, while `dist/pleco-xa.min.js` is exposed via the
-`unpkg` field for direct CDN usage. The `prepublishOnly` script defined in
-`package.json` automatically runs this build step before the package is
-published.
+This produces `dist/pleco-xa.js` as the main entry point and a minified `dist/pleco-xa.min.js` for browser usage. The minified file can also be loaded directly from a CDN such as unpkg.
 
 ## CDN Demo
 
@@ -91,10 +86,11 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 ```html
 <script type="module">
-  import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.6/dist/pleco-xa.min.js'
+  import { detectBPM } from 'https://unpkg.com/pleco-xa/dist/pleco-xa.min.js'
 </script>
 ```
 The snippet above can be used to build a simple page that detects BPM from an uploaded audio file.
+You can lock to a specific version by using a path like `https://unpkg.com/pleco-xa@1.0.8/dist/pleco-xa.min.js`.
 
 ## Debugging
 
@@ -108,11 +104,7 @@ In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa or ca
 
 Most example scripts and the sample servers use a `debugLog()` helper that
 checks this flag. Verbose messages are suppressed unless `PLECO_DEBUG` is set.
-For example, to see server logs while developing you can run:
 
-```bash
-PLECO_DEBUG=true node deploying/railway-api/server.js
-```
 
 ## Testing
 
@@ -170,7 +162,9 @@ Musical boundary-aware loop detection.
 
 - **audioBuffer**: `AudioBuffer` - Audio to analyze
 - **bpmData**: `Object` - BPM detection results
-- **Returns**: Loop candidates with musical timing confidence
+- **Returns**: Loop candidates with musical timing confidence. The result
+  includes an `isFullTrack` flag indicating if the audio buffer represents a
+  complete track.
 
 ### Spectral Analysis
 
@@ -333,9 +327,7 @@ A quick demo of random loop transformations.
 Pleco Xa can power a fully client-side web app with optional premium upgrades.
 Use the free tools to showcase BPM detection and waveform editing, then unlock
 advanced analysis when a token is present in `localStorage`. The example Astro
-site includes a simple `paywall.js` script that hides premium components until a
-valid token is set. Pair it with the Stripe backend in `deploying/railway-api`
-to sell access while keeping the main app static.
+site includes a simple `access-control.js` script that hides premium components until a valid token is set.
 
 ## Browser Compatibility
 
@@ -357,9 +349,7 @@ Pleco Xa works in all modern browsers that support:
 
 ## Building and Publishing
 
-Run `npm install` to install dependencies, then `npm run build` to produce the
-compiled files in `dist/`. During publishing the `prepublishOnly` script will
-automatically run the build step.
+Run `npm install` to install dependencies, then `npm run build` to produce the compiled files in `dist/` before running `npm publish`.
 
 ```bash
 npm install
@@ -370,20 +360,6 @@ npm publish
 Update the package version in `package.json` before publishing. The package can
 be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
 
-## Deploying the Paywall API
-
-A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
-
-### Nixpacks configuration
-
-Railway reads the `.nixpacks.toml` file in `deploying/railway-api/` to set up the environment. It installs Node 20 automatically and then runs `npm ci` followed by `npm start`. Using `npm ci` ensures the installed packages exactly match the `package-lock.json` for reproducible builds.
-
-For local testing you can run the same commands without Docker:
-
-```bash
-npm ci
-npm start
-```
 
 ### Health Check Endpoint
 
@@ -411,14 +387,6 @@ installs. You can also run `npm run setup` which wraps the above command.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ## License
-
-MIT License - See LICENSE file for details.
-
-Some audio analysis techniques were inspired by open-source audio DSP research
-
-## Credits
-
-**Pleco Xa** - Bringing musical intelligence to the browser.  
 _Built with ♪ by Cameron Brooks_
 
 ![Hits](https://visitor-badge.laobi.icu/badge?page_id=brookcs3.pleco-xa)
