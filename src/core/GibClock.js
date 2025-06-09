@@ -17,13 +17,14 @@ export class GibClock {
   start(callback) {
     if (callback) this.onTick(callback);
     if (this.timer) return;
-    this.nextTime = Date.now() + this.intervalMs;
+    this.nextTime = performance.now() + this.intervalMs;
     this.timer = setTimeout(() => this._tick(), this.intervalMs);
   }
 
   _tick() {
     for (const cb of this.listeners) cb();
-    const now = Date.now();
+    if (!this.timer) return;
+    const now = performance.now();
     this.nextTime += this.intervalMs;
     const delay = Math.max(0, this.nextTime - now);
     this.timer = setTimeout(() => this._tick(), delay);
