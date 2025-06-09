@@ -1,4 +1,3 @@
----
 /** 
  * AudioAnalyzer - Audio analysis component with BPM detection and loop finding
  * Handles audio loading, analysis, and visualization
@@ -8,6 +7,9 @@ interface Props {
   showControls?: boolean;
   class?: string;
 }
+import RandomizerButton from './RandomizerButton.astro';
+
+import SignatureDemoButton from './SignatureDemoButton.astro';
 
 import RandomizerButton from './RandomizerButton.astro';
 
@@ -93,6 +95,7 @@ const {
         <div class="card-value" id="audioFormat">--</div>
         <p class="card-description">Decoded audio information</p>
       </div>
+      <SignatureDemoButton audioBuffer={currentAudioBuffer} applyLoop={applyLoop} />
     </div>
   </div>
 
@@ -464,8 +467,10 @@ const {
 
           const result = await loadAudioFile(file);
           currentAudioBuffer = result.audioBuffer;
+          window.currentAudioBuffer = currentAudioBuffer;
           audioContext = result.audioContext;
           window.currentAudioBuffer = currentAudioBuffer;
+
           window.audioContext = audioContext;
           if (analysisWorker && result.arrayBuffer) {
             analysisWorker.postMessage(result.arrayBuffer);
@@ -728,8 +733,10 @@ const {
       // First load the audio file
       const result = await loadAudioFile(url);
       currentAudioBuffer = result.audioBuffer;
+      window.currentAudioBuffer = currentAudioBuffer;
       audioContext = result.audioContext;
       window.currentAudioBuffer = currentAudioBuffer;
+
       window.audioContext = audioContext;
       currentTrackName = name;
       if (analysisWorker && result.arrayBuffer) {
@@ -1030,5 +1037,22 @@ const {
     }
     
     requestAnimationFrame(animateTimeline);
+  }
+
+  function applyLoop(buf, loop, op) {
+    if (!buf || !loop || !audioProcessor) return;
+    currentAudioBuffer = buf;
+    const start = loop.startSample / buf.length;
+    const end = loop.endSample / buf.length;
+    audioProcessor.setLoopPoints(start, end);
+    updateLoopInfo({ start, end });
+    drawWaveform(currentAudioBuffer, 'waveformCanvas', { start, end });
+    updateTrackInfo(currentTrackName || '', op);
+    if (isPlaying) {
+      audioProcessor.stop();
+      audioProcessor.play(currentAudioBuffer).catch(() => {});
+      startTimelineAnimation();
+      startWaveformAnimation();
+    }
   }
 </script>

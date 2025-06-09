@@ -1,0 +1,18 @@
+---
+import { signatureDemo } from '../core/index.js';
+const { audioBuffer, applyLoop } = Astro.props;
+
+async function runDemo() {
+  const steps = signatureDemo(audioBuffer);
+  for (const { fn, op } of steps) {
+    const { buffer, loop } = fn();
+    applyLoop(buffer, loop, op);
+    await new Promise(r => setTimeout(r, 400));
+  }
+}
+---
+<button class="sig-demo" on:click={runDemo}>🚀 Signature Demo</button>
+
+<style>
+.sig-demo { margin-top: .5rem; padding: .4rem .8rem; background: var(--accent); }
+</style>

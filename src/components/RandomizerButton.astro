@@ -1,11 +1,9 @@
----
 interface Props {
   audioBufferVar?: string
   ctxVar?: string
   applyLoopVar?: string
 }
 const { audioBufferVar = 'currentAudioBuffer', ctxVar = 'audioContext', applyLoopVar = 'applyLoop' } = Astro.props
----
 <button class="loop-btn" id="randomizeLoopBtn">🎲 Randomize Loop</button>
 
 <script>
@@ -27,6 +25,7 @@ const { audioBufferVar = 'currentAudioBuffer', ctxVar = 'audioContext', applyLoo
         await new Promise(r => setTimeout(r, 500))
       }
       if (statusEl) statusEl.textContent = 'Randomization done'
+
     })
   })
 </script>
