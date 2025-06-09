@@ -1,4 +1,4 @@
-import { detectBPM } from '../src/scripts/analysis/BPMDetector.js'
+import { detectBPM } from '../src/scripts/analysis/BPMDetector.ts'
 
 function createPulseSample(bpm, sampleRate, durationSeconds) {
   const length = Math.floor(sampleRate * durationSeconds)
