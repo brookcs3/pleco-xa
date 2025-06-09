@@ -368,22 +368,50 @@ function applyLoop() {}
 </style>
 
 <script client:load>
-  // Import core functionality
-  import {
-    initAudioProcessor,
-    loadAudioFile,
-    drawWaveform
-  } from '../scripts/xa-audio-core.js';
-  import { applyLoop as applyLoopHelper } from '../scripts/ui/applyLoop.js';
-  
   // Set up animation frame for continuous waveform updates
   let animationFrameId = null;
   
-  // Import analysis modules
-  import { detectBPM } from '../scripts/xa-bpm-detection.js';
-
-  import { findLoop, manipulateLoop } from '../scripts/xa-loop-detection.js';
-  import { enqueueToast } from '../scripts/ui/toastQueue.js';
+  // Dynamic imports for browser context
+  let initAudioProcessor, loadAudioFile, drawWaveform;
+  let applyLoopHelper;
+  let detectBPM;
+  let findLoop, manipulateLoop;
+  let enqueueToast;
+  
+  // Load modules dynamically
+  async function loadModules() {
+    try {
+      console.log('🔄 Loading modules...');
+      
+      const coreModule = await import('../scripts/xa-audio-core.js');
+      initAudioProcessor = coreModule.initAudioProcessor;
+      loadAudioFile = coreModule.loadAudioFile;
+      drawWaveform = coreModule.drawWaveform;
+      console.log('✅ Core module loaded');
+      
+      const applyLoopModule = await import('../scripts/ui/applyLoop.js');
+      applyLoopHelper = applyLoopModule.applyLoop;
+      console.log('✅ ApplyLoop module loaded');
+      
+      const bpmModule = await import('../scripts/xa-bpm-detection.js');
+      detectBPM = bpmModule.detectBPM;
+      console.log('✅ BPM module loaded');
+      
+      const loopModule = await import('../scripts/xa-loop-detection.js');
+      findLoop = loopModule.findLoop;
+      manipulateLoop = loopModule.manipulateLoop;
+      console.log('✅ Loop module loaded');
+      
+      const toastModule = await import('../scripts/ui/toastQueue.js');
+      enqueueToast = toastModule.enqueueToast;
+      console.log('✅ Toast module loaded');
+      
+      console.log('✅ All modules loaded successfully');
+    } catch (error) {
+      console.error('❌ Error loading modules:', error);
+      throw error;
+    }
+  }
 
   // Worker for heavy analysis
   let analysisWorker = null;
@@ -410,30 +438,17 @@ function applyLoop() {}
 
   
   // Initialize audio processor when DOM is ready
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     try {
+      // Load modules first
+      await loadModules();
+      
       // Initialize the audio processor
       audioProcessor = initAudioProcessor();
 
-      // Create analysis worker
-      analysisWorker = new Worker(new URL('../workers/analysisWorker.js', import.meta.url), { type: 'module' });
-      analysisWorker.onmessage = (e) => {
-        const { bpm, loopPoints, progress } = e.data;
-        if (typeof progress === 'number') {
-          updateTrackInfo(currentTrackName || '', `Analyzing: ${Math.round(progress * 100)}%`);
-        }
-        if (typeof bpm === 'number') {
-          rawBPM = bpm;
-          const normalized = normalizeBPM(bpm);
-          window.currentBPM = normalized;
-          document.getElementById('bpmValue').textContent = normalized.toFixed(1);
-        }
-        if (loopPoints && currentAudioBuffer) {
-          audioProcessor.setLoopPoints(loopPoints.start, loopPoints.end);
-          updateLoopInfo(loopPoints);
-          drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints);
-        }
-      };
+      // Create analysis worker (disabled for now to debug)
+      // analysisWorker = new Worker(new URL('../workers/analysisWorker.js', import.meta.url), { type: 'module' });
+      console.log('⚠️ Analysis worker disabled for debugging');
       
       // Set up event listeners
       setupEventListeners();
@@ -479,10 +494,10 @@ function applyLoop() {}
           window.currentAudioBuffer = currentAudioBuffer;
 
           window.audioContext = audioContext;
-          if (analysisWorker && result.arrayBuffer) {
-            analysisWorker.postMessage(result.arrayBuffer);
-
-          }
+          // if (analysisWorker && result.arrayBuffer) {
+          //   analysisWorker.postMessage(result.arrayBuffer);
+          // }
+          console.log('⚠️ Worker analysis disabled for debugging');
           
           // Update UI with file info
           updateTrackInfo(
@@ -714,6 +729,8 @@ function applyLoop() {}
   // Load a sample audio file
   async function loadSampleFile(url, name) {
     try {
+      console.log(`🎵 Loading sample: ${name} from ${url}`);
+      
       // Disable all sample buttons during loading
       document.querySelectorAll('.sample-btn').forEach(btn => {
         btn.disabled = true;
@@ -725,6 +742,7 @@ function applyLoop() {}
       document.getElementById('bpmValue').textContent = '...';
       
       // First load the audio file
+      console.log('📁 Loading audio file...');
       const result = await loadAudioFile(url);
       currentAudioBuffer = result.audioBuffer;
       window.currentAudioBuffer = currentAudioBuffer;
@@ -733,10 +751,10 @@ function applyLoop() {}
 
       window.audioContext = audioContext;
       currentTrackName = name;
-      if (analysisWorker && result.arrayBuffer) {
-        analysisWorker.postMessage(result.arrayBuffer);
-
-      }
+      // if (analysisWorker && result.arrayBuffer) {
+      //   analysisWorker.postMessage(result.arrayBuffer);
+      // }
+      console.log('⚠️ Worker analysis disabled for debugging');
       
       // Update UI with file info immediately
       updateTrackInfo(
