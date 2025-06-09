@@ -48,6 +48,11 @@ const {
       <div class="bpm-value" id="bpmValue" aria-live="polite" tabindex="0">--</div>
       <div class="bpm-label">BPM</div>
 
+      <label class="allow-toggle">
+        <input type="checkbox" id="allowHalfDoubleToggle" checked />
+        Allow Half/Double
+      </label>
+
       <div class="timeline-container">
         <div class="timeline-circle">
           <div class="timeline-hand" id="timelineHand"></div>
@@ -188,6 +193,13 @@ const {
   .bpm-label {
     font-size: 1.2rem;
     opacity: 0.8;
+  }
+
+  .allow-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.9rem;
   }
 
   .timeline-container {
@@ -380,6 +392,15 @@ const {
   let isPlaying = false;
   let currentBeats = []; // Store beat times from BPM detection
   let currentTrackName = '';
+  let rawBPM = null;
+  let allowHalfDouble = true;
+
+  function normalizeBPM(bpm) {
+    if (!allowHalfDouble) return bpm;
+    if (bpm > 160) return bpm / 2;
+    if (bpm < 80) return bpm * 2;
+    return bpm;
+  }
 
   
   // Initialize audio processor when DOM is ready
@@ -396,8 +417,10 @@ const {
           updateTrackInfo(currentTrackName || '', `Analyzing: ${Math.round(progress * 100)}%`);
         }
         if (typeof bpm === 'number') {
-          window.currentBPM = bpm;
-          document.getElementById('bpmValue').textContent = bpm.toFixed(1);
+          rawBPM = bpm;
+          const normalized = normalizeBPM(bpm);
+          window.currentBPM = normalized;
+          document.getElementById('bpmValue').textContent = normalized.toFixed(1);
         }
         if (loopPoints && currentAudioBuffer) {
           audioProcessor.setLoopPoints(loopPoints.start, loopPoints.end);
@@ -462,7 +485,10 @@ const {
           
           // Fallback BPM detection if worker fails
           const bpmResult = await detectBPM(currentAudioBuffer);
-          document.getElementById('bpmValue').textContent = bpmResult.bpm.toFixed(1);
+          rawBPM = bpmResult.bpm;
+          const normalized = normalizeBPM(rawBPM);
+          window.currentBPM = normalized;
+          document.getElementById('bpmValue').textContent = normalized.toFixed(1);
 
           // BPM and loop detection handled by worker; show placeholder
           document.getElementById('bpmValue').textContent = '...';
@@ -688,6 +714,15 @@ const {
         dragMarker = null;
       });
     }
+
+    document.getElementById('allowHalfDoubleToggle')?.addEventListener('change', (e) => {
+      allowHalfDouble = e.target.checked;
+      if (rawBPM !== null) {
+        const bpm = normalizeBPM(rawBPM);
+        window.currentBPM = bpm;
+        document.getElementById('bpmValue').textContent = bpm.toFixed(1);
+      }
+    });
   }
   
   // Load a sample audio file
@@ -869,15 +904,8 @@ const {
           const currentSample = Math.floor(position * currentAudioBuffer.length);
           // Perform windowed BPM detection (use a 4-second window)
           detectBPMWindow(currentAudioBuffer, currentSample, 4.0).then(result => {
-            let bpm = result.bpm;
-            // Adjust BPM if it's likely a half-time misinterpretation
-            if (bpm < 80) {
-              const doubledBpm = bpm * 2;
-              if (doubledBpm <= 160) {
-                bpm = doubledBpm;
-                console.log('✅ Live adjusted BPM from half-time:', bpm);
-              }
-            }
+            rawBPM = result.bpm;
+            const bpm = normalizeBPM(rawBPM);
             window.currentBPM = bpm;
             document.getElementById('bpmValue').textContent = bpm.toFixed(1);
             console.log('✅ Live BPM updated:', bpm);
