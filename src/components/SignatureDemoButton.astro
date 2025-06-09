@@ -3,12 +3,13 @@ import { signatureDemo } from '../core/index.js';
 import { enqueueToast } from '../scripts/ui/toastQueue.js';
 
 interface Props {
-  audioBuffer: AudioBuffer | null;
-  ctx: AudioContext | null;
-  applyLoop: (buf: AudioBuffer, loop: any, op: string) => void;
+  audioBuffer?: AudioBuffer;
+  ctx?: AudioContext;
+  applyLoop?: (buffer: AudioBuffer, loop: any, op: string | undefined, subOps?: any) => void;
 }
 
-const { audioBuffer = null, ctx = null, applyLoop } = Astro.props;
+const { audioBuffer = undefined, ctx = undefined, applyLoop = undefined } = Astro.props;
+
 
 async function runDemo() {
   if (!audioBuffer || typeof applyLoop !== 'function') return;
@@ -21,13 +22,20 @@ async function runDemo() {
   }
 }
 ---
-<button
-  class="sig-demo"
-  id="sigDemoBtn"
-  on:click={runDemo}
->
+<button class="sig-demo" id="sigDemoBtn">
   🚀 Signature Demo
 </button>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('sigDemoBtn');
+    btn?.addEventListener('click', () => {
+      if (!audioBuffer || typeof applyLoop !== 'function') return;
+      runDemo(audioBuffer, applyLoop);
+    });
+  });
+</script>
+
 
 <style>
 .sig-demo { margin-top: .5rem; padding: .4rem .8rem; background: var(--accent); }
