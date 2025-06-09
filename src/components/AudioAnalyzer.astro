@@ -390,6 +390,7 @@ const {
     loadAudioFile,
     drawWaveform
   } from '../scripts/xa-audio-core.js';
+  import { reverseBufferSection } from '../core/index.js';
   
   // Set up animation frame for continuous waveform updates
   let animationFrameId = null;
@@ -621,11 +622,11 @@ const {
     
     document.getElementById('reverseLoopBtn')?.addEventListener('click', async () => {
       if (!currentAudioBuffer || !audioProcessor) return;
-      
+
       try {
         // Get current loop points
         const loopPoints = audioProcessor.getLoopPoints();
-        
+
         // Stop playback if playing
         const wasPlaying = isPlaying;
         if (isPlaying) {
@@ -634,43 +635,18 @@ const {
           document.getElementById('playBtn').textContent = '▶️ Play';
           stopWaveformAnimation();
         }
-        
-        // Create a new buffer for the reversed audio
-        const ctx = audioProcessor.getAudioContext();
-        const newBuffer = ctx.createBuffer(
-          currentAudioBuffer.numberOfChannels,
-          currentAudioBuffer.length,
-          currentAudioBuffer.sampleRate
-        );
-        
-        // Process each channel
-        for (let channel = 0; channel < currentAudioBuffer.numberOfChannels; channel++) {
-          const originalData = currentAudioBuffer.getChannelData(channel);
-          const newData = newBuffer.getChannelData(channel);
-          
-          // Copy original data
-          newData.set(originalData);
-          
-          // Calculate loop boundaries in samples
-          const loopStartSample = Math.floor(loopPoints.start * currentAudioBuffer.length);
-          const loopEndSample = Math.floor(loopPoints.end * currentAudioBuffer.length);
-          const loopLength = loopEndSample - loopStartSample;
-          
-          // Reverse just the loop section
-          for (let i = 0; i < loopLength; i++) {
-            const originalIndex = loopStartSample + i;
-            const reversedIndex = loopStartSample + (loopLength - 1 - i);
-            newData[originalIndex] = originalData[reversedIndex];
-          }
-        }
-        
-        // Replace current buffer with reversed one
-        currentAudioBuffer = newBuffer;
+
+        // Calculate sample offsets
+        const startSample = Math.floor(loopPoints.start * currentAudioBuffer.length);
+        const endSample = Math.floor(loopPoints.end * currentAudioBuffer.length);
+
+        // Reverse the loop section using helper
+        currentAudioBuffer = reverseBufferSection(currentAudioBuffer, startSample, endSample);
         window.currentAudioBuffer = currentAudioBuffer;
-        
-        // Update waveform
-        drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints);
-        
+
+        // Apply changes to playback/UI
+        applyLoop(currentAudioBuffer, { startSample, endSample }, 'reverse');
+
         // Resume playback if it was playing
         if (wasPlaying) {
           await audioProcessor.play(currentAudioBuffer);
@@ -679,8 +655,8 @@ const {
           startTimelineAnimation();
           startWaveformAnimation();
         }
-        
-      showError('Loop section reversed successfully');
+
+        showError('Loop section reversed successfully');
       } catch (error) {
         console.error('❌ Error reversing loop:', error);
         showError(`Failed to reverse loop: ${error.message}`);
@@ -1067,6 +1043,7 @@ const {
   function applyLoop(buf, loop, op) {
     if (!buf || !loop || !audioProcessor) return;
     currentAudioBuffer = buf;
+    window.currentAudioBuffer = currentAudioBuffer;
     const start = loop.startSample / buf.length;
     const end = loop.endSample / buf.length;
     audioProcessor.setLoopPoints(start, end);
