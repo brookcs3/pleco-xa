@@ -3,6 +3,7 @@ import {
   computeRMS,
   computePeak,
   computeZeroCrossingRate,
+  reverseBufferSection,
 } from '../src/scripts/audio-utils.js'
 
 function createAudioBuffer(samples) {
@@ -47,6 +48,14 @@ describe('audio utils', () => {
       const buffer = createAudioBuffer([1, 1, 1, 1])
       const zcr = computeZeroCrossingRate(buffer)
       expect(zcr).toBe(0)
+    })
+  })
+
+  describe('reverseBufferSection', () => {
+    it('reverses a section of the buffer in place', () => {
+      const buffer = createAudioBuffer([1, 2, 3, 4, 5])
+      reverseBufferSection(buffer, 1, 4)
+      expect(Array.from(buffer.getChannelData())).toEqual([1, 4, 3, 2, 5])
     })
   })
 })
