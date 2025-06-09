@@ -24,7 +24,7 @@ function setupDom() {
     const steps = signatureDemo(audioBuffer)
     for (const { fn, op } of steps) {
       const { buffer: newBuf, loop } = fn()
-      applyLoopFn(newBuf, loop, op)
+      applyLoop(newBuf, loop, op)
 
       await new Promise(r => setTimeout(r, 400))
     }

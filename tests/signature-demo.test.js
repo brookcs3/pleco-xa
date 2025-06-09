@@ -1,6 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import { signatureDemo } from '../src/core/index.js'
 import { AudioContext } from '../web-audio-test-api/index.js'
+
+// Mock the global AudioContext to prevent the web-audio-test-api from trying to create a real one
+beforeAll(() => {
+  if (typeof window !== 'undefined') {
+    window.AudioContext = AudioContext
+    window.webkitAudioContext = AudioContext
+  }
+})
 
 describe('signatureDemo', () => {
   it('produces steps with expected operations', () => {

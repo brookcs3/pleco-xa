@@ -159,7 +159,7 @@ export function glitchBurst(buffer, {
           loop = halfLoop(loop);
         break;
       case 'double':
-        loop = doubleLoop(loop);
+        loop = doubleLoop(loop, buffer.length);
         break;
       case 'reverse':
         buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);

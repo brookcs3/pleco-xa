@@ -27,10 +27,4 @@ class AudioContext {
 
 export { AudioContext, AudioBuffer }
 
-if (typeof window !== 'undefined') {
-  const ctx = new (window.AudioContext ||
-    window.webkitAudioContext ||
-    function () {
-      throw new Error('AudioContext not supported')
-    })()
-}
+// Removed problematic AudioContext instantiation at module load time
