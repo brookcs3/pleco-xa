@@ -5,6 +5,7 @@
 
 import { AudioPlayer } from './analysis/AudioPlayer.ts'
 import { LoopController } from './loop-controller.js'
+import { enqueueToast } from './ui/toastQueue.js'
 
 export class PlecoXA {
   constructor(options = {}) {
@@ -263,26 +264,7 @@ export class PlecoXA {
       return
     }
 
-    let errorDisplay = document.getElementById('errorDisplay')
-    if (!errorDisplay) {
-      errorDisplay = document.createElement('div')
-      errorDisplay.id = 'errorDisplay'
-      errorDisplay.style.color = 'red'
-      errorDisplay.style.padding = '10px'
-      errorDisplay.style.margin = '10px 0'
-      errorDisplay.style.border = '1px solid red'
-      errorDisplay.style.borderRadius = '4px'
-      errorDisplay.style.display = 'none'
-      document.body.appendChild(errorDisplay)
-    }
-
-    errorDisplay.textContent = message
-    errorDisplay.style.display = 'block'
-
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-      errorDisplay.style.display = 'none'
-    }, 5000)
+    enqueueToast(message, 5000)
   }
 
   /**

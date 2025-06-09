@@ -101,8 +101,6 @@ const {
     </div>
   </div>
 
-  <div id="errorDisplay"></div>
-  <div id="statusDisplay"></div>
 
   <slot />
 </div>
@@ -344,32 +342,6 @@ const {
     line-height: 1.4;
   }
 
-  #errorDisplay {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #ff4444;
-    color: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    z-index: 1000;
-    max-width: 400px;
-    display: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  }
-
-  #statusDisplay {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #444;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    z-index: 1000;
-    display: none;
-    max-width: 400px;
-  }
 
   @media (max-width: 768px) {
     .analysis-display {
@@ -398,6 +370,7 @@ const {
   import { detectBPM, detectBPMWindow } from '../scripts/analysis/BPMDetector.ts';
 
   import { findLoop, manipulateLoop } from '../scripts/xa-loop-detection.js';
+  import { enqueueToast } from '../scripts/ui/toastQueue.js';
 
   // Worker for heavy analysis
   let analysisWorker = null;
@@ -1014,23 +987,11 @@ const {
   
   // Show error message
   function showError(message) {
-    const errorDiv = document.getElementById('errorDisplay');
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
-
-    setTimeout(() => {
-      errorDiv.style.display = 'none';
-    }, 5000);
+    enqueueToast(message, 5000);
   }
 
   function showStatus(message) {
-    const statusDiv = document.getElementById('statusDisplay');
-    if (!statusDiv) return;
-    statusDiv.textContent = message;
-    statusDiv.style.display = 'block';
-    setTimeout(() => {
-      statusDiv.style.display = 'none';
-    }, 2000);
+    enqueueToast(message, 2000);
   }
 
   function applyLoop(loopData) {

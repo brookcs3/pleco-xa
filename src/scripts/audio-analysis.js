@@ -8,6 +8,7 @@ import { fastBPMDetect } from './xa-beat.js'
 
 // Advanced beat tracking with phase detection
 import { BeatTracker } from './xa-beat-tracker.js'
+import { enqueueToast } from './ui/toastQueue.js'
 
 // Onset detection for transients
 
@@ -62,13 +63,7 @@ window.addEventListener('unhandledrejection', (e) => {
 })
 
 function showError(message) {
-  const errorDiv = document.getElementById('errorDisplay')
-  errorDiv.textContent = message
-  errorDiv.style.display = 'block'
-
-  setTimeout(() => {
-    errorDiv.style.display = 'none'
-  }, 5000)
+  enqueueToast(message, 5000)
 }
 
 // ===== INITIALIZATION =====
