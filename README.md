@@ -39,6 +39,7 @@ Pleco Xa is a comprehensive JavaScript audio analysis library that brings advanc
 - **WaveformEditor** - Draggable loop point editor
 - **BPMDetector** - Quick BPM detection tool
 - **LoopPlayer** - Seamless loop playback with Web Audio API (Astro component available)
+- **BPM Normalization Checkbox** - Option to clamp detected tempo between 80–180 BPM
 
 ## Installation
 
