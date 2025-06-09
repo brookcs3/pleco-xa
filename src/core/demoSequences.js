@@ -4,7 +4,7 @@ import {
   moveForward,
   reverseBufferSection,
   detectLoop,
-} from './index.js';
+} from './loopHelpers.js';
 
 export function signatureDemo(buffer) {
   const steps = [];
