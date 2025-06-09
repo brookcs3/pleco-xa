@@ -101,8 +101,8 @@ const { showConfidence = true, autoDetect = true, threshold = 0.3, class: classN
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {
-        const target = e.target as HTMLInputElement
-        const file = target.files?.[0]
+        const target = e.target
+        const file = target.files && target.files[0]
         if (!file) return
 
         try {
