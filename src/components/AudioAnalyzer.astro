@@ -98,7 +98,11 @@ const {
         <div class="card-value" id="audioFormat">--</div>
         <p class="card-description">Decoded audio information</p>
       </div>
-      <SignatureDemoButton />
+      <SignatureDemoButton
+        audioBuffer={currentAudioBuffer}
+        ctx={audioContext}
+        applyLoop={applyLoop}
+      />
     </div>
   </div>
 
