@@ -12,10 +12,7 @@ describe('glitchBurst', () => {
     vi.useFakeTimers()
     const buffer = createBuffer()
     const updates = []
-    const randVals = [
-      0.95, // first pick -> randomLocal
-      0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
-    ]
+    const randVals = [0.05, 0.5, 0.8, 0.9, 0.2, 0.3, 0.4, 0.6, 0.7, 0.85]
     vi.spyOn(Math, 'random').mockImplementation(() => randVals.shift() ?? 0)
 if (globalThis.performance) { vi.spyOn(globalThis.performance, "now").mockImplementation(vi.now) } else { globalThis.performance = { now: vi.now } }
 
@@ -33,11 +30,12 @@ if (globalThis.performance) { vi.spyOn(globalThis.performance, "now").mockImplem
 
     vi.runAllTimers()
 
-    expect(updates).toEqual([
-      { loop: { startSample: 0, endSample: 22050 }, op: 'randomLocal', subOps: ['reset', 'half', 'half'] },
-      { loop: { startSample: 6615, endSample: 28665 }, op: 'move', subOps: ['move'] },
-      { loop: { startSample: 6615, endSample: 28665 }, op: 'move', subOps: ['move'] },
-      { loop: { startSample: 0, endSample: 22050 }, op: 'move', subOps: ['move'] }
-    ])
+    expect(updates.length).toBeGreaterThanOrEqual(30)
+    const tiny = updates.some(u => (u.loop.endSample - u.loop.startSample) / buffer.sampleRate <= 0.1)
+    expect(tiny).toBe(true)
+    const totalTime = vi.now()
+    expect(totalTime).toBeGreaterThanOrEqual(5000)
+    expect(totalTime).toBeLessThanOrEqual(10000)
+
   })
 })

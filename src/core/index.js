@@ -6,7 +6,7 @@ export {
   moveForward,
   reverseBufferSection,
 } from './loopHelpers.js';
-export { randomSequence, glitchBurst } from './loopPlayground.js';
+export { randomSequence, glitchBurst, randomLocal } from './loopPlayground.js';
 export { startBeatGlitch } from './beatGlitcher.js';
 export { GibClock } from './GibClock.js';
 
