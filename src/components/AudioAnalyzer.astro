@@ -151,7 +151,7 @@ const {
 
   .analysis-display {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-columns: 1fr minmax(0, 2fr) 1fr;
     gap: 2rem;
     margin-top: 2rem;
   }
@@ -344,7 +344,7 @@ const {
 
   @media (max-width: 768px) {
     .analysis-display {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
     }
 
