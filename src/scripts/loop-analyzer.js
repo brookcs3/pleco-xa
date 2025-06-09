@@ -234,7 +234,7 @@ function scoreLoopRepetition(audioData, sr, startT, endT) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Librosa-like loop analysis                                                */
+/*  Advanced loop analysis                                                   */
 /* -------------------------------------------------------------------------- */
 export async function xaLoopAnalysis(audioBuffer) {
   if (!audioBuffer || typeof audioBuffer.getChannelData !== 'function') {

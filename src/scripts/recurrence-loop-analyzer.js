@@ -1,5 +1,5 @@
 /**
- * Clean loop analysis using only librosa recurrence matrix
+ * Clean loop analysis using a recurrence matrix
  * No BPM dependencies, just pure audio structure analysis
  */
 
