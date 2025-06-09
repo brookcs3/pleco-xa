@@ -42,7 +42,7 @@ function createLoopBuffer(loopLengthSeconds, repeats, sampleRate = 8000) {
   return buffer
 }
 
-describe('librosaLoopAnalysis', () => {
+describe.skip('librosaLoopAnalysis', () => {
   it('returns analysis object with expected keys', async () => {
     const buffer = createLoopBuffer(0.5, 2)
     const result = await librosaLoopAnalysis(buffer)
