@@ -409,6 +409,17 @@ path to verify the server is up and running.
 
 Contributions are welcome! Feel free to open issues or pull requests on GitHub.
 
+Before running the test suite or the development server, install the project's
+dependencies:
+
+```bash
+npm install
+```
+
+This fetches dev tools such as `vitest`. You can also run `npm run setup` which
+wraps the above command. See [CONTRIBUTING.md](CONTRIBUTING.md) for more
+details.
+
 ## License
 
 MIT License - See LICENSE file for details.
