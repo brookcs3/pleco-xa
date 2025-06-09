@@ -1,5 +1,5 @@
-import { detectBPM } from '../scripts/analysis/BPMDetector.ts';
-import { analyzeLoop } from '../scripts/analysis/LoopAnalyzer.ts';
+import { detectBPM } from '../scripts/analysis/BPMDetector.js';
+import { analyzeLoop } from '../scripts/analysis/LoopAnalyzer.js';
 import { fastBPMDetect } from '../scripts/analysis/BPMDetector.js';
 import { fastLoopAnalysis } from '../scripts/xa-loop.js';
 
