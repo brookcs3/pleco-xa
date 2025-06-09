@@ -1,5 +1,5 @@
-import { detectBPM } from '../scripts/analysis/BPMDetector.js';
-import { analyzeLoop } from '../scripts/analysis/LoopAnalyzer.js';
+import { detectBPM } from '../scripts/analysis/BPMDetector.ts';
+import { analyzeLoop } from '../scripts/analysis/LoopAnalyzer.ts';
 
 self.onmessage = async (e) => {
   const { arrayBuffer } = e.data;
