@@ -184,10 +184,8 @@ export function computeZeroCrossingRate(audioBuffer) {
         crossings++
       }
     }
+    samples += data.length
 
-    if (data.length) {
-      totalRate += crossings / data.length
-    }
   }
 
   return channels ? totalRate / channels : 0
