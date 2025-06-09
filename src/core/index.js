@@ -6,3 +6,4 @@ export {
   moveForward,
   reverseBufferSection,
 } from './loopHelpers.js';
+export { randomSequence } from './loopPlayground.js';

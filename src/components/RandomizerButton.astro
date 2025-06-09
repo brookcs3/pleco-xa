@@ -1,0 +1,29 @@
+---
+interface Props {}
+const {} = Astro.props;
+---
+<button class="loop-btn" id="randomizeLoopBtn">🎲 Randomize Loop</button>
+<script>
+  import { randomSequence } from '../core/index.js'
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('randomizeLoopBtn')
+    btn?.addEventListener('click', async () => {
+      const buffer = window.currentAudioBuffer
+      const ctx = window.audioContext
+      const apply = window.applyLoop
+      if (!buffer || !ctx || typeof apply !== 'function') return
+      const seq = randomSequence(buffer, { minMs: 10, maxMs: buffer.duration * 1000, steps: 5 })
+      for (const step of seq) {
+        const res = step()
+        apply(res)
+        const toast = document.getElementById('errorDisplay')
+        if (toast) {
+          toast.textContent = `Applied ${step.op}`
+          toast.style.display = 'block'
+          setTimeout(() => { toast.style.display = 'none' }, 400)
+        }
+        await new Promise(r => setTimeout(r, 500))
+      }
+    })
+  })
+</script>

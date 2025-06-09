@@ -333,6 +333,12 @@ See the `/examples` directory for complete working examples. Sample loops for th
   `npm install && npm run dev` from that folder.
 - **Railway API Example** - [`deploying/railway-api`](deploying/README.md)
   demonstrates deploying the paywall backend on Railway.
+### Random Loop Playground
+
+A quick demo of random loop transformations.
+
+![Random Loop Demo](docs/random-loop-demo.gif)
+
 
 ## Client-Side Web App & Premium Features
 
