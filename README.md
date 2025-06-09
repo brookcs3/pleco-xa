@@ -3,7 +3,7 @@
 > Browser-native audio analysis engine for musical timing, BPM detection, and intelligent loop finding
 
 **Author:** Cameron Brooks  
-**Version:** 1.0.2
+**Version:** 1.0.6
 **License:** MIT
 
 ## Overview
@@ -91,7 +91,7 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 ```html
 <script type="module">
-  import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.2/dist/pleco-xa.min.js'
+  import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.6/dist/pleco-xa.min.js'
 </script>
 ```
 The snippet above can be used to build a simple page that detects BPM from an uploaded audio file.
