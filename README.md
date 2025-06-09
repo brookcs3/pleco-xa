@@ -78,12 +78,7 @@ const editor = new WaveformEditor(canvas, audioBuffer, analysis)
 ## Build
 
 Run `npm run build` to generate distributable bundles in the `dist/` directory.
-This produces `dist/pleco-xa.js` and a minified `dist/pleco-xa.min.js` ready for
-use in the browser or with bundlers. `dist/pleco-xa.js` is the main entry point
-referenced by `package.json`, while `dist/pleco-xa.min.js` is exposed via the
-`unpkg` field for direct CDN usage. The `prepublishOnly` script defined in
-`package.json` automatically runs this build step before the package is
-published.
+This produces `dist/pleco-xa.js` as the main entry point and a minified `dist/pleco-xa.min.js` for browser usage. The minified file can also be loaded directly from a CDN such as unpkg.
 
 ## CDN Demo
 
@@ -91,10 +86,11 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
 
 ```html
 <script type="module">
-  import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.6/dist/pleco-xa.min.js'
+  import { detectBPM } from 'https://unpkg.com/pleco-xa/dist/pleco-xa.min.js'
 </script>
 ```
 The snippet above can be used to build a simple page that detects BPM from an uploaded audio file.
+You can lock to a specific version by using a path like `https://unpkg.com/pleco-xa@1.0.8/dist/pleco-xa.min.js`.
 
 ## Debugging
 
@@ -354,9 +350,7 @@ Pleco Xa works in all modern browsers that support:
 
 ## Building and Publishing
 
-Run `npm install` to install dependencies, then `npm run build` to produce the
-compiled files in `dist/`. During publishing the `prepublishOnly` script will
-automatically run the build step.
+Run `npm install` to install dependencies, then `npm run build` to produce the compiled files in `dist/` before running `npm publish`.
 
 ```bash
 npm install
