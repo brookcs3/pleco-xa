@@ -170,7 +170,9 @@ Musical boundary-aware loop detection.
 
 - **audioBuffer**: `AudioBuffer` - Audio to analyze
 - **bpmData**: `Object` - BPM detection results
-- **Returns**: Loop candidates with musical timing confidence
+- **Returns**: Loop candidates with musical timing confidence. The result
+  includes an `isFullTrack` flag indicating if the audio buffer represents a
+  complete track.
 
 ### Spectral Analysis
 
