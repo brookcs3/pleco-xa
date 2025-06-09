@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "start": "astro preview --port $PORT --host",
+    "start": "node dist/server/entry.mjs",
     "test": "vitest",
     "setup": "npm ci"
   },
