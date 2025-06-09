@@ -11,7 +11,7 @@ function createAudioBuffer(samples) {
   }
 }
 
-describe.skip('audio utils', () => {
+describe('audio utils', () => {
   describe('computeRMS', () => {
     it('calculates RMS for alternating +1/-1 signal', () => {
       const buffer = createAudioBuffer([1, -1, 1, -1])
