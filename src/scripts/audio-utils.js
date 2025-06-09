@@ -170,18 +170,25 @@ export function computePeak(audioBuffer) {
 
 export function computeZeroCrossingRate(audioBuffer) {
   const channels = audioBuffer.numberOfChannels || 1
-  let crossings = 0
-  let samples = 0
+  let totalRate = 0
+
   for (let ch = 0; ch < channels; ch++) {
     const data = audioBuffer.getChannelData(ch)
+    let crossings = 0
+
     for (let i = 1; i < data.length; i++) {
-      if ((data[i - 1] >= 0 && data[i] < 0) || (data[i - 1] < 0 && data[i] >= 0)) {
+      if (
+        (data[i - 1] >= 0 && data[i] < 0) ||
+        (data[i - 1] < 0 && data[i] >= 0)
+      ) {
         crossings++
       }
     }
     samples += data.length
+
   }
-  return samples ? crossings / samples : 0
+
+  return channels ? totalRate / channels : 0
 }
 
 export function reverseBufferSection(buffer, start, end) {
@@ -203,7 +210,7 @@ export function reverseBufferSection(buffer, start, end) {
 export function findZeroCrossing(data, startIndex) {
   for (let i = startIndex + 1; i < data.length; i++) {
     if ((data[i - 1] >= 0 && data[i] < 0) || (data[i - 1] < 0 && data[i] >= 0)) {
-      return i
+      return i - 1
     }
   }
   return startIndex

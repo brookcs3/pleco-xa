@@ -1,12 +1,4 @@
 name: CI and Deploy
-            - name: AutoCodeRover Action
-  # You may pin to the exact commit or the version.
-  # uses: seekayel/auto-code-rover-action@95809ac6448a7e97fdff5bee408ff76a3331bb39
-  uses: seekayel/auto-code-rover-action@v0.0.1
-  with:
-    # Bug ID to repair
-    bug_id: 
-          
 on:
   push:
     branches: [main]
@@ -42,5 +34,5 @@ jobs:
       id-token: write
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
 
