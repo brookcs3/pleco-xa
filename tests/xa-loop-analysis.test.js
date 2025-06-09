@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { librosaLoopAnalysis } from '../src/scripts/loop-analyzer.js'
+import { xaLoopAnalysis } from '../src/scripts/loop-analyzer.js'
 import { AudioContext } from 'web-audio-test-api'
 
 // Minimal stub for OfflineAudioContext used in spectrum analysis
@@ -42,10 +42,10 @@ function createLoopBuffer(loopLengthSeconds, repeats, sampleRate = 8000) {
   return buffer
 }
 
-describe('librosaLoopAnalysis', () => {
+describe('xaLoopAnalysis', () => {
   it('returns analysis object with expected keys', async () => {
     const buffer = createLoopBuffer(0.5, 2)
-    const result = await librosaLoopAnalysis(buffer)
+    const result = await xaLoopAnalysis(buffer)
 
     expect(result).toEqual(
       expect.objectContaining({
