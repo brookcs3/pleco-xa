@@ -42,6 +42,10 @@ const { autoPlay = false, class: className = '' } = Astro.props
     margin-bottom: 10px;
   }
 
+  .loop-upload label.error {
+    background: #b00020;
+  }
+
   .loop-controls {
     display: flex;
     gap: 10px;
@@ -119,7 +123,16 @@ const { autoPlay = false, class: className = '' } = Astro.props
           } catch (decodeError) {
             console.error('Audio decoding failed:', decodeError);
             elements.fileInput.disabled = false;
-            elements.fileInput.nextElementSibling.textContent = "Load Loop (Error - Try Again)";
+            const btn = elements.fileInput.nextElementSibling;
+            if (btn) {
+              btn.classList.add('error');
+              btn.setAttribute('title', 'Unsupported format');
+              btn.textContent = 'Load Loop';
+              setTimeout(() => {
+                btn.classList.remove('error');
+                btn.removeAttribute('title');
+              }, 5000);
+            }
           }
         };
         

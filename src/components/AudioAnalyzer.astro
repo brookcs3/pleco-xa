@@ -60,6 +60,7 @@ const {
     <div class="waveform-container">
       <h3 class="waveform-title">Waveform & Loop Detection</h3>
       <canvas class="waveform-canvas" id="waveformCanvas" width="800" height="200"></canvas>
+      <progress id="analysisProgress" max="1" value="0" style="width:100%;display:none;margin-top:0.5rem;"></progress>
       <div class="loop-controls">
         <button class="loop-btn" id="detectLoopBtn">🔍 Detect Loop</button>
         <button class="loop-btn" id="halfLoopBtn">½ Half Loop</button>
@@ -150,7 +151,7 @@ const {
 
   .analysis-display {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-columns: 1fr minmax(0, 2fr) 1fr;
     gap: 2rem;
     margin-top: 2rem;
   }
@@ -263,6 +264,12 @@ const {
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
+  #analysisProgress {
+    width: 100%;
+    height: 8px;
+    margin-top: 0.5rem;
+  }
+
   .loop-controls {
     display: flex;
     gap: 1rem;
@@ -337,7 +344,7 @@ const {
 
   @media (max-width: 768px) {
     .analysis-display {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
     }
 
@@ -359,7 +366,7 @@ const {
   let animationFrameId = null;
   
   // Import analysis modules
-  import { detectBPM, detectBPMWindow } from '../scripts/analysis/BPMDetector.js';
+  import { detectBPMWindow } from '../scripts/analysis/BPMDetector.js';
   import { findLoop, manipulateLoop } from '../scripts/xa-loop-detection.js';
   
   // Initialize state
@@ -368,6 +375,9 @@ const {
   let currentAudioBuffer = null;
   let isPlaying = false;
   let currentBeats = []; // Store beat times from BPM detection
+  let isDraggingMarker = false;
+  let dragMarker = null; // 'start' or 'end'
+
   
   // Initialize audio processor when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
@@ -406,12 +416,16 @@ const {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         try {
+          clearAnalysisDisplay();
           updateTrackInfo(file.name, 'Loading...');
           
-          // Load and analyze the file
+          // Load the file
           const result = await loadAudioFile(file);
           currentAudioBuffer = result.audioBuffer;
           audioContext = result.audioContext;
+          if (analysisWorker && result.arrayBuffer) {
+            analysisWorker.postMessage({ arrayBuffer: result.arrayBuffer }, [result.arrayBuffer]);
+          }
           
           // Update UI with file info
           updateTrackInfo(
@@ -422,9 +436,8 @@ const {
           document.getElementById('audioFormat').textContent =
             `${currentAudioBuffer.sampleRate}Hz / ${currentAudioBuffer.numberOfChannels}ch`;
           
-          // Analyze the audio (BPM detection)
-          const bpmResult = await detectBPM(currentAudioBuffer);
-          document.getElementById('bpmValue').textContent = bpmResult.bpm.toFixed(1);
+          // BPM and loop detection handled by worker; show placeholder
+          document.getElementById('bpmValue').textContent = '...';
           
           // Draw waveform with loop points
           drawWaveform(currentAudioBuffer, 'waveformCanvas', { start: 0, end: 1 });
@@ -589,12 +602,64 @@ const {
           startWaveformAnimation();
         }
         
-        showError('Loop section reversed successfully');
+      showError('Loop section reversed successfully');
       } catch (error) {
         console.error('❌ Error reversing loop:', error);
         showError(`Failed to reverse loop: ${error.message}`);
       }
     });
+
+    // ===== Waveform marker drag =====
+    const canvas = document.getElementById('waveformCanvas');
+    if (canvas) {
+      canvas.addEventListener('mousedown', (e) => {
+        if (!currentAudioBuffer || !audioProcessor) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const { start, end } = audioProcessor.getLoopPoints();
+        const startX = start * canvas.width;
+        const endX = end * canvas.width;
+
+        if (Math.abs(x - startX) < 10) {
+          isDraggingMarker = true;
+          dragMarker = 'start';
+        } else if (Math.abs(x - endX) < 10) {
+          isDraggingMarker = true;
+          dragMarker = 'end';
+        }
+      });
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (!isDraggingMarker || !currentAudioBuffer || !audioProcessor) return;
+
+        const rect = canvas.getBoundingClientRect();
+        let pos = (e.clientX - rect.left) / canvas.width;
+        pos = Math.min(1, Math.max(0, pos));
+
+        let { start, end } = audioProcessor.getLoopPoints();
+        if (dragMarker === 'start') {
+          start = Math.min(pos, end - 0.01);
+        } else if (dragMarker === 'end') {
+          end = Math.max(pos, start + 0.01);
+        }
+
+        audioProcessor.setLoopPoints(start, end);
+        updateLoopInfo({ start, end });
+
+        drawWaveform(currentAudioBuffer, 'waveformCanvas', { start, end });
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        isDraggingMarker = false;
+        dragMarker = null;
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        isDraggingMarker = false;
+        dragMarker = null;
+      });
+    }
   }
   
   // Load a sample audio file
@@ -605,14 +670,18 @@ const {
         btn.disabled = true;
         btn.style.opacity = '0.5';
       });
-      
+
+      clearAnalysisDisplay();
       updateTrackInfo(name, 'Loading...');
       document.getElementById('bpmValue').textContent = '...';
       
-      // First just load the audio file
+      // First load the audio file
       const result = await loadAudioFile(url);
       currentAudioBuffer = result.audioBuffer;
       audioContext = result.audioContext;
+      if (analysisWorker && result.arrayBuffer) {
+        analysisWorker.postMessage({ arrayBuffer: result.arrayBuffer }, [result.arrayBuffer]);
+      }
       
       // Update UI with file info immediately
       updateTrackInfo(
@@ -632,32 +701,8 @@ const {
         btn.style.opacity = '1';
       });
       
-      // Then do BPM analysis in the background with setTimeout
-      setTimeout(async () => {
-        try {
-          // Detect initial BPM for all files using the accurate method
-          const bpmResult = await detectBPM(currentAudioBuffer);
-          let bpm = bpmResult.bpm;
-          
-          // Adjust BPM if it's likely a half-time misinterpretation
-          if (bpm < 80) {
-            const doubledBpm = bpm * 2;
-            if (doubledBpm <= 160) {
-              bpm = doubledBpm;
-              console.log('✅ Adjusted BPM from half-time:', bpm);
-            }
-          }
-          
-          // Store BPM for live updates and beat times for precise pulsing
-          window.currentBPM = bpm;
-          currentBeats = bpmResult.beats || [];
-          document.getElementById('bpmValue').textContent = bpm.toFixed(1);
-          console.log('✅ Initial BPM detected:', bpmResult.bpm, 'Adjusted to:', bpm, 'Beats stored:', currentBeats.length);
-        } catch (bpmError) {
-          console.error('❌ BPM detection error:', bpmError);
-          document.getElementById('bpmValue').textContent = '--';
-        }
-      }, 100);
+      // Worker will handle BPM and loop detection
+      document.getElementById('bpmValue').textContent = '...';
       
       console.log('✅ Audio loaded');
     } catch (error) {
@@ -864,6 +909,21 @@ const {
     }
     
     document.getElementById('loopInfo').textContent = loopText;
+  }
+
+  // Clear BPM, waveform canvas and loop markers
+  function clearAnalysisDisplay() {
+    const bpmEl = document.getElementById('bpmValue');
+    if (bpmEl) bpmEl.textContent = '--';
+
+    const canvas = document.getElementById('waveformCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    document.getElementById('loopInfo').textContent = 'Full Track';
+    audioProcessor?.setLoopPoints(0, 1);
   }
   
   // Show error message

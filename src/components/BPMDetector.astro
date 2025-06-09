@@ -56,6 +56,10 @@ const { showConfidence = true, autoDetect = true, threshold = 0.3, class: classN
     transition: background 0.2s;
   }
 
+  .bpm-upload label.error {
+    background: #b00020;
+  }
+
   .bpm-upload label:hover {
     background: #0052a3;
   }
@@ -109,7 +113,26 @@ const { showConfidence = true, autoDetect = true, threshold = 0.3, class: classN
             window.AudioContext || (window as any).webkitAudioContext
           const audioContext = new AudioContextConstructor()
           const arrayBuffer = await file.arrayBuffer()
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+          let audioBuffer
+          try {
+            audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+          } catch (decodeError) {
+            console.error('Audio decoding failed:', decodeError)
+            const btn = fileInput.nextElementSibling
+            if (btn) {
+              btn.classList.add('error')
+              btn.setAttribute('title', 'Unsupported format')
+              setTimeout(() => {
+                btn.classList.remove('error')
+                btn.removeAttribute('title')
+              }, 5000)
+            }
+            bpmValue.textContent = 'Error'
+            if (bpmConfidence) {
+              bpmConfidence.textContent = 'Detection failed'
+            }
+            return
+          }
 
           const result = fastBPMDetect(audioBuffer, { minBPM: 60, maxBPM: 180 })
 

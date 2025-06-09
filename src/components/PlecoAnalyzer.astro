@@ -29,6 +29,7 @@ const {
       <div class="pleco-upload">
         <input type="file" id="plecoFileInput" accept="assets/audio/*" />
         <label for="plecoFileInput" tabindex="0">Choose Audio File</label>
+
       </div>
     )
   }
@@ -104,6 +105,10 @@ const {
     border-radius: 4px;
     cursor: pointer;
     transition: background 0.2s;
+  }
+
+  .pleco-upload label.error {
+    background: #b00020;
   }
 
   .pleco-upload label:hover {
@@ -194,7 +199,22 @@ const {
             window.AudioContext || (window as any).webkitAudioContext
           const audioContext = new AudioContextConstructor()
           const arrayBuffer = await file.arrayBuffer()
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+          let audioBuffer
+          try {
+            audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+          } catch (decodeError) {
+            console.error('Audio decoding failed:', decodeError)
+            const btn = fileInput.nextElementSibling
+            if (btn) {
+              btn.classList.add('error')
+              btn.setAttribute('title', 'Unsupported format')
+              setTimeout(() => {
+                btn.classList.remove('error')
+                btn.removeAttribute('title')
+              }, 5000)
+            }
+            return
+          }
 
           // Analyze with Pleco Xa using fast functions
           let bpmResult;
