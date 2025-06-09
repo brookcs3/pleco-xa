@@ -1,17 +1,21 @@
 ---
 import { signatureDemo } from '../core/index.js';
+import { enqueueToast } from '../scripts/ui/toastQueue.js';
 
 interface Props {
-  audioBufferVar?: string;
-  applyLoopVar?: string;
+  audioBuffer: AudioBuffer | null;
+  ctx: AudioContext | null;
+  applyLoop: (buf: AudioBuffer, loop: any, op: string) => void;
 }
 
-const { audioBufferVar = 'currentAudioBuffer', applyLoopVar = 'applyLoop' } = Astro.props;
+const { audioBuffer = null, ctx = null, applyLoop } = Astro.props;
 
-async function runDemo(buffer, applyLoop) {
-  const steps = signatureDemo(buffer);
+async function runDemo() {
+  if (!audioBuffer || typeof applyLoop !== 'function') return;
+  const steps = signatureDemo(audioBuffer);
   for (const { fn, op } of steps) {
     const { buffer: newBuf, loop } = fn();
+    enqueueToast(op);
     applyLoop(newBuf, loop, op);
     await new Promise((r) => setTimeout(r, 400));
   }
@@ -20,23 +24,10 @@ async function runDemo(buffer, applyLoop) {
 <button
   class="sig-demo"
   id="sigDemoBtn"
-  data-buffer-var={audioBufferVar}
-  data-apply-loop-var={applyLoopVar}
+  on:click={runDemo}
 >
   🚀 Signature Demo
 </button>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('sigDemoBtn');
-    btn?.addEventListener('click', () => {
-      const buffer = window[btn.dataset.bufferVar];
-      const applyLoop = window[btn.dataset.applyLoopVar];
-      if (!buffer || typeof applyLoop !== 'function') return;
-      runDemo(buffer, applyLoop);
-    });
-  });
-</script>
 
 <style>
 .sig-demo { margin-top: .5rem; padding: .4rem .8rem; background: var(--accent); }
