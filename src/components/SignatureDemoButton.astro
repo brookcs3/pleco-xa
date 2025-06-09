@@ -1,6 +1,7 @@
 ---
 import { signatureDemo } from '../core/index.js';
-const { audioBuffer, applyLoop } = Astro.props;
+import { applyLoop as applyLoopHelper } from '../scripts/ui/applyLoop.js';
+const { audioBuffer, applyLoop = applyLoopHelper } = Astro.props;
 
 async function runDemo() {
   const steps = signatureDemo(audioBuffer);
