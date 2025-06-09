@@ -9,6 +9,8 @@ interface Props {
   class?: string;
 }
 
+import SignatureDemoButton from './SignatureDemoButton.astro';
+
 const { 
   title = 'Audio Analysis', 
   showControls = true,
@@ -90,6 +92,7 @@ const {
         <div class="card-value" id="audioFormat">--</div>
         <p class="card-description">Decoded audio information</p>
       </div>
+      <SignatureDemoButton audioBuffer={currentAudioBuffer} applyLoop={applyLoop} />
     </div>
   </div>
 
@@ -988,5 +991,22 @@ const {
     }
     
     requestAnimationFrame(animateTimeline);
+  }
+
+  function applyLoop(buf, loop, op) {
+    if (!buf || !loop || !audioProcessor) return;
+    currentAudioBuffer = buf;
+    const start = loop.startSample / buf.length;
+    const end = loop.endSample / buf.length;
+    audioProcessor.setLoopPoints(start, end);
+    updateLoopInfo({ start, end });
+    drawWaveform(currentAudioBuffer, 'waveformCanvas', { start, end });
+    updateTrackInfo(currentTrackName || '', op);
+    if (isPlaying) {
+      audioProcessor.stop();
+      audioProcessor.play(currentAudioBuffer).catch(() => {});
+      startTimelineAnimation();
+      startWaveformAnimation();
+    }
   }
 </script>
