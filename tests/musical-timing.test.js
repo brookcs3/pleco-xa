@@ -1,6 +1,6 @@
 import { calculateBeatAlignment } from '../src/scripts/musical-timing.js'
 
-describe.skip('calculateBeatAlignment', () => {
+describe('calculateBeatAlignment', () => {
   const bpm = 120
 
   it('gives perfect alignment for a 1 bar loop', () => {
