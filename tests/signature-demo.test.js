@@ -6,6 +6,6 @@ describe('signatureDemo', () => {
     const ctx = new AudioContext({ sampleRate: 44100 });
     const buffer = ctx.createBuffer(1, 44100, 44100);
     const steps = signatureDemo(buffer);
-    expect(steps).toHaveLength(54);
+    expect(steps).toHaveLength(60);
   });
 });

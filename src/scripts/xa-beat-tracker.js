@@ -1,5 +1,7 @@
 
 // Lightweight FFT implementation integrated directly for browser use
+import { debugLog } from './debug.js'
+
 function fft(signal) {
   const arr = Array.isArray(signal) ? signal : Array.from(signal)
   const complexSignal = arr.map((v) => ({ real: v, imag: 0 }))
@@ -181,7 +183,7 @@ export class BeatTracker {
       beats = beatsBoolean
     }
 
-    console.log(
+    debugLog(
         `🥁 Beat tracking: ${tempo.toFixed ? tempo.toFixed(1) : 'dynamic'} BPM, ${beats.length} beats`,
     )
 

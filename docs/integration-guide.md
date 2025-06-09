@@ -189,6 +189,8 @@ const dopplerScroll = new DopplerScroll({
 
 Enable debug mode to see audio state in console:
 
+Set the `PLECO_DEBUG` environment variable to `true` or call `setDebug(true)` before initializing to enable verbose logging.
+
 ```javascript
 const dopplerScroll = new DopplerScroll({ debug: true })
 

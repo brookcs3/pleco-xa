@@ -12,6 +12,8 @@
  * @version 1.0.0
  */
 
+import { debugLog } from './debug.js'
+
 /**
  * Custom error class for parameter validation
  */
@@ -747,7 +749,7 @@ const enhanced = pathEnhance(recurrence, 128, {
 });
 
 const segments = agglomerative(features, 8);
-console.log('Segment boundaries:', segments);
+debugLog('Segment boundaries:', segments);
 
 // Cross-similarity between different sections
 const similarity = crossSimilarity(features1, features2, {

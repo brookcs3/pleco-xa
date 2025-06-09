@@ -4,6 +4,8 @@
  * Based on librosa's matching algorithms for time-series alignment
  */
 
+import { debugLog } from './debug.js'
+
 /**
  * Musical Event and Interval Matcher Class
  * Handles precise matching between time-based musical events
@@ -273,7 +275,7 @@ export class Matcher {
         intervalsTo,
         strict,
       )
-      console.log(
+      debugLog(
         `🎯 Matched ${intervalsFrom.length} intervals with ${strict ? 'strict' : 'relaxed'} matching`,
       )
       return result
@@ -333,7 +335,7 @@ export class Matcher {
     }
 
     const result = this._matchEventsHelper(fromArray, toArray, left, right)
-    console.log(
+    debugLog(
       `🎯 Matched ${fromArray.length} events with left=${left}, right=${right}`,
     )
     return result

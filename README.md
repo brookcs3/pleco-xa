@@ -99,7 +99,7 @@ See `examples/demo.html` for a simple interactive page that detects BPM from an 
 
 ## Debugging
 
-Enable verbose logging by setting the `PLECO_DEBUG` flag or by calling `setDebug(true)` from code. Both `setDebug` and `debugLog` are exported from `pleco-xa`. In Node.js you can run:
+Enable verbose logging by setting the `PLECO_DEBUG` environment variable or by calling `setDebug(true)` from code. Both `setDebug` and `debugLog` are exported from `pleco-xa`. In Node.js you can run:
 
 ```bash
 PLECO_DEBUG=true node your-script.js
@@ -408,6 +408,17 @@ path to verify the server is up and running.
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or pull requests on GitHub.
+
+Before running the test suite or the development server, install the project's
+dependencies:
+
+```bash
+npm install
+```
+
+This fetches dev tools such as `vitest`. You can also run `npm run setup` which
+wraps the above command. See [CONTRIBUTING.md](CONTRIBUTING.md) for more
+details.
 
 ## License
 

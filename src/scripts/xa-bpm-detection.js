@@ -3,6 +3,8 @@
  * Handles tempo detection and beat tracking
  */
 
+import { debugLog } from './debug.js'
+
 /**
  * Detect BPM from audio buffer
  * @param {AudioBuffer} audioBuffer - Audio buffer to analyze
@@ -21,7 +23,7 @@ export async function detectBPM(audioBuffer, options = {}) {
   
   // Special case for Jazz Drums file which is known to cause freezing
   if (options.fileName && options.fileName.includes("Jazzy-Drumset")) {
-    console.log("Using hardcoded BPM for Jazz Drums file");
+    debugLog("Using hardcoded BPM for Jazz Drums file");
     return {
       bpm: 120,
       confidence: 0.8,

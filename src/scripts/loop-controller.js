@@ -4,6 +4,8 @@
  * Dynamic loop manipulation with configurable constraints
  */
 
+import { debugLog } from './debug.js'
+
 export class LoopController {
   constructor(options = {}) {
     this.minLoopDuration = options.minLoopDuration || 0.05 // Default 50ms
@@ -17,7 +19,7 @@ export class LoopController {
    */
   setMinLoopDuration(durationSeconds) {
     this.minLoopDuration = durationSeconds
-    console.log(
+    debugLog(
       `Loop controller: Min duration set to ${durationSeconds * 1000}ms`,
     )
   }

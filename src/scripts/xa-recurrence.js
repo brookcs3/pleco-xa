@@ -3,6 +3,8 @@
  * For finding loop structures in audio
  */
 
+import { debugLog } from './debug.js'
+
 /**
  * Compute chroma features from audio buffer
  */
@@ -62,8 +64,8 @@ function frequencyToChroma(freq) {
  * Time-delay embedding to stack chroma features
  */
 export function stackMemory(chroma, nSteps = 10, delay = 3) {
-  console.log('Input chroma:', chroma)
-  console.log('Chroma dimensions:', chroma.length, chroma[0]?.length)
+  debugLog('Input chroma:', chroma)
+  debugLog('Chroma dimensions:', chroma.length, chroma[0]?.length)
 
   if (
     !Array.isArray(chroma) ||
@@ -128,10 +130,10 @@ function gen_sim_matrix(
   _win_length = null,
   _axis = -1,
 ) {
-  console.log('Preparing input data for gen_sim_matrix:', data)
-  console.log(`Data dimensions: ${data.length}x${data[0]?.length || 0}`)
+  debugLog('Preparing input data for gen_sim_matrix:', data)
+  debugLog(`Data dimensions: ${data.length}x${data[0]?.length || 0}`)
 
-  console.log('Data before gen_sim_matrix:', data)
+  debugLog('Data before gen_sim_matrix:', data)
   if (!validateInputData(data)) {
     throw new Error(
       'Invalid input data: Expected a 2D array before gen_sim_matrix.',

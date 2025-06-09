@@ -4,11 +4,13 @@
  * Useful for electronic music, hip-hop, and other beat-driven genres
  */
 
+import { debugLog } from './debug.js'
+
 /**
  * Find kick+snare hit (strong transient with wide frequency content)
  */
 export function findKickSnareHit(audioData, sampleRate, loop) {
-  console.log(`🥁 Looking for kick+snare hit near ${loop.start.toFixed(3)}s`)
+  debugLog(`🥁 Looking for kick+snare hit near ${loop.start.toFixed(3)}s`)
 
   const searchWindow = 0.2 // Search within 200ms
   const startSample = Math.floor(
@@ -67,10 +69,10 @@ export function findKickSnareHit(audioData, sampleRate, loop) {
     // Add a small offset to account for transient being detected slightly early
     const adjustedTime = detectedTime + 0.02 // 20ms later to hit the actual beat center
 
-    console.log(
+    debugLog(
       `🥁 Found kick+snare at ${detectedTime.toFixed(3)}s (score: ${maxTransientScore.toFixed(2)})`,
     )
-    console.log(
+    debugLog(
       `🥁 Adjusted to ${adjustedTime.toFixed(3)}s (+20ms to hit beat center)`,
     )
 
@@ -82,7 +84,7 @@ export function findKickSnareHit(audioData, sampleRate, loop) {
     }
   }
 
-  console.log(
+  debugLog(
     `🥁 No clear kick+snare found (max score: ${maxTransientScore.toFixed(2)})`,
   )
   return null
