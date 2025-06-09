@@ -387,6 +387,9 @@ that returns `OK`. This file lives at `public/health`, so it works even when the
 app is served statically from the `dist/` folder. Automated systems can use this
 path to verify the server is up and running.
 
+### File Upload Caveats
+Railway's container filesystem is ephemeral, so files written during runtime won't persist after redeploys or restarts. Any endpoints that save uploaded audio to the local filesystem may break. To reliably store uploaded audio, use object storage such as Amazon S3 or Railway's storage plugin.
+
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or pull requests on GitHub.
