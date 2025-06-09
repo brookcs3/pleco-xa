@@ -382,14 +382,6 @@ installs. You can also run `npm run setup` which wraps the above command.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ## License
-
-MIT License - See LICENSE file for details.
-
-Some audio analysis techniques were inspired by open-source audio DSP research
-
-## Credits
-
-**Pleco Xa** - Bringing musical intelligence to the browser.  
 _Built with ♪ by Cameron Brooks_
 
 ![Hits](https://visitor-badge.laobi.icu/badge?page_id=brookcs3.pleco-xa)
