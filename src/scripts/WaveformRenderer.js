@@ -43,7 +43,7 @@
  * @example
  * ```javascript
  * import { renderWaveform } from './WaveformRenderer.js';
- * import { getWaveformPeaks } from './analysis/WaveformData.js';
+ * import { getWaveformPeaks } from './analysis/WaveformData.ts';
  *
  * const canvas = document.getElementById('waveform');
  * const peaks = getWaveformPeaks(audioBuffer, { width: canvas.width });

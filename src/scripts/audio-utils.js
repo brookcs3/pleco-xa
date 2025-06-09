@@ -104,7 +104,7 @@ export function exportBufferAsWav(buffer) {
     }
   }
 
-  return new Blob([view], { type: 'assets/audio/wav' })
+  return new Blob([view], { type: 'audio/wav' })
 }
 
 /**
@@ -153,6 +153,73 @@ export function defineMultipleLoopPoints(buffer, loopLengthSeconds, repeats) {
   }
 
   return loopPoints
+}
+
+export function computePeak(audioBuffer) {
+  const channels = audioBuffer.numberOfChannels || 1
+  let peak = 0
+  for (let ch = 0; ch < channels; ch++) {
+    const data = audioBuffer.getChannelData(ch)
+    for (let i = 0; i < data.length; i++) {
+      const val = Math.abs(data[i])
+      if (val > peak) peak = val
+    }
+  }
+  return peak
+}
+
+export function computeZeroCrossingRate(audioBuffer) {
+  const channels = audioBuffer.numberOfChannels || 1
+  let crossings = 0
+  let samples = 0
+  for (let ch = 0; ch < channels; ch++) {
+    const data = audioBuffer.getChannelData(ch)
+    for (let i = 1; i < data.length; i++) {
+      if ((data[i - 1] >= 0 && data[i] < 0) || (data[i - 1] < 0 && data[i] >= 0)) {
+        crossings++
+      }
+    }
+    samples += data.length - 1
+  }
+  return samples ? crossings / samples : 0
+}
+
+export function findZeroCrossing(data, startIndex) {
+  for (let i = startIndex + 1; i < data.length; i++) {
+    if ((data[i - 1] >= 0 && data[i] < 0) || (data[i - 1] < 0 && data[i] >= 0)) {
+      return i
+    }
+  }
+  return startIndex
+}
+
+export function findAllZeroCrossings(data, start = 0) {
+  const indices = []
+  for (let i = Math.max(1, start); i < data.length; i++) {
+    if ((data[i - 1] >= 0 && data[i] < 0) || (data[i - 1] < 0 && data[i] >= 0)) {
+      indices.push(i)
+    }
+  }
+  return indices
+}
+
+export function findAudioStart(channelData, sampleRate, threshold = 0.02) {
+  for (let i = 0; i < channelData.length; i++) {
+    if (Math.abs(channelData[i]) >= threshold) {
+      return findZeroCrossing(channelData, i)
+    }
+  }
+  return 0
+}
+
+export function applyHannWindow(audioData) {
+  const len = audioData.length
+  const result = new Float32Array(len)
+  for (let i = 0; i < len; i++) {
+    const w = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (len - 1)))
+    result[i] = audioData[i] * w
+  }
+  return result
 }
 
 // Example usage:

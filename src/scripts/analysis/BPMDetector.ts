@@ -41,7 +41,7 @@
  *
  * @example
  * ```javascript
- * import { detectBPM } from './analysis/BPMDetector.js';
+ * import { detectBPM } from './analysis/BPMDetector.ts';
  *
  * const audioContext = new AudioContext();
  * const response = await fetch('audio.wav');
@@ -127,7 +127,7 @@ export async function detectBPMWindow(audioBuffer, centerSample, windowDuration,
  *
  * @example
  * ```javascript
- * import { fastBPMDetect } from './analysis/BPMDetector.js';
+ * import { fastBPMDetect } from './analysis/BPMDetector.ts';
  *
  * const bpm = fastBPMDetect(audioBuffer);
  * console.log(`Quick BPM: ${bpm}`);
@@ -401,7 +401,7 @@ export class BPMDetector {
  *
  * @example
  * ```javascript
- * import { analyzeTempoVariations } from './analysis/BPMDetector.js';
+ * import { analyzeTempoVariations } from './analysis/BPMDetector.ts';
  *
  * const analysis = await analyzeTempoVariations(audioBuffer, {
  *   windowDuration: 4.0, // 4 second windows
