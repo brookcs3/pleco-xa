@@ -20,11 +20,12 @@ function setupDom() {
   applyLoop = vi.fn()
   audioBuffer = {}
 
-  async function runDemo(buffer, applyLoopFn) {
-    const steps = signatureDemo(buffer)
+  async function runDemo() {
+    const steps = signatureDemo(audioBuffer)
     for (const { fn, op } of steps) {
       const { buffer: newBuf, loop } = fn()
       applyLoopFn(newBuf, loop, op)
+
       await new Promise(r => setTimeout(r, 400))
     }
   }
@@ -34,6 +35,7 @@ function setupDom() {
     if (!audioBuffer || typeof applyLoop !== 'function') return
     runDemo(audioBuffer, applyLoop)
   })
+
   btn = el
 }
 

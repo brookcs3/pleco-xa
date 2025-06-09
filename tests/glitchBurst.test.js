@@ -8,34 +8,36 @@ function createBuffer() {
 }
 
 describe('glitchBurst', () => {
-  it('produces burst of operations', () => {
+  it('follows deterministic sequence when RNG is mocked', () => {
     vi.useFakeTimers()
     const buffer = createBuffer()
     const updates = []
     const randVals = [
-      0.95, // randomLocal
-      0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+      0.95, // first pick -> randomLocal
+      0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
     ]
     vi.spyOn(Math, 'random').mockImplementation(() => randVals.shift() ?? 0)
-    global.performance = { now: vi.now }
+if (globalThis.performance) { vi.spyOn(globalThis.performance, "now").mockImplementation(vi.now) } else { globalThis.performance = { now: vi.now } }
 
     glitchBurst(buffer, {
       ctx: {},
-      durationMs: 6000,
+      durationMs: 400,
       onUpdate: (buf, loop, op, subOps) => {
-        updates.push({ loop, op, subOps })
+        updates.push({
+          loop: { startSample: loop.startSample, endSample: loop.endSample },
+          op,
+          subOps
+        })
       }
     })
 
     vi.runAllTimers()
 
-    expect(updates.length).toBeGreaterThanOrEqual(30)
-    const tiny = updates.some(u => (u.loop.endSample - u.loop.startSample) / buffer.sampleRate <= 0.1)
-    expect(tiny).toBe(true)
-    const hasRandomLocal = updates.find(u => u.op === 'randomLocal')
-    if (hasRandomLocal) expect(hasRandomLocal.subOps.length).toBeGreaterThanOrEqual(2)
-    const totalTime = vi.now()
-    expect(totalTime).toBeGreaterThanOrEqual(5000)
-    expect(totalTime).toBeLessThanOrEqual(10000)
+    expect(updates).toEqual([
+      { loop: { startSample: 0, endSample: 22050 }, op: 'randomLocal', subOps: ['reset', 'half', 'half'] },
+      { loop: { startSample: 6615, endSample: 28665 }, op: 'move', subOps: ['move'] },
+      { loop: { startSample: 6615, endSample: 28665 }, op: 'move', subOps: ['move'] },
+      { loop: { startSample: 0, endSample: 22050 }, op: 'move', subOps: ['move'] }
+    ])
   })
 })

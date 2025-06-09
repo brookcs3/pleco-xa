@@ -9,7 +9,7 @@
     "preview": "astro preview",
     "start": "astro preview --port $PORT --host",
     "test": "vitest",
-    "setup": "npm install"
+    "setup": "npm ci"
   },
   "dependencies": {
     "@astrojs/node": "^9.2.2",

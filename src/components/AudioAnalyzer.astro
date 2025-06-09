@@ -362,7 +362,7 @@ const {
   }
 </style>
 
-<script>
+<script client:load>
   // Import core functionality
   import {
     initAudioProcessor,
@@ -387,8 +387,10 @@ const {
   let audioContext;
   let audioProcessor;
   let currentAudioBuffer = null;
-  window.currentAudioBuffer = null;
-  window.audioContext = null;
+  if (typeof window !== 'undefined') {
+    window.currentAudioBuffer ||= null;
+    window.audioContext ||= null;
+  }
   let isPlaying = false;
   let currentBeats = []; // Store beat times from BPM detection
   let currentTrackName = '';
