@@ -27,6 +27,7 @@ import { chroma_stft, enhance_chroma } from './xa-chroma.js'
 import { fastLoopAnalysis } from './xa-loop.js'
 import { findPreciseLoop } from './xa-precise-loop.js'
 import { findMusicalLoop, findDownbeatPhase } from './xa-downbeat.js'
+import { warnIfNoMp3Support } from './xa-util.js'
 
 // Audio utilities
 import {
@@ -73,6 +74,7 @@ function showError(message) {
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🎵 Pleco-XA Audio Analysis Engine loading...')
+  warnIfNoMp3Support()
   try {
     setupEventListeners()
     console.log('✅ Event listeners initialized')

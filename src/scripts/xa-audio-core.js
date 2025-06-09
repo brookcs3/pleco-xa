@@ -175,6 +175,7 @@ export async function loadAudioFile(source) {
   });
   
   let audioBuffer;
+  let arrayBuffer;
   
   // Handle URL string
   if (typeof source === 'string') {
@@ -190,12 +191,12 @@ export async function loadAudioFile(source) {
     
     // Fetch the file
     const response = await fetch(url, { cache: 'force-cache' });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to load audio: HTTP ${response.status}`);
     }
-    
-    const arrayBuffer = await response.arrayBuffer();
+
+    arrayBuffer = await response.arrayBuffer();
     audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     
     // Cache the result
@@ -203,7 +204,7 @@ export async function loadAudioFile(source) {
   } 
   // Handle File object
   else if (source instanceof File) {
-    const arrayBuffer = await source.arrayBuffer();
+    arrayBuffer = await source.arrayBuffer();
     audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
   }
   else {
@@ -212,7 +213,8 @@ export async function loadAudioFile(source) {
   
   return {
     audioBuffer,
-    audioContext
+    audioContext,
+    arrayBuffer
   };
 }
 

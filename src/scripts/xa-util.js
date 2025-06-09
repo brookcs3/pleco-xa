@@ -681,3 +681,37 @@ export function linspace(start, stop, num) {
   const step = (stop - start) / (num - 1)
   return Array.from({ length: num }, (_, i) => start + step * i)
 }
+
+/**
+ * Check MP3 playback support and optionally show a warning banner.
+ *
+ * @returns {string} The result of canPlayType for 'audio/mp3'.
+ */
+export function warnIfNoMp3Support() {
+  const canPlay =
+    typeof Audio !== 'undefined' ? new Audio().canPlayType('audio/mp3') : ''
+  if (typeof document !== 'undefined' && typeof Audio !== 'undefined' && !canPlay) {
+    let banner = document.getElementById('mp3Warning')
+    if (!banner) {
+      banner = document.createElement('div')
+      banner.id = 'mp3Warning'
+      banner.style.backgroundColor = '#ffc107'
+      banner.style.color = '#000'
+      banner.style.padding = '10px'
+      banner.style.margin = '10px 0'
+      banner.style.border = '1px solid #ffa000'
+      banner.style.borderRadius = '4px'
+      banner.style.textAlign = 'center'
+      banner.style.display = 'none'
+      document.body.prepend(banner)
+    }
+
+    banner.textContent = 'Warning: your browser cannot play MP3 audio.'
+    banner.style.display = 'block'
+
+    setTimeout(() => {
+      banner.style.display = 'none'
+    }, 5000)
+  }
+  return canPlay
+}

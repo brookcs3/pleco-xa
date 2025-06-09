@@ -26,7 +26,22 @@
     async function initAudio(file) {
       try {
         const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-        const audioBuffer = await audioContext.decodeAudioData(await file.arrayBuffer())
+        let audioBuffer
+        try {
+          audioBuffer = await audioContext.decodeAudioData(await file.arrayBuffer())
+        } catch (decodeError) {
+          console.error('Audio decoding failed:', decodeError)
+          const btn = elements.fileInput?.nextElementSibling
+          if (btn) {
+            btn.classList.add('error')
+            btn.setAttribute('title', 'Unsupported format')
+            setTimeout(() => {
+              btn.classList.remove('error')
+              btn.removeAttribute('title')
+            }, 5000)
+          }
+          return
+        }
         
         const loopStart = 0
         const loopEnd = audioBuffer.duration
