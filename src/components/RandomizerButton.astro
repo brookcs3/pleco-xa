@@ -38,7 +38,7 @@ const { audioBufferVar = 'currentAudioBuffer', ctxVar = 'audioContext', applyLoo
       for (const step of seq) {
         const { buffer: newBuf, loop } = step();
         buf = newBuf;
-        applyLoop(buf, loop, step.op || step.action);
+        applyLoop(buf, loop, step.op || step.action, undefined);
         await new Promise(r => setTimeout(r, 500));
       }
       enqueueToast('Randomization done');
