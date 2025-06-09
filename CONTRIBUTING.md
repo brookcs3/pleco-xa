@@ -7,10 +7,12 @@ Thank you for considering a contribution!
 Install all project dependencies before running tests or the development server:
 
 ```bash
-npm install
+npm ci
 ```
 
-This command installs both production and development packages, including the `vitest` test runner.
+This command installs both production and development packages exactly as locked
+in `package-lock.json`, including the `vitest` test runner. It ensures
+reproducible installs across environments.
 
 Alternatively, run the helper script:
 

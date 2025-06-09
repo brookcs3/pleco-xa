@@ -395,12 +395,12 @@ Before running the test suite or the development server, install the project's
 dependencies:
 
 ```bash
-npm install
+npm ci
 ```
 
-This fetches dev tools such as `vitest`. You can also run `npm run setup` which
-wraps the above command. See [CONTRIBUTING.md](CONTRIBUTING.md) for more
-details.
+This fetches dev tools such as `vitest` using the lockfile for reproducible
+installs. You can also run `npm run setup` which wraps the above command.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ## License
 

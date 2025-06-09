@@ -5,6 +5,7 @@ import {
   moveForward,
   reverseBufferSection,
 } from './loopHelpers.js';
+import { GibClock } from './GibClock.js';
 
 export function randomSequence(
   buffer,
@@ -173,15 +174,47 @@ export function glitchBurst(buffer, {
     return [op];
   };
 
+  const doRandomLocal = () => {
+    const subOps = [];
+    subOps.push('reset');
+    const count = 2 + Math.floor(Math.random() * 5);
+    for (let i = 0; i < count; i++) {
+      const maybeHalf = () =>
+        (loop.endSample - loop.startSample) / buffer.sampleRate / 2 >= minMs / 1000;
+      const maybeMove = () =>
+        (loop.endSample - loop.startSample) / buffer.sampleRate < buffer.duration;
+
+      const candidates = [
+        maybeHalf() && 'half',
+        'double',
+        maybeMove() && 'move',
+        'reverse'
+      ].filter(Boolean);
+
+      const op = candidates[Math.floor(Math.random() * candidates.length)];
+      applyOp(op);
+      subOps.push(op);
+    }
+    return subOps;
+  };
+
+  const clock = new GibClock(100);
+
   const step = () => {
-    if (performance.now() - start >= durationMs) return;
+    if (performance.now() - start >= durationMs) {
+      clock.stop();
+      return;
+    }
 
     const op = pickOp();
     const subOps = applyOp(op);
     onUpdate(buffer, loop, op, subOps);
 
-    setTimeout(step, 100 + Math.random() * 100);
+    clock.intervalMs = 100 + Math.random() * 100;
   };
 
-  step();
+  clock.onTick(step);
+  clock.start();
+
+  return () => clock.stop();
 }

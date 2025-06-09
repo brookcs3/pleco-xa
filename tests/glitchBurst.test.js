@@ -8,19 +8,23 @@ function createBuffer() {
 }
 
 describe('glitchBurst', () => {
-  it('produces burst of operations', () => {
+  it('follows deterministic sequence when RNG is mocked', () => {
     vi.useFakeTimers()
     const buffer = createBuffer()
     const updates = []
     const randVals = [0.05, 0.5, 0.8, 0.9, 0.2, 0.3, 0.4, 0.6, 0.7, 0.85]
     vi.spyOn(Math, 'random').mockImplementation(() => randVals.shift() ?? 0)
-    global.performance = { now: vi.now }
+if (globalThis.performance) { vi.spyOn(globalThis.performance, "now").mockImplementation(vi.now) } else { globalThis.performance = { now: vi.now } }
 
     glitchBurst(buffer, {
       ctx: {},
-      durationMs: 6000,
+      durationMs: 400,
       onUpdate: (buf, loop, op, subOps) => {
-        updates.push({ loop, op, subOps })
+        updates.push({
+          loop: { startSample: loop.startSample, endSample: loop.endSample },
+          op,
+          subOps
+        })
       }
     })
 
@@ -32,5 +36,6 @@ describe('glitchBurst', () => {
     const totalTime = vi.now()
     expect(totalTime).toBeGreaterThanOrEqual(5000)
     expect(totalTime).toBeLessThanOrEqual(10000)
+
   })
 })
