@@ -8,22 +8,42 @@ import {
 
 export function randomSequence(
   buffer,
-  { minMs = 10, maxMs = buffer.duration * 1000, steps = 4 } = {},
+  { durationMs = buffer.duration * 1000, minMs = 10, maxMs = buffer.duration * 1000, steps = 4 } = {},
 ) {
   const minSamples = Math.floor((minMs / 1000) * buffer.sampleRate);
   const maxSamples = Math.min(
     Math.floor((maxMs / 1000) * buffer.sampleRate),
     buffer.length,
   );
+  const durationSamples = Math.min(
+    Math.floor((durationMs / 1000) * buffer.sampleRate),
+    buffer.length,
+  );
+  const initialSamples = Math.min(durationSamples, maxSamples);
 
   let loop = detectLoop(buffer);
-  loop.endSample = Math.min(loop.startSample + maxSamples, buffer.length);
+  loop.endSample = Math.min(loop.startSample + initialSamples, buffer.length);
 
-  const actions = ['half', 'double', 'move', 'reverse'];
+  const actions = [
+    { op: 'move', w: 40 },
+    { op: 'half', w: 25 },
+    { op: 'double', w: 20 },
+    { op: 'reverse', w: 15 },
+  ];
+  const totalW = actions.reduce((s, { w }) => s + w, 0);
   const sequence = [];
 
   for (let i = 0; i < steps; i++) {
-    const action = actions[Math.floor(Math.random() * actions.length)];
+    let r = Math.random() * totalW;
+    let acc = 0;
+    let action = 'move';
+    for (const { op, w } of actions) {
+      acc += w;
+      if (r < acc) {
+        action = op;
+        break;
+      }
+    }
     const fn = () => {
       switch (action) {
         case 'half':
@@ -58,6 +78,51 @@ export function randomSequence(
   return sequence;
 }
 
+export function randomLocal(buffer, loop, { minMs = 100 } = {}) {
+  const subOps = ['reset'];
+  const minSamples = Math.floor((minMs / 1000) * buffer.sampleRate);
+  const apply = (op) => {
+    switch (op) {
+      case 'half':
+        if (loop.endSample - loop.startSample >= 2 * minSamples)
+          loop = halfLoop(loop);
+        break;
+      case 'double':
+        loop = doubleLoop(loop, buffer.length);
+        break;
+      case 'move': {
+        const len = loop.endSample - loop.startSample;
+        const maxMove = buffer.length - len;
+        const step = Math.floor(Math.random() * (maxMove + 1));
+        loop = moveForward(loop, step, buffer.length);
+        break;
+      }
+      case 'reverse':
+        buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
+        break;
+    }
+  };
+  const count = 2 + Math.floor(Math.random() * 5);
+  for (let i = 0; i < count; i++) {
+    const maybeHalf = () =>
+      (loop.endSample - loop.startSample) / buffer.sampleRate / 2 >= minMs / 1000;
+    const maybeMove = () =>
+      (loop.endSample - loop.startSample) / buffer.sampleRate < buffer.duration;
+
+    const ops = [
+      maybeHalf() && 'half',
+      'double',
+      maybeMove() && 'move',
+      'reverse',
+    ].filter(Boolean);
+
+    const op = ops[Math.floor(Math.random() * ops.length)];
+    apply(op);
+    subOps.push(op);
+  }
+  return { buffer, loop, op: 'randomLocal', subOps };
+}
+
 export function glitchBurst(buffer, {
   ctx,
   durationMs = 8000,
@@ -73,7 +138,6 @@ export function glitchBurst(buffer, {
     { op: 'half', w: 25 },
     { op: 'double', w: 20 },
     { op: 'reverse', w: 15 },
-    { op: 'randomLocal', w: 10 }
   ];
 
   const totalW = weights.reduce((s, { w }) => s + w, 0);
@@ -105,34 +169,8 @@ export function glitchBurst(buffer, {
         loop = { startSample: newStart, endSample: newStart + len };
         break;
       }
-      case 'randomLocal':
-        return doRandomLocal();
     }
     return [op];
-  };
-
-  const doRandomLocal = () => {
-    const subOps = [];
-    subOps.push('reset');
-    const count = 2 + Math.floor(Math.random() * 5);
-    for (let i = 0; i < count; i++) {
-      const maybeHalf = () =>
-        (loop.endSample - loop.startSample) / buffer.sampleRate / 2 >= minMs / 1000;
-      const maybeMove = () =>
-        (loop.endSample - loop.startSample) / buffer.sampleRate < buffer.duration;
-
-      const candidates = [
-        maybeHalf() && 'half',
-        'double',
-        maybeMove() && 'move',
-        'reverse'
-      ].filter(Boolean);
-
-      const op = candidates[Math.floor(Math.random() * candidates.length)];
-      applyOp(op);
-      subOps.push(op);
-    }
-    return subOps;
   };
 
   const step = () => {

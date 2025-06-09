@@ -12,10 +12,7 @@ describe('glitchBurst', () => {
     vi.useFakeTimers()
     const buffer = createBuffer()
     const updates = []
-    const randVals = [
-      0.95, // randomLocal
-      0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
-    ]
+    const randVals = [0.05, 0.5, 0.8, 0.9, 0.2, 0.3, 0.4, 0.6, 0.7, 0.85]
     vi.spyOn(Math, 'random').mockImplementation(() => randVals.shift() ?? 0)
     global.performance = { now: vi.now }
 
@@ -32,8 +29,6 @@ describe('glitchBurst', () => {
     expect(updates.length).toBeGreaterThanOrEqual(30)
     const tiny = updates.some(u => (u.loop.endSample - u.loop.startSample) / buffer.sampleRate <= 0.1)
     expect(tiny).toBe(true)
-    const hasRandomLocal = updates.find(u => u.op === 'randomLocal')
-    if (hasRandomLocal) expect(hasRandomLocal.subOps.length).toBeGreaterThanOrEqual(2)
     const totalTime = vi.now()
     expect(totalTime).toBeGreaterThanOrEqual(5000)
     expect(totalTime).toBeLessThanOrEqual(10000)
