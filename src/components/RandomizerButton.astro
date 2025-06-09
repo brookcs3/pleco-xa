@@ -1,3 +1,4 @@
+---
 interface Props {
   audioBuffer: AudioBuffer | null
   ctx: AudioContext | null
@@ -5,6 +6,8 @@ interface Props {
 }
 import { applyLoop as applyLoopHelper } from '../scripts/ui/applyLoop.js'
 const { audioBuffer, ctx, applyLoop = applyLoopHelper } = Astro.props
+---
+
 <button class="loop-btn" id="randomizeLoopBtn">🎲 Randomize Loop</button>
 
 <script define:vars={{ audioBuffer, ctx, applyLoop }}>

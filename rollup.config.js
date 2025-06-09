@@ -6,9 +6,10 @@ if (!fs.existsSync('src/index.js')) {
 }
 
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import esbuild from 'rollup-plugin-esbuild';
 import { minify } from 'terser';
 
-const basePlugins = [nodeResolve()];
+const basePlugins = [nodeResolve(), esbuild({ include: /\.[jt]s$/ })];
 
 // Custom Terser plugin using the bundled 'terser' package
 const terserPlugin = {
