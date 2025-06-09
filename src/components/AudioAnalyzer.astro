@@ -17,9 +17,11 @@ const {
   showControls = true,
   class: className = ''
 } = Astro.props;
+=
 let currentAudioBuffer = null;
 let audioContext = null;
-const applyLoop = () => {};
+function applyLoop() {}
+
 ---
 
 <div class={`pleco-audio-analyzer ${className}`}>
@@ -387,9 +389,8 @@ const applyLoop = () => {};
   let analysisWorker = null;
   
   // Initialize state
-  let audioContext;
   let audioProcessor;
-  let currentAudioBuffer = null;
+  currentAudioBuffer = null;
   if (typeof window !== 'undefined') {
     window.currentAudioBuffer ||= null;
     window.audioContext ||= null;
