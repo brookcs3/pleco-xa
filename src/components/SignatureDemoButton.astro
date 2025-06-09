@@ -2,11 +2,12 @@
 import { signatureDemo } from '../core/index.js';
 
 interface Props {
-  audioBufferVar?: string;
-  applyLoopVar?: string;
+  audioBuffer?: AudioBuffer;
+  ctx?: AudioContext;
+  applyLoop?: (buffer: AudioBuffer, loop: any, op: string | undefined, subOps?: any) => void;
 }
 
-const { audioBufferVar = 'currentAudioBuffer', applyLoopVar = 'applyLoop' } = Astro.props;
+const { audioBuffer = undefined, ctx = undefined, applyLoop = undefined } = Astro.props;
 
 async function runDemo(buffer, applyLoop) {
   const steps = signatureDemo(buffer);
@@ -17,12 +18,7 @@ async function runDemo(buffer, applyLoop) {
   }
 }
 ---
-<button
-  class="sig-demo"
-  id="sigDemoBtn"
-  data-buffer-var={audioBufferVar}
-  data-apply-loop-var={applyLoopVar}
->
+<button class="sig-demo" id="sigDemoBtn">
   🚀 Signature Demo
 </button>
 
@@ -30,10 +26,8 @@ async function runDemo(buffer, applyLoop) {
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('sigDemoBtn');
     btn?.addEventListener('click', () => {
-      const buffer = window[btn.dataset.bufferVar];
-      const applyLoop = window[btn.dataset.applyLoopVar];
-      if (!buffer || typeof applyLoop !== 'function') return;
-      runDemo(buffer, applyLoop);
+      if (!audioBuffer || typeof applyLoop !== 'function') return;
+      runDemo(audioBuffer, applyLoop);
     });
   });
 </script>

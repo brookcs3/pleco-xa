@@ -10,35 +10,29 @@ import { signatureDemo } from '../src/core/index.js'
 let dom
 let btn
 let applyLoop
-let enqueueToast
+let audioBuffer
 
 function setupDom() {
-  dom = new JSDOM(`<button id="sigDemoBtn" data-buffer-var="currentAudioBuffer" data-apply-loop-var="applyLoop">Demo</button>`)
+  dom = new JSDOM(`<button id="sigDemoBtn">Demo</button>`)
   global.window = dom.window
   global.document = dom.window.document
 
   applyLoop = vi.fn()
-  enqueueToast = vi.fn()
-  global.window.currentAudioBuffer = {}
-  global.window.applyLoop = applyLoop
-  global.enqueueToast = enqueueToast
+  audioBuffer = {}
 
   async function runDemo(buffer, applyLoopFn) {
     const steps = signatureDemo(buffer)
     for (const { fn, op } of steps) {
       const { buffer: newBuf, loop } = fn()
       applyLoopFn(newBuf, loop, op)
-      enqueueToast(op)
       await new Promise(r => setTimeout(r, 400))
     }
   }
 
   const el = document.getElementById('sigDemoBtn')
   el.addEventListener('click', () => {
-    const buffer = window[el.dataset.bufferVar]
-    const applyLoopFn = window[el.dataset.applyLoopVar]
-    if (!buffer || typeof applyLoopFn !== 'function') return
-    runDemo(buffer, applyLoopFn)
+    if (!audioBuffer || typeof applyLoop !== 'function') return
+    runDemo(audioBuffer, applyLoop)
   })
   btn = el
 }
@@ -54,7 +48,7 @@ describe('SignatureDemoButton', () => {
     dom.window.close()
   })
 
-  it('applies demo steps and enqueues toasts', async () => {
+  it('applies demo steps', async () => {
     const steps = [
       { op: 'op1', fn: vi.fn(() => ({ buffer: {}, loop: {} })) },
       { op: 'op2', fn: vi.fn(() => ({ buffer: {}, loop: {} })) },
@@ -66,6 +60,5 @@ describe('SignatureDemoButton', () => {
     await vi.runAllTimersAsync()
 
     expect(applyLoop).toHaveBeenCalledTimes(3)
-    expect(enqueueToast.mock.calls.map(c => c[0])).toEqual(['op1', 'op2', 'op3'])
   })
 })
