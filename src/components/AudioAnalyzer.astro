@@ -429,7 +429,7 @@ const {
       audioProcessor = initAudioProcessor();
 
       // Create analysis worker
-      analysisWorker = new Worker(new URL('../core/analysisWorker.js', import.meta.url), { type: 'module' });
+      analysisWorker = new Worker(new URL('../workers/analysisWorker.js', import.meta.url), { type: 'module' });
       analysisWorker.onmessage = (e) => {
         const { bpm, loopPoints, progress } = e.data;
         if (typeof progress === 'number') {
