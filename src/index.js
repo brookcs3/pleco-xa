@@ -20,3 +20,5 @@ export { SpectrumAnalyzer } from './scripts/SpectrumAnalyzer.js'
 // Utility functions
 // Export the main PlecoXA class, which provides core audio analysis and processing features, making it the primary export for npm consumers
 export { PlecoXA } from './scripts/pleco-xa.js'
+
+export { startBeatGlitch, GibClock } from './core/index.js'
