@@ -11,6 +11,7 @@ export default defineConfig({
   scopedStyleStrategy: 'class',
   server: {
     host: true,
+    allowedHosts: ['work-1-rswgxxppnksyyemk.prod-runtime.all-hands.dev', 'work-2-rswgxxppnksyyemk.prod-runtime.all-hands.dev'],
   },
   vite: {
     resolve: {
