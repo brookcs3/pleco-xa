@@ -391,7 +391,7 @@ export function saveAudio(
   const wavData = _encodeWAV(audioData, sampleRate)
 
   // Create download link
-  const blob = new Blob([wavData], { type: 'assets/audio/wav' })
+  const blob = new Blob([wavData], { type: 'audio/wav' })
   const url = URL.createObjectURL(blob)
 
   const link = document.createElement('a')

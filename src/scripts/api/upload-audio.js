@@ -20,7 +20,7 @@ export async function POST({ request }) {
     // Validate file type
     const allowedTypes = [
       'assets/audio/mpeg',
-      'assets/audio/wav',
+      'audio/wav',
       'assets/audio/mp4',
       'assets/audio/m4a',
       'assets/audio/aiff',
