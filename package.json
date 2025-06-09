@@ -8,7 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "start": "astro preview --port $PORT --host",
-    "test": "vitest run"
+    "test": "vitest"
   },
   "dependencies": {
     "@astrojs/node": "^9.2.2",
