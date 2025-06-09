@@ -29,6 +29,8 @@ describe('musicalLoopAnalysis', () => {
 
     expect(result.isFullTrack).toBe(false)
     expect(result.loopStart).toBeCloseTo(0, 2)
+    // With a simple repeating signal, the detected loop should span one bar
+    // (2 seconds for 120 BPM), which is half the buffer duration
     expect(result.loopEnd).toBeCloseTo(buffer.duration / 2, 1)
   })
 })
