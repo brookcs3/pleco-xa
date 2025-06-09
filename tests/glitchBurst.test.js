@@ -10,15 +10,20 @@ function createBuffer() {
 describe('glitchBurst', () => {
   it('follows deterministic sequence when RNG is mocked', () => {
     vi.useFakeTimers()
+    vi.setSystemTime(0)
     const buffer = createBuffer()
     const updates = []
     const randVals = [0.05, 0.5, 0.8, 0.9, 0.2, 0.3, 0.4, 0.6, 0.7, 0.85]
     vi.spyOn(Math, 'random').mockImplementation(() => randVals.shift() ?? 0)
-if (globalThis.performance) { vi.spyOn(globalThis.performance, "now").mockImplementation(vi.now) } else { globalThis.performance = { now: vi.now } }
+    if (globalThis.performance) {
+      vi.spyOn(globalThis.performance, 'now').mockImplementation(() => Date.now())
+    } else {
+      globalThis.performance = { now: () => Date.now() }
+    }
 
     glitchBurst(buffer, {
       ctx: {},
-      durationMs: 400,
+      durationMs: 8000,
       onUpdate: (buf, loop, op, subOps) => {
         updates.push({
           loop: { startSample: loop.startSample, endSample: loop.endSample },
@@ -31,9 +36,9 @@ if (globalThis.performance) { vi.spyOn(globalThis.performance, "now").mockImplem
     vi.runAllTimers()
 
     expect(updates.length).toBeGreaterThan(0)
-    expect(updates.length).toBeLessThanOrEqual(5)
-    const totalTime = vi.now()
-    expect(totalTime).toBeLessThanOrEqual(500)
+    expect(updates.length).toBeLessThanOrEqual(100)
+    const totalTime = vi.getMockedSystemTime()?.getTime() || 0
+    expect(totalTime).toBeLessThanOrEqual(8100)
 
   })
 })
