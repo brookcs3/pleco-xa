@@ -40,8 +40,8 @@ describe('applyHannWindow', () => {
   it('applies a Hann window to the data', () => {
     const data = new Float32Array([1, 1, 1, 1])
     const result = applyHannWindow(data)
-    // Hann window values for a 4-point window: 0, 0.5, 1, 0.5, 0
-    // When applied to [1,1,1,1], we get [0, 0.5, 0.5, 0]
-    expect(Array.from(result)).toEqual([0, 0.5, 0.5, 0])
+    // Hann window values for a 4-point window: 0, 0.75, 0.75, 0
+    // When applied to [1, 1, 1, 1], we get [0, 0.75, 0.75, 0]
+    expect(Array.from(result)).toEqual([0, 0.75, 0.75, 0])
   })
 })
