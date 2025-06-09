@@ -345,7 +345,8 @@ export class EnhancedDopplerScroll extends DopplerScroll {
   }
 
   /**
-   * Apply Hann window from your implementation
+   * Apply Hann window from your implementation.
+   * Uses the symmetric definition w[n] = 0.5 * (1 - cos(2 * Math.PI * n / (N - 1)))
    */
   applyHannWindow(data) {
     const N = data.length

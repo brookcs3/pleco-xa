@@ -363,7 +363,8 @@ export class XADopplerScroll extends EnhancedDopplerScroll {
   }
 
   /**
-   * Apply Hann window to progress value for smooth morphing
+   * Apply Hann window to progress value for smooth morphing using
+   * the symmetric formula w[n] = 0.5 * (1 - Math.cos(2 * Math.PI * n))
    */
   applyHannWindowToProgress(progress, windowSize) {
     // Create a virtual Hann window centered at 0.5
