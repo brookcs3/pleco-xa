@@ -1,3 +1,67 @@
+
+// Lightweight FFT implementation integrated directly for browser use
+function fft(signal) {
+  const arr = Array.isArray(signal) ? signal : Array.from(signal)
+  const complexSignal = arr.map((v) => ({ real: v, imag: 0 }))
+  return _fftComplex(complexSignal)
+}
+
+function ifft(spectrum) {
+  const N = spectrum.length
+  const conjugated = spectrum.map((c) => ({ real: c.real, imag: -c.imag }))
+  const transformed = _fftComplex(conjugated)
+  return Float32Array.from(transformed.map((c) => c.real / N))
+}
+
+function _fftComplex(x) {
+  const N = x.length
+  if (N <= 1) return x.map((c) => ({ real: c.real, imag: c.imag }))
+  if (N % 2 !== 0) return _dftComplex(x)
+  const even = []
+  const odd = []
+  for (let i = 0; i < N; i += 2) {
+    even.push(x[i])
+    odd.push(x[i + 1])
+  }
+  const fftEven = _fftComplex(even)
+  const fftOdd = _fftComplex(odd)
+  const result = new Array(N)
+  for (let k = 0; k < N / 2; k++) {
+    const angle = (-2 * Math.PI * k) / N
+    const cos = Math.cos(angle)
+    const sin = Math.sin(angle)
+    const oddReal = fftOdd[k].real * cos - fftOdd[k].imag * sin
+    const oddImag = fftOdd[k].real * sin + fftOdd[k].imag * cos
+    result[k] = {
+      real: fftEven[k].real + oddReal,
+      imag: fftEven[k].imag + oddImag,
+    }
+    result[k + N / 2] = {
+      real: fftEven[k].real - oddReal,
+      imag: fftEven[k].imag - oddImag,
+    }
+  }
+  return result
+}
+
+function _dftComplex(x) {
+  const N = x.length
+  const out = new Array(N)
+  for (let k = 0; k < N; k++) {
+    let real = 0
+    let imag = 0
+    for (let n = 0; n < N; n++) {
+      const angle = (-2 * Math.PI * k * n) / N
+      const cos = Math.cos(angle)
+      const sin = Math.sin(angle)
+      real += x[n].real * cos - x[n].imag * sin
+      imag += x[n].real * sin + x[n].imag * cos
+    }
+    out[k] = { real, imag }
+  }
+  return out
+}
+
 /**
  * Advanced Beat Tracking Module for JavaScript
  * Implements dynamic programming beat tracking and predominant local pulse detection
@@ -13,7 +77,7 @@ export class BeatTracker {
     this.audioContext = null
     try {
       this.audioContext = new (window.AudioContext ||
-        window.webkitAudioContext)()
+          window.webkitAudioContext)()
     } catch (e) {
       console.warn('Web Audio API not available')
     }
@@ -32,6 +96,8 @@ export class BeatTracker {
    * @param {number|Float32Array} options.bpm - Optional tempo override
    * @param {string} options.units - Output units ('frames', 'samples', 'time')
    * @param {boolean} options.sparse - Return sparse or dense array (default: true)
+   * @param {number} options.minBpm - Minimum tempo to consider (default: 30)
+   * @param {number} options.maxBpm - Maximum tempo to consider (default: 300)
    * @returns {Object} {tempo: number|Float32Array, beats: Array|Float32Array}
    */
   beatTrack(options = {}) {
@@ -46,6 +112,8 @@ export class BeatTracker {
       bpm = null,
       units = 'time',
       sparse = true,
+      minBpm = 30,
+      maxBpm = 300,
     } = options
 
     // Get onset envelope if not provided
@@ -73,7 +141,14 @@ export class BeatTracker {
     // Estimate BPM if not provided
     let tempo = bpm
     if (tempo === null) {
-      tempo = this.tempoEstimation(onset, sr, hopLength, startBpm)
+      tempo = this.tempoEstimation(
+          onset,
+          sr,
+          hopLength,
+          startBpm,
+          minBpm,
+          maxBpm,
+      )
     }
 
     // Ensure tempo is array-like for vectorization
@@ -81,11 +156,11 @@ export class BeatTracker {
 
     // Run the beat tracker
     const beatsBoolean = this._beatTracker(
-      onset,
-      tempoArray,
-      sr / hopLength,
-      tightness,
-      trim,
+        onset,
+        tempoArray,
+        sr / hopLength,
+        tightness,
+        trim,
     )
 
     // Convert boolean array to desired format
@@ -107,7 +182,7 @@ export class BeatTracker {
     }
 
     console.log(
-      `🥁 Beat tracking: ${tempo.toFixed ? tempo.toFixed(1) : 'dynamic'} BPM, ${beats.length} beats`,
+        `🥁 Beat tracking: ${tempo.toFixed ? tempo.toFixed(1) : 'dynamic'} BPM, ${beats.length} beats`,
     )
 
     return { tempo, beats }
@@ -168,76 +243,64 @@ export class BeatTracker {
     // Validate tempo range
     if (tempoMin !== null && tempoMax !== null && tempoMax <= tempoMin) {
       throw new Error(
-        `tempoMax=${tempoMax} must be larger than tempoMin=${tempoMin}`,
+          `tempoMax=${tempoMax} must be larger than tempoMin=${tempoMin}`,
       )
     }
 
     // Compute Fourier tempogram
     const ftgram = this.fourierTempogram(onset, sr, hopLength, winLength)
 
+    // Pre-compute magnitudes for each bin
+    const ftmag = ftgram.map((frame) =>
+      frame.map((bin) => Math.sqrt(bin.real * bin.real + bin.imag * bin.imag)),
+    )
+
     // Get tempo frequencies
     const tempoFrequencies = this._fourierTempoFrequencies(
-      sr,
-      hopLength,
-      winLength,
+        sr,
+        hopLength,
+        winLength,
     )
+
 
     // Apply tempo constraints
     for (let i = 0; i < ftgram.length; i++) {
       for (let j = 0; j < ftgram[i].length; j++) {
         const freq = tempoFrequencies[j]
         if (
-          (tempoMin !== null && freq < tempoMin) ||
-          (tempoMax !== null && freq > tempoMax)
+            (tempoMin !== null && freq < tempoMin) ||
+            (tempoMax !== null && freq > tempoMax)
         ) {
           ftgram[i][j] = { real: 0, imag: 0 }
+          ftmag[i][j] = 0
         }
       }
     }
 
-    // Find peak values and normalize
-    const ftmag = ftgram.map((frame) =>
-      frame.map((bin) =>
-        Math.log1p(1e6 * Math.sqrt(bin.real * bin.real + bin.imag * bin.imag)),
-      ),
-    )
-
-    // Apply prior if provided
-    if (prior) {
-      for (let i = 0; i < ftmag.length; i++) {
-        for (let j = 0; j < ftmag[i].length; j++) {
-          ftmag[i][j] += prior(tempoFrequencies[j])
-        }
-      }
-    }
-
-    // Keep only values at peak
+    // Apply prior and keep only the strongest bin for each frame
     for (let i = 0; i < ftgram.length; i++) {
-      const peakValue = Math.max(...ftmag[i])
+      let maxIdx = -1
+      let maxWeight = -Infinity
+      let maxMag = 0
+
       for (let j = 0; j < ftgram[i].length; j++) {
-        if (ftmag[i][j] < peakValue) {
+        const mag = ftmag[i][j]
+        const priorWeight = prior ? prior(tempoFrequencies[j]) : 1
+        const weightedMag = mag * priorWeight
+
+        if (weightedMag > maxWeight) {
+          maxWeight = weightedMag
+          maxIdx = j
+          maxMag = mag
+        }
+      }
+
+      for (let j = 0; j < ftgram[i].length; j++) {
+        if (j === maxIdx && maxMag > 0) {
+          ftgram[i][j].real /= maxMag
+          ftgram[i][j].imag /= maxMag
+        } else {
           ftgram[i][j] = { real: 0, imag: 0 }
-        }
-      }
-    }
-
-    // Normalize to keep phase information
-    for (let i = 0; i < ftgram.length; i++) {
-      const maxMag = Math.max(
-        ...ftgram[i].map((bin) =>
-          Math.sqrt(bin.real * bin.real + bin.imag * bin.imag),
-        ),
-      )
-      for (let j = 0; j < ftgram[i].length; j++) {
-        // Calculate magnitude but don't need to store it
-        Math.sqrt(
-          ftgram[i][j].real * ftgram[i][j].real +
-            ftgram[i][j].imag * ftgram[i][j].imag,
-        )
-        const normFactor = Math.sqrt(1e-10 + maxMag)
-        if (normFactor > 0) {
-          ftgram[i][j].real /= normFactor
-          ftgram[i][j].imag /= normFactor
         }
       }
     }
@@ -278,7 +341,7 @@ export class BeatTracker {
       const frame = new Float32Array(frameLength)
       for (let j = 0; j < frameLength && start + j < y.length; j++) {
         const windowValue =
-          0.5 * (1 - Math.cos((2 * Math.PI * j) / (frameLength - 1)))
+            0.5 * (1 - Math.cos((2 * Math.PI * j) / (frameLength - 1)))
         frame[j] = y[start + j] * windowValue
       }
 
@@ -308,11 +371,18 @@ export class BeatTracker {
    * @param {number} sr - Sample rate
    * @param {number} hopLength - Hop length
    * @param {number} startBpm - Initial guess
+   * @param {number} minBpm - Minimum tempo to consider (default: 30)
+   * @param {number} maxBpm - Maximum tempo to consider (default: 300)
    * @returns {number} Estimated tempo in BPM
    */
-  tempoEstimation(onsetEnvelope, sr = 22050, hopLength = 512, startBpm = 120) {
-    const minBpm = 30
-    const maxBpm = 300
+  tempoEstimation(
+      onsetEnvelope,
+      sr = 22050,
+      hopLength = 512,
+      startBpm = 120,
+      minBpm = 30,
+      maxBpm = 300,
+  ) {
 
     // Convert BPM range to lag range
     const minLag = Math.floor((60 * sr) / (maxBpm * hopLength))
@@ -338,7 +408,18 @@ export class BeatTracker {
     const peaks = this._findPeaksWithProminence(autocorr)
 
     if (peaks.length === 0) {
-      return startBpm // Fallback to initial guess
+      // No clear peak found. Fall back to the strongest correlation value
+      let bestLagIdx = 0
+      let bestScore = -Infinity
+      for (let i = 0; i < autocorr.length; i++) {
+        if (autocorr[i] > bestScore) {
+          bestScore = autocorr[i]
+          bestLagIdx = i
+        }
+      }
+      const bestLag = minLag + bestLagIdx
+      const fallbackBpm = (60 * sr) / (bestLag * hopLength)
+      return Math.max(minBpm, Math.min(maxBpm, fallbackBpm))
     }
 
     // Convert best peak to BPM
@@ -417,9 +498,9 @@ export class BeatTracker {
 
     // Run dynamic programming
     const { backlink, cumScore } = this._beatTrackDP(
-      localScore,
-      framesPerBeat,
-      tightness,
+        localScore,
+        framesPerBeat,
+        tightness,
     )
 
     // Reconstruct beat path
@@ -442,8 +523,8 @@ export class BeatTracker {
   _normalizeOnsets(onsets) {
     const mean = onsets.reduce((a, b) => a + b, 0) / onsets.length
     const variance =
-      onsets.reduce((a, b) => a + Math.pow(b - mean, 2), 0) /
-      (onsets.length - 1)
+        onsets.reduce((a, b) => a + Math.pow(b - mean, 2), 0) /
+        (onsets.length - 1)
     const std = Math.sqrt(variance)
 
     return onsets.map((o) => o / (std + 1e-10))
@@ -508,7 +589,11 @@ export class BeatTracker {
     const cumScore = new Float32Array(N)
 
     // Initialize
-    const scoreThresh = 0.01 * Math.max(...localScore)
+    let maxScore = -Infinity
+    for (let i = 0; i < localScore.length; i++) {
+      if (localScore[i] > maxScore) maxScore = localScore[i]
+    }
+    const scoreThresh = 0.01 * maxScore
     backlink[0] = -1
     cumScore[0] = localScore[0]
 
@@ -531,7 +616,7 @@ export class BeatTracker {
         const logInterval = Math.log(Math.max(1, interval))
         const logFpb = Math.log(Math.max(1, fpb))
         const score =
-          cumScore[loc] - tightness * Math.pow(logInterval - logFpb, 2)
+            cumScore[loc] - tightness * Math.pow(logInterval - logFpb, 2)
 
         if (score > bestScore) {
           bestScore = score
@@ -617,7 +702,7 @@ export class BeatTracker {
     // Compute threshold based on beat strength
     const beatScores = beatIndices.map((i) => localScore[i])
     const rms = Math.sqrt(
-      beatScores.reduce((a, b) => a + b * b, 0) / beatScores.length,
+        beatScores.reduce((a, b) => a + b * b, 0) / beatScores.length,
     )
     const threshold = 0.5 * rms
 
@@ -648,13 +733,16 @@ export class BeatTracker {
   _computeMagnitudeSpectrum(frame) {
     const fft = this._fft(frame)
     return fft.map((bin) =>
-      Math.sqrt(bin.real * bin.real + bin.imag * bin.imag),
+        Math.sqrt(bin.real * bin.real + bin.imag * bin.imag),
     )
   }
 
   _findPeaksWithProminence(signal, minProminence = 0.1) {
     const peaks = []
-    const maxVal = Math.max(...signal)
+    let maxVal = -Infinity
+    for (let i = 0; i < signal.length; i++) {
+      if (signal[i] > maxVal) maxVal = signal[i]
+    }
 
     for (let i = 1; i < signal.length - 1; i++) {
       if (signal[i] > signal[i - 1] && signal[i] > signal[i + 1]) {
@@ -689,24 +777,8 @@ export class BeatTracker {
   }
 
   _fft(signal) {
-    // Simplified FFT - replace with proper library like FFTJS for production
-    const N = signal.length
-    const result = []
-
-    for (let k = 0; k < N; k++) {
-      let real = 0
-      let imag = 0
-
-      for (let n = 0; n < N; n++) {
-        const angle = (-2 * Math.PI * k * n) / N
-        real += signal[n] * Math.cos(angle)
-        imag += signal[n] * Math.sin(angle)
-      }
-
-      result.push({ real, imag })
-    }
-
-    return result
+    // Delegate to lightweight internal FFT implementation
+    return fft(signal)
   }
 
   _istft(stft, hopLength, nFft, length) {
@@ -732,21 +804,8 @@ export class BeatTracker {
   }
 
   _ifft(spectrum) {
-    const N = spectrum.length
-    const result = new Float32Array(N)
-
-    for (let n = 0; n < N; n++) {
-      let value = 0
-      for (let k = 0; k < N; k++) {
-        const angle = (2 * Math.PI * k * n) / N
-        value +=
-          spectrum[k].real * Math.cos(angle) -
-          spectrum[k].imag * Math.sin(angle)
-      }
-      result[n] = value / N
-    }
-
-    return result
+    // Delegate to lightweight internal FFT implementation
+    return ifft(spectrum)
   }
 
   _fourierTempoFrequencies(sr, hopLength, winLength) {
@@ -762,11 +821,16 @@ export class BeatTracker {
   }
 
   _normalize(x) {
-    const max = Math.max(...x)
-    const min = Math.min(...x)
+    let max = -Infinity
+    let min = Infinity
+    for (let i = 0; i < x.length; i++) {
+      const v = x[i]
+      if (v > max) max = v
+      if (v < min) min = v
+    }
     const range = max - min
 
-    if (range === 0) return x
+    if (range === 0) return x.map(() => 0)
 
     return x.map((v) => (v - min) / range)
   }
@@ -780,9 +844,16 @@ export class BeatTracker {
  * Simplified beat tracker for quick analysis
  * @param {Float32Array} audioData - Audio signal
  * @param {number} sampleRate - Sample rate
+ * @param {number} minBpm - Minimum tempo to search (default: 70)
+ * @param {number} maxBpm - Maximum tempo to search (default: 180)
  * @returns {Object} {bpm: number, beats: Array}
- */
-export function quickBeatTrack(audioData, sampleRate = 44100) {
+*/
+export function quickBeatTrack(
+    audioData,
+    sampleRate = 44100,
+    minBpm = 70,
+    maxBpm = 180,
+) {
   const tracker = new BeatTracker()
 
   try {
@@ -791,6 +862,8 @@ export function quickBeatTrack(audioData, sampleRate = 44100) {
       sr: sampleRate,
       units: 'time',
       sparse: true,
+      minBpm,
+      maxBpm,
     })
 
     return {
@@ -800,10 +873,48 @@ export function quickBeatTrack(audioData, sampleRate = 44100) {
     }
   } catch (error) {
     console.error('Beat tracking failed:', error)
-    return { bpm: 120, beats: [], confidence: 0 }
+    return { bpm: 0, beats: [], confidence: 0 }
   }
 }
 
+/**
+ * Beat tracker that adapts to tempo changes using dynamic tempo estimation.
+ * @param {Float32Array} audioData - Audio signal
+ * @param {number} sampleRate - Sample rate
+ * @param {number} windowSize - Window size in seconds for tempo estimation
+ * @param {number} hopSize - Hop size in seconds for tempo estimation
+ * @returns {Object} { tempo: Array, beats: Array }
+ */
+export function dynamicBeatTrack(
+    audioData,
+    sampleRate = 44100,
+    windowSize = 8.0,
+    hopSize = 1.0,
+) {
+  const tracker = new BeatTracker()
+
+  try {
+    const { tempo } = tracker.estimateDynamicTempo(
+        audioData,
+        sampleRate,
+        windowSize,
+        hopSize,
+    )
+
+    const result = tracker.beatTrack({
+      y: audioData,
+      sr: sampleRate,
+      bpm: tempo,
+      units: 'time',
+      sparse: true,
+    })
+
+    return { tempo, beats: result.beats }
+  } catch (error) {
+    console.error('Dynamic beat tracking failed:', error)
+    return { tempo: [], beats: [] }
+  }
+}
 /**
  * Web Audio API integration helpers
  */
@@ -828,16 +939,21 @@ export class BeatTrackingUI {
     const clickBuffer = this.audioContext.createBuffer(1, samples, sampleRate)
     const channelData = clickBuffer.getChannelData(0)
 
-    beats.forEach((beatTime) => {
+    beats.forEach((beatTime, beatIndex) => {
       const startSample = Math.floor(beatTime * sampleRate)
       const clickDuration = 0.1 // 100ms click
       const clickSamples = Math.floor(clickDuration * sampleRate)
+
+      // Determine if this is a downbeat (every 4th beat)
+      const isDownbeat = beatIndex % 4 === 0
+      const frequency = isDownbeat ? clickFreq * 2 : clickFreq // Higher pitch for downbeat
+      const volume = isDownbeat ? 0.8 : 0.5 // Louder for downbeat
 
       for (let i = 0; i < clickSamples && startSample + i < samples; i++) {
         const t = i / sampleRate
         const envelope = Math.exp(-t * 20) // Decay envelope
         channelData[startSample + i] =
-          0.3 * envelope * Math.sin(2 * Math.PI * clickFreq * t)
+            volume * envelope * Math.sin(2 * Math.PI * frequency * t)
       }
     })
 
@@ -884,20 +1000,36 @@ export class BeatTrackingUI {
 
 export function beat_track(y, sr = 22050, opts = {}) {
   const tracker = new BeatTracker()
-  return tracker.beatTrack({ y, sr, ...opts })
+  const { minBpm = 70, maxBpm = 180, ...rest } = opts
+  return tracker.beatTrack({ y, sr, minBpm, maxBpm, ...rest })
 }
 
 /**
  * Alias matching librosa.beat.tempo().
  * Computes a single global tempo estimate from an onset envelope.
+ * @param {Float32Array} onsetEnvelope - Onset strength signal
+ * @param {number} sr - Sample rate
+ * @param {number} hopLength - Hop length
+ * @param {number} startBpm - Initial guess
+ * @param {number} minBpm - Minimum tempo to search (default: 70)
+ * @param {number} maxBpm - Maximum tempo to search (default: 180)
  */
 
 export function tempo(
-  onsetEnvelope,
-  sr = 22050,
-  hopLength = 512,
-  startBpm = 120,
+    onsetEnvelope,
+    sr = 22050,
+    hopLength = 512,
+    startBpm = 120,
+    minBpm = 70,
+    maxBpm = 180,
 ) {
   const tracker = new BeatTracker()
-  return tracker.tempoEstimation(onsetEnvelope, sr, hopLength, startBpm)
+  return tracker.tempoEstimation(
+      onsetEnvelope,
+      sr,
+      hopLength,
+      startBpm,
+      minBpm,
+      maxBpm,
+  )
 }
