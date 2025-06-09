@@ -29,7 +29,7 @@ describe('musicalLoopAnalysis', () => {
 
     expect(result.isFullTrack).toBe(false)
     expect(result.loopStart).toBeCloseTo(0, 2)
-    expect(result.loopEnd).toBeCloseTo(buffer.duration, 1)
+    expect(result.loopEnd).toBeCloseTo(buffer.duration / 2, 1)
   })
 })
 

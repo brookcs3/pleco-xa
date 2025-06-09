@@ -148,6 +148,7 @@ export async function musicalLoopAnalysis(audioBuffer, bpmData) {
     confidence: best.confidence,
     musicalDivision: best.musicalDivision || 1,
     bpm: best.bpm,
+    isFullTrack: best.isFullTrack,
     allCandidates: results.slice(0, 5),
   }
 }
