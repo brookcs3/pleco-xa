@@ -1,4 +1,6 @@
-export function applyLoop(buf, loop, op, {
+import { enqueueToast } from './toastQueue.js'
+
+export function applyLoop(buf, loop, op, subOps, {
   audioProcessor,
   drawWaveform,
   updateLoopInfo,
@@ -19,8 +21,12 @@ export function applyLoop(buf, loop, op, {
   if (typeof updateLoopInfo === 'function') updateLoopInfo({ start, end })
   if (typeof drawWaveform === 'function')
     drawWaveform(buf, 'waveformCanvas', { start, end })
+  const status = op === 'randomLocal' && Array.isArray(subOps)
+    ? subOps.join(' → ')
+    : op
   if (typeof updateTrackInfo === 'function')
-    updateTrackInfo(currentTrackName, op)
+    updateTrackInfo(currentTrackName, status)
+  if (typeof enqueueToast === 'function') enqueueToast(status)
   if (restart) {
     audioProcessor.stop()
     audioProcessor.play(buf).catch(() => {})
