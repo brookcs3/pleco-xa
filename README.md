@@ -94,8 +94,7 @@ You can load Pleco Xa directly from the unpkg CDN for quick experimentation:
   import { detectBPM } from 'https://unpkg.com/pleco-xa@1.0.2/dist/pleco-xa.min.js'
 </script>
 ```
-
-See `examples/demo.html` for a simple interactive page that detects BPM from an uploaded audio file.
+The snippet above can be used to build a simple page that detects BPM from an uploaded audio file.
 
 ## Debugging
 
@@ -313,27 +312,10 @@ navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
   // ... custom processing
 })
 ```
+## Example Demos
 
-## Examples
+Sample loops are available in `public/audio/` for experimentation.
 
-See the `/examples` directory for complete working examples. Sample loops for these demos should be placed in the top-level `assets/audio/` folder:
-
-- **Demo** - [`demo.html`](examples/demo.html) loads Pleco Xa from the unpkg CDN
-  for quick testing
-- **Basic Usage** - Simple BPM detection and loop finding
-- **Interactive Editor** - Full waveform editor with loop controls
-- **Batch Analysis** - Process multiple audio files
-- **Custom Visualizations** - Build spectrograms and frequency displays
-- **CDN Demo** - Quick online BPM detector using the unpkg build
-- **Scroll Doppler Demo** - [`scroll-doppler.html`](examples/scroll-doppler.html)
-  showcases scroll-based crossfading and tempo-matched transitions. Place
-  `loop1.mp3` and `loop2.mp3` in the `audio` directory to try it
-  locally.
-- **Astro Doppler Demo** - [`astro-doppler`](examples/astro-doppler) shows the
-  same effect built with Astro. Put the loops in `astro-doppler/public` and run
-  `npm install && npm run dev` from that folder.
-- **Railway API Example** - [`deploying/railway-api`](deploying/README.md)
-  demonstrates deploying the paywall backend on Railway.
 ### Random Loop Playground
 
 A quick demo of random loop transformations.
