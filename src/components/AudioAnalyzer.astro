@@ -440,6 +440,7 @@ const {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         try {
+          clearAnalysisDisplay();
           updateTrackInfo(file.name, 'Loading...');
           
           // Load the file
@@ -641,7 +642,8 @@ const {
         btn.disabled = true;
         btn.style.opacity = '0.5';
       });
-      
+
+      clearAnalysisDisplay();
       updateTrackInfo(name, 'Loading...');
       document.getElementById('bpmValue').textContent = '...';
       
@@ -879,6 +881,21 @@ const {
     }
     
     document.getElementById('loopInfo').textContent = loopText;
+  }
+
+  // Clear BPM, waveform canvas and loop markers
+  function clearAnalysisDisplay() {
+    const bpmEl = document.getElementById('bpmValue');
+    if (bpmEl) bpmEl.textContent = '--';
+
+    const canvas = document.getElementById('waveformCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    document.getElementById('loopInfo').textContent = 'Full Track';
+    audioProcessor?.setLoopPoints(0, 1);
   }
   
   // Show error message
