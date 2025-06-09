@@ -13,11 +13,11 @@ const { showConfidence = true, autoDetect = true, threshold = 0.3, class: classN
 <div class={`pleco-bpm-detector ${className}`}>
   <div class="bpm-upload">
     <input type="file" id="bpmFileInput" accept="audio/*" />
-    <label for="bpmFileInput">Detect BPM</label>
+    <label for="bpmFileInput" tabindex="0">Detect BPM</label>
   </div>
 
   <div class="bpm-display" id="bpmDisplay">
-    <div class="bpm-value" id="bpmValue">-- BPM</div>
+    <div class="bpm-value" id="bpmValue" aria-live="polite" tabindex="0">-- BPM</div>
     {
       showConfidence && (
         <div class="bpm-confidence" id="bpmConfidence">
@@ -88,6 +88,16 @@ const { showConfidence = true, autoDetect = true, threshold = 0.3, class: classN
     const fileInput = document.getElementById('bpmFileInput')
     const bpmValue = document.getElementById('bpmValue')
     const bpmConfidence = document.getElementById('bpmConfidence')
+    const uploadLabel = document.querySelector('label[for="bpmFileInput"]')
+
+    if (uploadLabel) {
+      uploadLabel.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          fileInput?.click()
+        }
+      })
+    }
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {

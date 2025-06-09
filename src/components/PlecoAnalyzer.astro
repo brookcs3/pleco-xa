@@ -27,8 +27,9 @@ const {
   {
     allowUpload && (
       <div class="pleco-upload">
-        <input type="file" id="plecoFileInput" accept="audio/*" />
-        <label for="plecoFileInput">Choose Audio File</label>
+        <input type="file" id="plecoFileInput" accept="assets/audio/*" />
+        <label for="plecoFileInput" tabindex="0">Choose Audio File</label>
+
       </div>
     )
   }
@@ -38,7 +39,7 @@ const {
       showBPM && (
         <div class="pleco-bpm">
           <h3>BPM Detection</h3>
-          <div class="bpm-value" id="bpmValue">
+          <div class="bpm-value" id="bpmValue" aria-live="polite" tabindex="0">
             --
           </div>
           <div class="bpm-confidence" id="bpmConfidence">
@@ -175,6 +176,16 @@ const {
     const spectralInfo = document.getElementById('spectralInfo')
     const playBtn = document.getElementById('playLoop')
     const stopBtn = document.getElementById('stopLoop')
+    const uploadLabel = document.querySelector('label[for="plecoFileInput"]')
+
+    if (uploadLabel) {
+      uploadLabel.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          fileInput?.click()
+        }
+      })
+    }
 
     if (fileInput) {
       fileInput.addEventListener('change', async (e) => {

@@ -11,7 +11,7 @@ const { autoPlay = false, class: className = '' } = Astro.props
 <div class={`pleco-loop-player ${className}`} data-autoplay={autoPlay.toString()}>
   <div class="loop-upload">
     <input type="file" id="loopFileInput" accept="audio/*" />
-    <label for="loopFileInput">Load Loop</label>
+    <label for="loopFileInput" tabindex="0">Load Loop</label>
   </div>
 
   <div class="loop-controls" id="loopControls" style="display: none;">
@@ -76,6 +76,16 @@ const { autoPlay = false, class: className = '' } = Astro.props
       controls: document.getElementById('loopControls') as HTMLDivElement,
       playBtn: document.getElementById('playLoop') as HTMLButtonElement,
       stopBtn: document.getElementById('stopLoop') as HTMLButtonElement
+    }
+    const uploadLabel = document.querySelector('label[for="loopFileInput"]')
+
+    if (uploadLabel) {
+      uploadLabel.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          elements.fileInput?.click()
+        }
+      })
     }
     
     const autoPlay = (document.querySelector('.pleco-loop-player') as HTMLElement)?.dataset.autoplay === 'true'
