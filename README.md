@@ -382,6 +382,16 @@ npm ci
 npm start
 ```
 
+### Dockerfile for container builds
+
+A multi-stage `Dockerfile` is provided to build and run Pleco Xa in production.
+Use it to create an optimized image:
+
+```bash
+docker build -t pleco-xa .
+docker run -p 3000:3000 pleco-xa
+```
+
 ### Health Check Endpoint
 
 When deployed on services like Railway, the application exposes a `/health` route
