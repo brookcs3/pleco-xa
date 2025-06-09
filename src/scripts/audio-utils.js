@@ -104,7 +104,7 @@ export function exportBufferAsWav(buffer) {
     }
   }
 
-  return new Blob([view], { type: 'assets/audio/wav' })
+  return new Blob([view], { type: 'audio/wav' })
 }
 
 /**
