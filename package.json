@@ -1,6 +1,6 @@
 {
   "name": "pleco-xa",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "type": "module",
   "description": "Browser-native audio analysis library for intelligent loop detection and BPM tracking",
   "scripts": {
