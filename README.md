@@ -116,7 +116,7 @@ PLECO_DEBUG=true node deploying/railway-api/server.js
 
 ## Testing
 
-Run `npm ci` to install all development dependencies before executing the Jest
+Run `npm ci` to install all development dependencies before executing the Vitest
 test suite:
 
 ```bash
@@ -124,8 +124,7 @@ npm ci
 npm test
 ```
 
-This command executes all tests configured in `jest.config.cjs` using Node's
-`--experimental-vm-modules` flag so Jest can run ES modules.
+This command runs all tests configured in `vitest.config.js`.
 
 ## Astro Integration
 
