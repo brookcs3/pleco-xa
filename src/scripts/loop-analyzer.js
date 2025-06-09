@@ -12,7 +12,7 @@ import {
   findAllZeroCrossings,
   findAudioStart,
   applyHannWindow,
-} from '../utils/audio-utils.js' // @ts-ignore - Missing type declarations
+} from './audio-utils.js'
 import { spectralCentroid } from './xa-spectral.js'
 import { spectrogram } from './xa-fft.js'
 import { calculateBeatAlignment } from './musical-timing.js'
