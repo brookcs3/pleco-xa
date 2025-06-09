@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "start": "astro preview --port $PORT --host"
+    "start": "astro preview --port $PORT --host",
+    "convert-loops": "node scripts/tools/convert-loops.js"
   },
   "dependencies": {
     "@astrojs/node": "^9.2.2",
