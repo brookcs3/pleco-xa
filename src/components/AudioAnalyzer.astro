@@ -9,6 +9,8 @@ interface Props {
   class?: string;
 }
 
+import RandomizerButton from './RandomizerButton.astro';
+
 const { 
   title = 'Audio Analysis', 
   showControls = true,
@@ -77,6 +79,7 @@ const {
         <h4 class="card-title">Track Info</h4>
         <div class="card-value" id="trackName">No track loaded</div>
         <p class="card-description" id="trackStatus">Load a sample to begin</p>
+        <RandomizerButton audioBufferVar="currentAudioBuffer" ctxVar="audioContext" applyLoopVar="applyLoop" />
       </div>
 
       <div class="analysis-card">
@@ -94,6 +97,7 @@ const {
   </div>
 
   <div id="errorDisplay"></div>
+  <div id="statusDisplay"></div>
 
   <slot />
 </div>
@@ -342,6 +346,19 @@ const {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   }
 
+  #statusDisplay {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #444;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    z-index: 1000;
+    display: none;
+    max-width: 400px;
+  }
+
   @media (max-width: 768px) {
     .analysis-display {
       grid-template-columns: minmax(0, 1fr);
@@ -377,6 +394,8 @@ const {
   let audioContext;
   let audioProcessor;
   let currentAudioBuffer = null;
+  window.currentAudioBuffer = null;
+  window.audioContext = null;
   let isPlaying = false;
   let currentBeats = []; // Store beat times from BPM detection
   let currentTrackName = '';
@@ -446,6 +465,8 @@ const {
           const result = await loadAudioFile(file);
           currentAudioBuffer = result.audioBuffer;
           audioContext = result.audioContext;
+          window.currentAudioBuffer = currentAudioBuffer;
+          window.audioContext = audioContext;
           if (analysisWorker && result.arrayBuffer) {
             analysisWorker.postMessage(result.arrayBuffer);
 
@@ -617,6 +638,7 @@ const {
         
         // Replace current buffer with reversed one
         currentAudioBuffer = newBuffer;
+        window.currentAudioBuffer = currentAudioBuffer;
         
         // Update waveform
         drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints);
@@ -707,6 +729,8 @@ const {
       const result = await loadAudioFile(url);
       currentAudioBuffer = result.audioBuffer;
       audioContext = result.audioContext;
+      window.currentAudioBuffer = currentAudioBuffer;
+      window.audioContext = audioContext;
       currentTrackName = name;
       if (analysisWorker && result.arrayBuffer) {
         analysisWorker.postMessage(result.arrayBuffer);
@@ -961,11 +985,29 @@ const {
     const errorDiv = document.getElementById('errorDisplay');
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
-    
+
     setTimeout(() => {
       errorDiv.style.display = 'none';
     }, 5000);
   }
+
+  function showStatus(message) {
+    const statusDiv = document.getElementById('statusDisplay');
+    if (!statusDiv) return;
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+    setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 2000);
+  }
+
+  function applyLoop(loopData) {
+    if (!loopData || !audioProcessor) return;
+    audioProcessor.setLoopPoints(loopData.start, loopData.end);
+    updateLoopInfo(loopData);
+    drawWaveform(currentAudioBuffer, 'waveformCanvas', loopData);
+  }
+  window.applyLoop = applyLoop;
   
   // Timeline animation
   function startTimelineAnimation() {

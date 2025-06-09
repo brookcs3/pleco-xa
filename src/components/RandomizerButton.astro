@@ -1,0 +1,32 @@
+---
+interface Props {
+  audioBufferVar?: string
+  ctxVar?: string
+  applyLoopVar?: string
+}
+const { audioBufferVar = 'currentAudioBuffer', ctxVar = 'audioContext', applyLoopVar = 'applyLoop' } = Astro.props
+---
+<button class="loop-btn" id="randomizeLoopBtn">🎲 Randomize Loop</button>
+
+<script>
+  import { randomSequence } from '../core/loopPlayground.js'
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('randomizeLoopBtn')
+    const statusEl = document.getElementById('statusDisplay')
+    btn?.addEventListener('click', async () => {
+      const buffer = window[audioBufferVar]
+      const ctx = window[ctxVar]
+      const applyLoop = window[applyLoopVar]
+      if (!buffer || !ctx || typeof applyLoop !== 'function') return
+      const seq = randomSequence(buffer, { minMs: 10, maxMs: buffer.duration * 1000, steps: 4 })
+      if (statusEl) statusEl.textContent = seq.map(fn => fn.action).join(' -> ')
+      for (const step of seq) {
+        const { buffer: newBuf, loop } = step()
+        window[audioBufferVar] = newBuf
+        applyLoop(loop)
+        await new Promise(r => setTimeout(r, 500))
+      }
+      if (statusEl) statusEl.textContent = 'Randomization done'
+    })
+  })
+</script>
