@@ -4,13 +4,13 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     const elements = {
-      fileInput: document.getElementById('waveformFileInput') as HTMLInputElement,
-      container: document.getElementById('waveformContainer') as HTMLDivElement,
-      canvas: document.getElementById('waveformCanvas') as HTMLCanvasElement,
-      loopInfo: document.getElementById('loopInfo') as HTMLElement,
-      playBtn: document.getElementById('playWaveform') as HTMLButtonElement,
-      stopBtn: document.getElementById('stopWaveform') as HTMLButtonElement,
-      resetBtn: document.getElementById('resetLoop') as HTMLButtonElement
+      fileInput: document.getElementById('waveformFileInput'),
+      container: document.getElementById('waveformContainer'),
+      canvas: document.getElementById('waveformCanvas'),
+      loopInfo: document.getElementById('loopInfo'),
+      playBtn: document.getElementById('playWaveform'),
+      stopBtn: document.getElementById('stopWaveform'),
+      resetBtn: document.getElementById('resetLoop')
     }
     
     let editor = null
@@ -71,7 +71,7 @@
 
     // Event listeners
     elements.fileInput?.addEventListener('change', e => {
-      const file = (e.target as HTMLInputElement).files?.[0]
+      const file = e.target.files && e.target.files[0]
       if (file) initAudio(file)
     })
 

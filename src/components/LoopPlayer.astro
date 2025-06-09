@@ -72,10 +72,10 @@ const { autoPlay = false, class: className = '' } = Astro.props
   
   document.addEventListener('DOMContentLoaded', () => {
     const elements = {
-      fileInput: document.getElementById('loopFileInput') as HTMLInputElement,
-      controls: document.getElementById('loopControls') as HTMLDivElement,
-      playBtn: document.getElementById('playLoop') as HTMLButtonElement,
-      stopBtn: document.getElementById('stopLoop') as HTMLButtonElement
+      fileInput: document.getElementById('loopFileInput'),
+      controls: document.getElementById('loopControls'),
+      playBtn: document.getElementById('playLoop'),
+      stopBtn: document.getElementById('stopLoop')
     }
     const uploadLabel = document.querySelector('label[for="loopFileInput"]')
 
@@ -88,7 +88,7 @@ const { autoPlay = false, class: className = '' } = Astro.props
       })
     }
     
-    const autoPlay = (document.querySelector('.pleco-loop-player') as HTMLElement)?.dataset.autoplay === 'true'
+    const autoPlay = document.querySelector('.pleco-loop-player')?.dataset.autoplay === 'true'
 
     async function loadAudio(file) {
       try {
@@ -152,7 +152,7 @@ const { autoPlay = false, class: className = '' } = Astro.props
     }
 
     elements.fileInput?.addEventListener('change', e => {
-      const file = (e.target as HTMLInputElement).files?.[0]
+      const file = e.target.files && e.target.files[0]
       if (file) loadAudio(file)
     })
 

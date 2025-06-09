@@ -191,14 +191,31 @@ export async function loadAudioFile(source) {
     }
     
     // Fetch the file
+    console.log(`🌐 Fetching audio from: ${url}`);
     const response = await fetch(url, { cache: 'force-cache' });
 
     if (!response.ok) {
       throw new Error(`Failed to load audio: HTTP ${response.status}`);
     }
     
+    console.log(`📦 Response received, size: ${response.headers.get('content-length')} bytes`);
     arrayBuffer = await response.arrayBuffer();
-    audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+    console.log(`🔄 ArrayBuffer created, size: ${arrayBuffer.byteLength} bytes`);
+    
+    // Ensure audio context is in running state
+    if (audioContext.state === 'suspended') {
+      console.log('🔊 Resuming audio context...');
+      await audioContext.resume();
+    }
+    
+    console.log(`🎵 Decoding audio data...`);
+    try {
+      audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+      console.log(`✅ Audio decoded successfully: ${audioBuffer.duration.toFixed(2)}s, ${audioBuffer.numberOfChannels} channels`);
+    } catch (decodeError) {
+      console.error('❌ Audio decode error:', decodeError);
+      throw new Error(`Unable to decode audio data: ${decodeError.message}`);
+    }
 
     
     // Cache the result
@@ -206,8 +223,24 @@ export async function loadAudioFile(source) {
   } 
   // Handle File object
   else if (source instanceof File) {
+    console.log(`📁 Loading file: ${source.name}, size: ${source.size} bytes`);
     arrayBuffer = await source.arrayBuffer();
-    audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+    console.log(`🔄 ArrayBuffer created, size: ${arrayBuffer.byteLength} bytes`);
+    
+    // Ensure audio context is in running state
+    if (audioContext.state === 'suspended') {
+      console.log('🔊 Resuming audio context...');
+      await audioContext.resume();
+    }
+    
+    console.log(`🎵 Decoding audio data...`);
+    try {
+      audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+      console.log(`✅ Audio decoded successfully: ${audioBuffer.duration.toFixed(2)}s, ${audioBuffer.numberOfChannels} channels`);
+    } catch (decodeError) {
+      console.error('❌ Audio decode error:', decodeError);
+      throw new Error(`Unable to decode audio data: ${decodeError.message}`);
+    }
 
   }
   else {

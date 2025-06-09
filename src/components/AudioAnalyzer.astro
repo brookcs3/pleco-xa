@@ -39,7 +39,7 @@ function applyLoop() {}
     <button class="sample-btn" data-sample="Drive Through Beat.aif">
       Drive Beat
     </button>
-    <button class="sample-btn" data-sample="ui.m4a">UI Loop Test</button>
+    <button class="sample-btn" data-sample="ui.wav">UI Loop Test</button>
     <input type="file" id="audioFileInput" accept="audio/*" style="display: none;" />
     <button class="sample-btn" id="uploadBtn">📁 Upload Audio</button>
   </div>
@@ -383,26 +383,26 @@ function applyLoop() {}
     try {
       console.log('🔄 Loading modules...');
       
-      const coreModule = await import('../scripts/xa-audio-core.js');
+      const coreModule = await import('/scripts/xa-audio-core.js');
       initAudioProcessor = coreModule.initAudioProcessor;
       loadAudioFile = coreModule.loadAudioFile;
       drawWaveform = coreModule.drawWaveform;
       console.log('✅ Core module loaded');
       
-      const applyLoopModule = await import('../scripts/ui/applyLoop.js');
+      const applyLoopModule = await import('/scripts/ui/applyLoop.js');
       applyLoopHelper = applyLoopModule.applyLoop;
       console.log('✅ ApplyLoop module loaded');
       
-      const bpmModule = await import('../scripts/xa-bpm-detection.js');
+      const bpmModule = await import('/scripts/xa-bpm-detection.js');
       detectBPM = bpmModule.detectBPM;
       console.log('✅ BPM module loaded');
       
-      const loopModule = await import('../scripts/xa-loop-detection.js');
+      const loopModule = await import('/scripts/xa-loop-detection.js');
       findLoop = loopModule.findLoop;
       manipulateLoop = loopModule.manipulateLoop;
       console.log('✅ Loop module loaded');
       
-      const toastModule = await import('../scripts/ui/toastQueue.js');
+      const toastModule = await import('/scripts/ui/toastQueue.js');
       enqueueToast = toastModule.enqueueToast;
       console.log('✅ Toast module loaded');
       
@@ -478,7 +478,7 @@ function applyLoop() {}
     
     // File input
     document.getElementById('audioFileInput')?.addEventListener('change', async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
+      const file = e.target.files && e.target.files[0];
       if (file) {
         try {
           clearAnalysisDisplay();
@@ -644,6 +644,9 @@ function applyLoop() {}
         // Reverse the loop section using helper
         currentAudioBuffer = reverseBufferSection(currentAudioBuffer, startSample, endSample);
         window.currentAudioBuffer = currentAudioBuffer;
+
+        // Update the waveform display to show the reversed audio
+        drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints);
 
         // Apply changes to playback/UI
         applyLoop(currentAudioBuffer, { startSample, endSample }, 'reverse', undefined);
@@ -831,12 +834,17 @@ function applyLoop() {}
     const bpmUpdateInterval = 2.0; // Update BPM every 2 seconds
     
     function animate() {
-      if (!isPlaying || !currentAudioBuffer || !audioProcessor) return;
+      if (!isPlaying || !currentAudioBuffer || !audioProcessor) {
+        console.log('Animation stopped:', { isPlaying, hasBuffer: !!currentAudioBuffer, hasProcessor: !!audioProcessor });
+        return;
+      }
       
       // Get current playback position
       const position = audioProcessor.getCurrentPosition();
       const loopPoints = audioProcessor.getLoopPoints();
       const currentTimeInSeconds = position * currentAudioBuffer.duration;
+      
+      console.log('Animation frame:', { position, isPlaying, currentTimeInSeconds });
       
       // Draw waveform with playhead
       drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints, {
@@ -996,6 +1004,35 @@ function applyLoop() {}
     audioProcessor?.setLoopPoints(0, 1);
   }
   
+  // Reverse a section of an audio buffer
+  function reverseBufferSection(audioBuffer, startSample, endSample) {
+    // Create a new buffer with the same properties
+    const newBuffer = audioContext.createBuffer(
+      audioBuffer.numberOfChannels,
+      audioBuffer.length,
+      audioBuffer.sampleRate
+    );
+
+    // Copy all channels
+    for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+      const originalData = audioBuffer.getChannelData(channel);
+      const newData = newBuffer.getChannelData(channel);
+      
+      // Copy the entire buffer first
+      newData.set(originalData);
+      
+      // Reverse just the loop section
+      const loopLength = endSample - startSample;
+      for (let i = 0; i < loopLength; i++) {
+        const originalIndex = startSample + i;
+        const reversedIndex = startSample + (loopLength - 1 - i);
+        newData[originalIndex] = originalData[reversedIndex];
+      }
+    }
+    
+    return newBuffer;
+  }
+
   // Show error message
   function showError(message) {
     enqueueToast(message, 5000);
