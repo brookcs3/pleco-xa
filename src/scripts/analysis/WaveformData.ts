@@ -41,7 +41,7 @@
  *
  * @example
  * ```javascript
- * import { getWaveformPeaks } from './analysis/WaveformData.js';
+ * import { getWaveformPeaks } from './analysis/WaveformData.ts';
  *
  * const peaks = getWaveformPeaks(audioBuffer, {
  *   width: 1000,
@@ -132,7 +132,7 @@ export function getWaveformPeaks(audioBuffer, options = {}) {
  *
  * @example
  * ```javascript
- * import { getStereoWaveformPeaks } from './analysis/WaveformData.js';
+ * import { getStereoWaveformPeaks } from './analysis/WaveformData.ts';
  *
  * const stereo = getStereoWaveformPeaks(audioBuffer, { width: 800 });
  * console.log('Left channel:', stereo.left.data);
@@ -168,7 +168,7 @@ export function getStereoWaveformPeaks(audioBuffer, options = {}) {
  *
  * @example
  * ```javascript
- * import { getTimebasedWaveform } from './analysis/WaveformData.js';
+ * import { getTimebasedWaveform } from './analysis/WaveformData.ts';
  *
  * const timeWaveform = getTimebasedWaveform(audioBuffer, {
  *   resolution: 0.01 // 10ms resolution
@@ -244,7 +244,7 @@ export function getTimebasedWaveform(audioBuffer, options = {}) {
  *
  * @example
  * ```javascript
- * import { getWaveformRange } from './analysis/WaveformData.js';
+ * import { getWaveformRange } from './analysis/WaveformData.ts';
  *
  * // Get waveform for seconds 10-20
  * const rangeWaveform = getWaveformRange(audioBuffer, 10, 20, {
@@ -306,7 +306,7 @@ export function getWaveformRange(
  *
  * @example
  * ```javascript
- * import { analyzeWaveform } from './analysis/WaveformData.js';
+ * import { analyzeWaveform } from './analysis/WaveformData.ts';
  *
  * const stats = analyzeWaveform(audioBuffer);
  * console.log('Peak amplitude:', stats.peak);

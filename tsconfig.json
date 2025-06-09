@@ -5,7 +5,11 @@
     "src",
     "**/*.astro",
     "**/*.ts",
-    "**/*.js"
-, "astro.config.mjs"  ],
-  "exclude": ["dist", "node_modules"]
+    "**/*.js",
+    "astro.config.mjs"
+  ],
+  "exclude": ["dist", "node_modules"],
+  "compilerOptions": {
+    "lib": ["dom", "webworker"]
+  }
 }

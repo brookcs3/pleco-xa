@@ -3,7 +3,7 @@
 import { loadFile } from './xa-file.js'
 
 // Advanced BPM Detection
-import { detectBPM } from './analysis/BPMDetector.js'
+import { detectBPM } from './analysis/BPMDetector.ts'
 import { fastBPMDetect } from './xa-beat.js'
 
 // Advanced beat tracking with phase detection
