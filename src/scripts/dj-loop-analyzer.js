@@ -8,6 +8,7 @@ import { dtw, dtwDistanceMatrix, dtwKMeans } from './xa-dtw.js'
 import { chroma_cqt, enhance_chroma, chroma_energy } from './xa-chroma.js'
 import { tempo, beat_track, analyze_groove } from './xa-tempo.js'
 import { onset_strength } from './xa-onset.js'
+import { debugLog } from './debug.js'
 import { spectralCentroid } from './xa-spectral.js'
 
 /**
@@ -33,7 +34,7 @@ export class DJLoopAnalyzer {
     const sampleRate = audioBuffer.sampleRate
     const loopId = crypto.randomUUID()
 
-    console.log(`🎵 Analyzing loop: ${metadata.name || loopId}`)
+    debugLog(`🎵 Analyzing loop: ${metadata.name || loopId}`)
 
     try {
       // Extract all features
@@ -63,7 +64,7 @@ export class DJLoopAnalyzer {
         this.updateSimilarityMatrix()
       }
 
-      console.log(
+      debugLog(
         `✅ Loop analyzed: ${loop.metadata.energy.toFixed(2)} energy, ${features.tempo.bpm.toFixed(1)} BPM`,
       )
 

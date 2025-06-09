@@ -3,6 +3,8 @@
  * Handles finding and manipulating loop points in audio
  */
 
+import { debugLog } from './debug.js'
+
 /**
  * Find optimal loop points in audio buffer
  * @param {AudioBuffer} audioBuffer - Audio buffer to analyze
@@ -83,7 +85,7 @@ export async function findLoop(audioBuffer, options = {}) {
     const start = cleanStartSample / channel.length;
     const end = finalEndSample / channel.length;
     
-    console.log(`Loop detected: ${barsToUse} bars, ${(targetDuration).toFixed(2)}s`);
+    debugLog(`Loop detected: ${barsToUse} bars, ${(targetDuration).toFixed(2)}s`);
     
     return {
       start,

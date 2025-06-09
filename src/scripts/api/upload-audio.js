@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { debugLog } from '../debug.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -55,7 +56,7 @@ export async function POST({ request }) {
 
     fs.writeFileSync(filePath, buffer)
 
-    console.log(`Audio file saved: ${filename}`)
+    debugLog(`Audio file saved: ${filename}`)
 
     return new Response(
       JSON.stringify({

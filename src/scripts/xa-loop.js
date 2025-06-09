@@ -8,6 +8,7 @@ import { beatTrack } from './xa-beat.js' // Commented out estimateTempo as unuse
 // import { spectralCentroid, rms } from './xa-spectral.js' // Commented out as unused per task warning
 import { findMusicalLoop, findDownbeatPhase } from './xa-downbeat.js'
 import { findPreciseLoop } from './xa-precise-loop.js'
+import { debugLog } from './debug.js'
 
 /**
  * Fast loop analysis - replaces the slow loopAnalysis
@@ -20,17 +21,17 @@ export async function fastLoopAnalysis(audioBuffer) {
   const sampleRate = audioBuffer.sampleRate
   const duration = audioBuffer.duration
 
-  console.log(`🔍 Analyzing ${duration.toFixed(1)}s audio at ${sampleRate}Hz`)
+  debugLog(`🔍 Analyzing ${duration.toFixed(1)}s audio at ${sampleRate}Hz`)
 
   // Step 1: Fast beat tracking to get tempo and beat positions
   const beatResult = beatTrack(audioData, sampleRate, { hopLength: 256 })
-  console.log(
+  debugLog(
     `🎵 Detected ${beatResult.tempo.toFixed(1)} BPM with ${beatResult.beats.length} beats`,
   )
 
   // Step 2: Use onset detection to find structural changes
   const onsetResult = onsetDetect(audioData, sampleRate, { hopLength: 256 })
-  console.log(`🎯 Found ${onsetResult.onsetTimes.length} onsets`)
+  debugLog(`🎯 Found ${onsetResult.onsetTimes.length} onsets`)
 
   // Step 3: Try precise loop detection first (finds exact boundaries)
   // Calculate bar duration for this tempo
@@ -47,7 +48,7 @@ export async function fastLoopAnalysis(audioBuffer) {
 
   if (preciseLoop && preciseLoop.score > 0.5) {
     // Use the precise loop if it's good
-    console.log(`🎯 Using precise loop detection`)
+    debugLog(`🎯 Using precise loop detection`)
     musicalLoop = {
       start: preciseLoop.start,
       end: preciseLoop.end,
@@ -56,7 +57,7 @@ export async function fastLoopAnalysis(audioBuffer) {
     }
   } else {
     // Fallback to bar-aligned method
-    console.log(`⚠️ Precise detection failed, using bar-aligned method`)
+    debugLog(`⚠️ Precise detection failed, using bar-aligned method`)
     musicalLoop = findMusicalLoop(audioData, sampleRate, beatResult.tempo, {
       preferredBars: 4, // Prefer 4-bar loops
       minBars: 2, // At least 2 bars
@@ -65,7 +66,7 @@ export async function fastLoopAnalysis(audioBuffer) {
   }
 
   if (musicalLoop) {
-    console.log(
+    debugLog(
       `🎵 Found ${musicalLoop.bars}-bar loop: ${musicalLoop.start.toFixed(3)}s - ${musicalLoop.end.toFixed(3)}s`,
     )
 
@@ -84,7 +85,7 @@ export async function fastLoopAnalysis(audioBuffer) {
       correlation: musicalLoop.score,
     }
 
-    console.log(
+    debugLog(
       `🎯 Final loop: ${bestLoop.start.toFixed(3)}s - ${bestLoop.end.toFixed(3)}s`,
     )
 
@@ -108,7 +109,7 @@ export async function fastLoopAnalysis(audioBuffer) {
     }
   } else {
     // Fallback if musical loop finder fails
-    console.log('⚠️ Musical loop finder failed, using fallback')
+    debugLog('⚠️ Musical loop finder failed, using fallback')
     console.timeEnd('fast_loop_analysis')
 
     const duration = audioData.length / sampleRate
@@ -291,11 +292,11 @@ function smoothArray(arr, windowSize) {
 //
 //   // Prefer strong downbeats if we found enough
 //   if (strongDownbeats.length >= 4) {
-//     console.log('Using energy-based downbeats')
+//     debugLog('Using energy-based downbeats')
 //     return strongDownbeats
 //   }
 //
-//   console.log('Using simple 4-beat downbeats')
+//   debugLog('Using simple 4-beat downbeats')
 //   return downbeats
 // } // Commented out as unused per task warning
 
@@ -591,10 +592,10 @@ function crossCorrelation(segment1, segment2) {
 //
 //   const best = candidates[0]
 //
-//   console.log(
+//   debugLog(
 //     `🏆 Best loop: ${best.start.toFixed(3)}s - ${best.end.toFixed(3)}s`,
 //   )
-//   console.log(
+//   debugLog(
 //     `🎵 ${best.musicalDivision} bars, confidence: ${best.confidence.toFixed(3)}`,
 //   )
 //
@@ -634,7 +635,7 @@ function crossCorrelation(segment1, segment2) {
 //
 //   // Log if we made corrections
 //   if (nearestStartBeat !== loop.start || nearestEndBeat !== loop.end) {
-//     console.log(
+//     debugLog(
 //       `🔧 Phase correction: moved start ${(nearestStartBeat - loop.start).toFixed(3)}s, end ${(nearestEndBeat - loop.end).toFixed(3)}s`,
 //     )
 //   }

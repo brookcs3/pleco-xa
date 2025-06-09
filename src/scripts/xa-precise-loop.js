@@ -5,6 +5,7 @@
 
 import { onsetDetect } from './xa-onset.js'
 import { findKickSnareHit } from './kick-snare-detector.js'
+import { debugLog } from './debug.js'
 
 /**
  * Find precise loop boundaries by testing actual audio repetition
@@ -30,7 +31,7 @@ export function findPreciseLoop(
   const onsetResult = onsetDetect(audioData, sampleRate, { hopLength: 256 })
   const onsets = onsetResult.onsetTimes
 
-  console.log(
+  debugLog(
     `🔍 Searching for loops between ${minLoopDuration}s and ${maxLoopDuration}s`,
   )
 
@@ -77,7 +78,7 @@ export function findPreciseLoop(
           totalScore: totalScore,
         }
 
-        console.log(
+        debugLog(
           `✨ New best loop: ${startTime.toFixed(3)}s - ${endTime.toFixed(3)}s (${loopDuration.toFixed(3)}s), score: ${totalScore.toFixed(4)}`,
         )
       }
@@ -259,14 +260,14 @@ function fineTuneLoopStart(audioData, sampleRate, loop, onsets) {
 
   if (nearbyOnsets.length === 0) {
     // No nearby onsets, but let's try nudging forward by onset detection
-    console.log(`🔧 No nearby onsets, checking for next strong attack...`)
+    debugLog(`🔧 No nearby onsets, checking for next strong attack...`)
     return findNextStrongAttack(audioData, sampleRate, loop)
   }
 
-  console.log(
+  debugLog(
     `🔧 Fine-tuning: found ${nearbyOnsets.length} onsets near ${loop.start.toFixed(3)}s`,
   )
-  console.log(
+  debugLog(
     `   Later onsets: ${laterOnsets.map((o) => o.toFixed(3)).join(', ')}`,
   )
 
@@ -282,7 +283,7 @@ function fineTuneLoopStart(audioData, sampleRate, loop, onsets) {
 
     const score = scorePreciseLoop(audioData, sampleRate, newStart, newEnd)
 
-    console.log(
+    debugLog(
       `  Testing start at ${newStart.toFixed(3)}s: score=${score.toFixed(4)}`,
     )
 
@@ -297,7 +298,7 @@ function fineTuneLoopStart(audioData, sampleRate, loop, onsets) {
   }
 
   if (bestStart !== loop.start) {
-    console.log(
+    debugLog(
       `✨ Adjusted loop start: ${loop.start.toFixed(3)}s -> ${bestStart.toFixed(3)}s`,
     )
 
@@ -349,7 +350,7 @@ function findNextStrongAttack(audioData, sampleRate, loop) {
 
   if (maxEnergyOffset > 0) {
     const newStart = loop.start + maxEnergyOffset / sampleRate
-    console.log(
+    debugLog(
       `🎯 Found stronger attack ${((maxEnergyOffset / sampleRate) * 1000).toFixed(1)}ms later`,
     )
 

@@ -4,6 +4,7 @@
  */
 
 import { onsetDetect } from './xa-onset.js'
+import { debugLog } from './debug.js'
 
 /**
  * Find the true downbeat phase by analyzing onset patterns
@@ -47,10 +48,10 @@ export function findDownbeatPhase(audioData, beats, tempo, sampleRate) {
     }
   }
 
-  console.log(
+  debugLog(
     `🎯 Downbeat phase scores: [${phaseScores.map((s) => s.toFixed(2)).join(', ')}]`,
   )
-  console.log(
+  debugLog(
     `🎯 Best phase: ${bestPhase} (beat ${bestPhase + 1} is likely the downbeat)`,
   )
 
@@ -135,7 +136,7 @@ export function findFirstDownbeat(audioData, tempo, sampleRate) {
   // Snap to nearest bar boundary
   const nearestBar = Math.round(bestDownbeat / barDuration) * barDuration
 
-  console.log(`🎵 First downbeat found at ${nearestBar.toFixed(3)}s`)
+  debugLog(`🎵 First downbeat found at ${nearestBar.toFixed(3)}s`)
 
   return nearestBar
 }
@@ -177,7 +178,7 @@ export function findMusicalLoop(
     (onset) => onset > 1.0 && onset < duration - 2.0,
   )
 
-  console.log(`🎯 Testing ${strongOnsets.length} potential loop starts`)
+  debugLog(`🎯 Testing ${strongOnsets.length} potential loop starts`)
 
   for (const numBars of barLengths) {
     const loopDuration = numBars * barDuration
@@ -195,7 +196,7 @@ export function findMusicalLoop(
       // Analyze this loop
       const score = scoreLoop(audioData, sampleRate, loopStart, loopEnd)
 
-      console.log(
+      debugLog(
         `Testing ${numBars}-bar loop at ${loopStart.toFixed(2)}s: score=${score.toFixed(4)}`,
       )
 

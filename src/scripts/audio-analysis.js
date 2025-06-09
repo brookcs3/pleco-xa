@@ -9,6 +9,8 @@ import { fastBPMDetect } from './xa-beat.js'
 // Advanced beat tracking with phase detection
 import { BeatTracker } from './xa-beat-tracker.js'
 
+import { debugLog } from './debug.js'
+
 // Onset detection for transients
 
 // Spectral features with RMS energy
@@ -73,11 +75,11 @@ function showError(message) {
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🎵 Pleco-XA Audio Analysis Engine loading...')
+  debugLog('🎵 Pleco-XA Audio Analysis Engine loading...')
   warnIfNoMp3Support()
   try {
     setupEventListeners()
-    console.log('✅ Event listeners initialized')
+    debugLog('✅ Event listeners initialized')
   } catch (error) {
     console.error('❌ Failed to initialize:', error)
     showError(`Initialization error: ${error.message}`)
@@ -106,7 +108,7 @@ function setupEventListeners() {
       const file = e.target.files[0]
       if (file) {
         try {
-          console.log(`📁 Loading uploaded file: ${file.name}`)
+          debugLog(`📁 Loading uploaded file: ${file.name}`)
           updateTrackInfo(file.name, 'Loading...')
 
           if (!audioContext) {
@@ -127,7 +129,7 @@ function setupEventListeners() {
           await analyzeAudio()
           drawWaveform()
 
-          console.log('✅ Uploaded file loaded successfully')
+          debugLog('✅ Uploaded file loaded successfully')
         } catch (error) {
           console.error('❌ Error loading uploaded file:', error)
           showError(`Failed to load ${file.name}: ${error.message}`)
@@ -161,12 +163,12 @@ const audioBufferCache = new Map();
 
 async function loadSampleFile(url, name) {
   try {
-    console.log(`📥 Loading: ${url}`);
+    debugLog(`📥 Loading: ${url}`);
     updateTrackInfo(name, 'Loading...');
     
     // Check cache first
     if (audioBufferCache.has(url)) {
-      console.log(`📥 Using cached audio for ${url}`);
+      debugLog(`📥 Using cached audio for ${url}`);
       currentAudioBuffer = audioBufferCache.get(url);
       
       // Continue with the rest of the process
@@ -181,7 +183,7 @@ async function loadSampleFile(url, name) {
         sampleRate: 44100
       });
       beatTracker = new BeatTracker();
-      console.log(`✅ AudioContext created`);
+      debugLog(`✅ AudioContext created`);
     }
 
     // Show loading indicator in UI
@@ -202,7 +204,7 @@ async function loadSampleFile(url, name) {
         throw new Error(`Failed to load audio: HTTP ${response.status} ${response.statusText}`);
       }
       
-      console.log(`✅ Fetch successful for ${url}`);
+      debugLog(`✅ Fetch successful for ${url}`);
       
       // Use streaming where possible
       const contentLength = response.headers.get('Content-Length');
@@ -235,12 +237,12 @@ async function loadSampleFile(url, name) {
           position += chunk.length;
         }
         
-        console.log(`✅ Streamed ${receivedLength} bytes`);
+        debugLog(`✅ Streamed ${receivedLength} bytes`);
         currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       } else {
         // For smaller files, use simpler approach
         const arrayBuffer = await response.arrayBuffer();
-        console.log(`✅ ArrayBuffer created: ${arrayBuffer.byteLength} bytes`);
+        debugLog(`✅ ArrayBuffer created: ${arrayBuffer.byteLength} bytes`);
         currentAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       }
       
@@ -268,7 +270,7 @@ function setupLoadedAudio(name) {
   currentLoop = { start: 0, end: 1 };
   updateLoopInfo();
 
-  console.log(
+  debugLog(
     `✅ Audio loaded: ${currentAudioBuffer.duration.toFixed(2)}s @ ${currentAudioBuffer.sampleRate}Hz`,
   );
 
@@ -280,17 +282,17 @@ function setupLoadedAudio(name) {
   setTimeout(async () => {
     await analyzeAudio();
     drawWaveform();
-    console.log('✅ Audio analysis complete');
+    debugLog('✅ Audio analysis complete');
   }, 10);
 }
 
 // ===== AUDIO ANALYSIS =====
 async function analyzeAudio() {
   try {
-    console.log('🔍 Starting BPM detection...');
+    debugLog('🔍 Starting BPM detection...');
 
     // Use fast BPM detection for real-time performance
-    console.log('🥁 Detecting BPM...');
+    debugLog('🥁 Detecting BPM...');
     let bpm;
     let confidence = 0.8;
     
@@ -415,7 +417,7 @@ function computeAudioFeatures(audioBuffer) {
       window.analysisResults.dynamics.rmsValues = Array.from(rmsValues).filter((_, i) => i % 4 === 0); // Downsample
     }
     
-    console.log('✅ Audio feature extraction complete');
+    debugLog('✅ Audio feature extraction complete');
   } catch (error) {
     console.error('❌ Audio feature extraction error:', error);
   }
@@ -507,7 +509,7 @@ function findNearestZeroCrossing(
 // ===== LOOP DETECTION =====
 async function detectLoop() {
   try {
-    console.log('🔍 Running advanced loop detection...')
+    debugLog('🔍 Running advanced loop detection...')
 
     // Multi-algorithm approach with fallbacks
     let result;
@@ -517,7 +519,7 @@ async function detectLoop() {
     // Try the most sophisticated algorithm first
     try {
       if (typeof findPreciseLoop !== 'undefined') {
-        console.log('🔍 Using precise loop detection algorithm...');
+        debugLog('🔍 Using precise loop detection algorithm...');
         result = await findPreciseLoop(currentAudioBuffer, {
           bpmHint: currentBPM,
           minLoopLength: 1.0, // minimum 1 second
@@ -536,7 +538,7 @@ async function detectLoop() {
       // Try fast algorithm as fallback
       try {
         if (typeof fastLoopAnalysis !== 'undefined') {
-          console.log('🔍 Using fast loop detection algorithm...');
+          debugLog('🔍 Using fast loop detection algorithm...');
           result = await fastLoopAnalysis(currentAudioBuffer, {
             bpmHint: currentBPM,
             sensitivity: 0.8
@@ -552,7 +554,7 @@ async function detectLoop() {
         // Try musical algorithm as second fallback
         try {
           if (typeof findMusicalLoop !== 'undefined') {
-            console.log('🔍 Using musical loop detection algorithm...');
+            debugLog('🔍 Using musical loop detection algorithm...');
             result = await findMusicalLoop(currentAudioBuffer, currentBPM);
             detectionMethod = 'musical';
             confidence = result.confidence || 0.6;
@@ -571,7 +573,7 @@ async function detectLoop() {
           };
           detectionMethod = 'bpm-based';
           confidence = 0.5;
-          console.log('⚠️ Using fallback BPM-based loop (4 bars)');
+          debugLog('⚠️ Using fallback BPM-based loop (4 bars)');
         }
       }
     }
@@ -602,7 +604,7 @@ async function detectLoop() {
       const wholeBars = Math.round(barsApprox);
       
       if (Math.abs(barsApprox - wholeBars) < 0.1) {
-        console.log(`🎵 Quantizing loop to ${wholeBars} bar${wholeBars !== 1 ? 's' : ''}`);
+        debugLog(`🎵 Quantizing loop to ${wholeBars} bar${wholeBars !== 1 ? 's' : ''}`);
         // Keep start point, adjust end to match whole bars
         endSec = startSec + (wholeBars * barDur);
         
@@ -666,7 +668,7 @@ async function detectLoop() {
           maxSearch: 1024,
           preferLowEnergy: false
         });
-        console.log(`🎯 Start aligned to onset @ ${(startSample / sr).toFixed(3)}s`);
+        debugLog(`🎯 Start aligned to onset @ ${(startSample / sr).toFixed(3)}s`);
       }
     } catch (e) {
       console.warn('⚠️ Onset alignment skipped:', e);
@@ -682,7 +684,7 @@ async function detectLoop() {
     updateLoopInfo();
     drawWaveform();
 
-    console.log(
+    debugLog(
       `✅ Loop detected using ${detectionMethod} algorithm: ${(startSample / sr).toFixed(3)}s – ${(endSample / sr).toFixed(3)}s`,
       `(confidence: ${confidence.toFixed(2)})`
     );
@@ -812,29 +814,29 @@ function drawPlayhead(ctx, width, height) {
 
 // ===== PLAYBACK CONTROLS =====
 async function playAudio() {
-  console.log('🎮 Play button clicked')
+  debugLog('🎮 Play button clicked')
 
   if (!currentAudioBuffer) {
-    console.log('❌ No audio buffer loaded')
+    debugLog('❌ No audio buffer loaded')
     alert('Please load an audio file first!')
     return
   }
 
   if (isPlaying) {
-    console.log('🎮 Already playing, stopping first')
+    debugLog('🎮 Already playing, stopping first')
     stopAudio()
     return
   }
 
   try {
-    console.log('🎮 Starting playback...')
+    debugLog('🎮 Starting playback...')
 
     if (audioContext.state === 'suspended') {
-      console.log('🎮 Resuming suspended audio context')
+      debugLog('🎮 Resuming suspended audio context')
       await audioContext.resume()
     }
     // ===== DEBUG: confirm context state =====
-    console.log('Context state after resume:', audioContext.state) // expect "running"
+    debugLog('Context state after resume:', audioContext.state) // expect "running"
     // ========================================
 
     currentSource = audioContext.createBufferSource()
@@ -853,13 +855,13 @@ async function playAudio() {
       const data = new Uint8Array(analyser.fftSize)
       analyser.getByteTimeDomainData(data)
       const peak = Math.max(...data) // 128 = silence, >128 => signal
-      console.log('peak', peak)
+      debugLog('peak', peak)
     }, 250)
     // ========================================
     currentSource.loop = true
 
-    console.log(`🎮 Audio context state: ${audioContext.state}`)
-    console.log(
+    debugLog(`🎮 Audio context state: ${audioContext.state}`)
+    debugLog(
       `🎮 Audio context destination: ${audioContext.destination.channelCount} channels`,
     )
 
@@ -872,13 +874,13 @@ async function playAudio() {
     const startTime = currentLoop.start * currentAudioBuffer.duration
     const endTime = currentLoop.end * currentAudioBuffer.duration
 
-    console.log(`🎮 Loop: ${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s`)
+    debugLog(`🎮 Loop: ${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s`)
 
     currentSource.loopStart = startTime
     currentSource.loopEnd = endTime
     currentSource.start(0, startTime)
 
-    console.log('🎮 Audio source started')
+    debugLog('🎮 Audio source started')
 
     isPlaying = true
     playheadStartTime = audioContext.currentTime
@@ -918,7 +920,7 @@ function halfLoop() {
   const newDuration = duration / 2
 
   if (currentAudioBuffer && newDuration * currentAudioBuffer.duration < 0.05) {
-    console.log('Cannot halve - loop too small')
+    debugLog('Cannot halve - loop too small')
     return
   }
 
@@ -937,7 +939,7 @@ function doubleLoop() {
   const newEnd = currentLoop.start + duration * 2
 
   if (newEnd > 1) {
-    console.log('Cannot double - exceeds track length')
+    debugLog('Cannot double - exceeds track length')
     return
   }
 
@@ -955,7 +957,7 @@ function moveForward() {
   const duration = currentLoop.end - currentLoop.start
 
   if (currentLoop.end + duration > 1) {
-    console.log('Cannot move forward - not enough space')
+    debugLog('Cannot move forward - not enough space')
     return
   }
 
@@ -1201,7 +1203,7 @@ dropZone.addEventListener('drop', async (e) => {
 
   if (audioFile) {
     try {
-      console.log(`📥 Loading dropped file: ${audioFile.name}`)
+      debugLog(`📥 Loading dropped file: ${audioFile.name}`)
       updateTrackInfo(audioFile.name, 'Loading...')
 
       if (!audioContext) {
@@ -1222,7 +1224,7 @@ dropZone.addEventListener('drop', async (e) => {
       await analyzeAudio()
       drawWaveform()
 
-      console.log('✅ Dropped file loaded successfully')
+      debugLog('✅ Dropped file loaded successfully')
     } catch (error) {
       console.error('❌ Error loading dropped file:', error)
       showError(`Failed to load ${audioFile.name}: ${error.message}`)

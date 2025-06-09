@@ -4,6 +4,8 @@
  * Based on librosa's interval functionality with crystal growth algorithms
  */
 
+import { debugLog } from './debug.js'
+
 /**
  * Musical Interval Constructor Class
  * Handles equal temperament, just intonation, and Pythagorean tuning systems
@@ -144,7 +146,7 @@ export class IntervalConstructor {
       allRatios[i] *= fmin
     }
 
-    console.log(
+    debugLog(
       `🎼 Generated ${nBins} frequencies using ${intervals} intervals from ${fmin.toFixed(2)} Hz`,
     )
 
