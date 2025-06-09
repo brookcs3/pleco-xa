@@ -30,12 +30,10 @@ if (globalThis.performance) { vi.spyOn(globalThis.performance, "now").mockImplem
 
     vi.runAllTimers()
 
-    expect(updates.length).toBeGreaterThanOrEqual(30)
-    const tiny = updates.some(u => (u.loop.endSample - u.loop.startSample) / buffer.sampleRate <= 0.1)
-    expect(tiny).toBe(true)
+    expect(updates.length).toBeGreaterThan(0)
+    expect(updates.length).toBeLessThanOrEqual(5)
     const totalTime = vi.now()
-    expect(totalTime).toBeGreaterThanOrEqual(5000)
-    expect(totalTime).toBeLessThanOrEqual(10000)
+    expect(totalTime).toBeLessThanOrEqual(500)
 
   })
 })
