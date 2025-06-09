@@ -2,7 +2,7 @@ import {
   musicalLoopAnalysis,
   analyzeLoopPoints,
 } from '../src/scripts/loop-analyzer.js'
-import { AudioContext } from 'web-audio-test-api'
+import { AudioContext } from '../web-audio-test-api/index.js'
 
 function createLoopBuffer(loopLengthSeconds, repeats, sampleRate = 44100) {
   const ctx = new AudioContext({ sampleRate })

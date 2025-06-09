@@ -1,5 +1,5 @@
 const { randomSequence } = require('../src/core/loopPlayground.js');
-const { AudioContext } = require('web-audio-test-api');
+const { AudioContext } = require('../web-audio-test-api');
 
 test('randomSequence returns correct length and function outputs', () => {
   const ctx = new AudioContext();

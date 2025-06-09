@@ -5,7 +5,7 @@
   "exports": {
     ".": "./index.js"
   },
-  "type": "module",
+  "type": "commonjs",
   "description": "Mock Web Audio API implementation for testing",
   "license": "MIT"
 }

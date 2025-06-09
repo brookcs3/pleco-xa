@@ -1,5 +1,5 @@
 import { signatureDemo } from '../src/core/index.js';
-import { AudioContext } from 'web-audio-test-api';
+import { AudioContext } from '../web-audio-test-api/index.js';
 
 describe('signatureDemo', () => {
   it('returns expected number of steps', () => {
