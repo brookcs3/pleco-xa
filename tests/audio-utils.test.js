@@ -8,6 +8,7 @@ function createAudioBuffer(samples) {
   const data = Float32Array.from(samples)
   return {
     getChannelData: () => data,
+    numberOfChannels: 1,
   }
 }
 

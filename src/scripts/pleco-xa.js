@@ -3,7 +3,7 @@
  * This is the main entry point for the Pleco-XA library
  */
 
-import { AudioPlayer } from './analysis/AudioPlayer.js'
+import { AudioPlayer } from './analysis/AudioPlayer.ts'
 import { LoopController } from './loop-controller.js'
 
 export class PlecoXA {
