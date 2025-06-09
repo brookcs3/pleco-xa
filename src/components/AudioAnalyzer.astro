@@ -10,6 +10,7 @@ interface Props {
 }
 import SignatureDemoButton from './SignatureDemoButton.astro';
 import RandomizerButton from './RandomizerButton.astro';
+import GlitchBurstButton from './GlitchBurstButton.astro';
 
 const { 
   title = 'Audio Analysis', 
@@ -99,6 +100,7 @@ const {
         <p class="card-description">Decoded audio information</p>
       </div>
       <SignatureDemoButton />
+      <GlitchBurstButton />
     </div>
   </div>
 
@@ -619,7 +621,7 @@ const {
         window.currentAudioBuffer = currentAudioBuffer;
 
         // Apply changes to playback/UI
-        applyLoop(currentAudioBuffer, { startSample, endSample }, 'reverse');
+        applyLoop(currentAudioBuffer, { startSample, endSample }, 'reverse', undefined);
 
         // Resume playback if it was playing
         if (wasPlaying) {
@@ -999,8 +1001,8 @@ const {
   }
 
   // Wrapper using shared helper
-  function applyLoop(buf, loop, op) {
-    applyLoopHelper(buf, loop, op, {
+  function applyLoop(buf, loop, op, subOps) {
+    applyLoopHelper(buf, loop, op, subOps, {
       audioProcessor,
       drawWaveform,
       updateLoopInfo,
