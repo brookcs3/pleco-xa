@@ -84,7 +84,7 @@ const {
         <h4 class="card-title">Track Info</h4>
         <div class="card-value" id="trackName">No track loaded</div>
         <p class="card-description" id="trackStatus">Load a sample to begin</p>
-        <RandomizerButton audioBuffer={currentAudioBuffer} ctx={audioContext} applyLoop={applyLoop} />
+        <RandomizerButton />
       </div>
 
       <div class="analysis-card">
@@ -98,7 +98,7 @@ const {
         <div class="card-value" id="audioFormat">--</div>
         <p class="card-description">Decoded audio information</p>
       </div>
-      <SignatureDemoButton audioBuffer={currentAudioBuffer} applyLoop={applyLoop} />
+      <SignatureDemoButton />
     </div>
   </div>
 

@@ -1,30 +1,40 @@
 ---
 interface Props {
-  audioBuffer: AudioBuffer | null;
-  ctx: AudioContext | null;
-  applyLoop?: Function;
+  audioBufferVar?: string;
+  ctxVar?: string;
+  applyLoopVar?: string;
 }
-import { applyLoop as applyLoopHelper } from '../scripts/ui/applyLoop.js'
-const { audioBuffer, ctx, applyLoop = applyLoopHelper } = Astro.props
+const { audioBufferVar = 'currentAudioBuffer', ctxVar = 'audioContext', applyLoopVar = 'applyLoop' } = Astro.props
 
 ---
 
-<button class="loop-btn" id="randomizeLoopBtn">🎲 Randomize Loop</button>
+<button
+  class="loop-btn"
+  id="randomizeLoopBtn"
+  data-buffer-var={audioBufferVar}
+  data-ctx-var={ctxVar}
+  data-apply-loop-var={applyLoopVar}
+>
+  🎲 Randomize Loop
+</button>
 
-<script define:vars={{ audioBuffer, ctx, applyLoop }}>
+<script>
   import { randomSequence } from '../core/loopPlayground.js';
   import { enqueueToast } from '../scripts/ui/toastQueue.js';
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('randomizeLoopBtn');
     btn?.addEventListener('click', async () => {
-      if (!audioBuffer || !ctx || typeof applyLoop !== 'function') return;
-      const seq = randomSequence(audioBuffer, {
+      const buffer = window[btn.dataset.bufferVar];
+      const ctx = window[btn.dataset.ctxVar];
+      const applyLoop = window[btn.dataset.applyLoopVar];
+      if (!buffer || !ctx || typeof applyLoop !== 'function') return;
+      const seq = randomSequence(buffer, {
         minMs: 10,
-        maxMs: audioBuffer.duration * 1000,
+        maxMs: buffer.duration * 1000,
         steps: 4
       });
       enqueueToast(seq.map(fn => fn.op || fn.action).join(' -> '));
-      let buf = audioBuffer;
+      let buf = buffer;
       for (const step of seq) {
         const { buffer: newBuf, loop } = step();
         buf = newBuf;

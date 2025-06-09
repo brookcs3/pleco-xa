@@ -1,18 +1,42 @@
 ---
 import { signatureDemo } from '../core/index.js';
-import { applyLoop as applyLoopHelper } from '../scripts/ui/applyLoop.js';
-const { audioBuffer, applyLoop = applyLoopHelper } = Astro.props;
 
-async function runDemo() {
-  const steps = signatureDemo(audioBuffer);
+interface Props {
+  audioBufferVar?: string;
+  applyLoopVar?: string;
+}
+
+const { audioBufferVar = 'currentAudioBuffer', applyLoopVar = 'applyLoop' } = Astro.props;
+
+async function runDemo(buffer, applyLoop) {
+  const steps = signatureDemo(buffer);
   for (const { fn, op } of steps) {
-    const { buffer, loop } = fn();
-    applyLoop(buffer, loop, op);
-    await new Promise(r => setTimeout(r, 400));
+    const { buffer: newBuf, loop } = fn();
+    applyLoop(newBuf, loop, op);
+    await new Promise((r) => setTimeout(r, 400));
   }
 }
 ---
-<button class="sig-demo" on:click={runDemo}>🚀 Signature Demo</button>
+<button
+  class="sig-demo"
+  id="sigDemoBtn"
+  data-buffer-var={audioBufferVar}
+  data-apply-loop-var={applyLoopVar}
+>
+  🚀 Signature Demo
+</button>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('sigDemoBtn');
+    btn?.addEventListener('click', () => {
+      const buffer = window[btn.dataset.bufferVar];
+      const applyLoop = window[btn.dataset.applyLoopVar];
+      if (!buffer || typeof applyLoop !== 'function') return;
+      runDemo(buffer, applyLoop);
+    });
+  });
+</script>
 
 <style>
 .sig-demo { margin-top: .5rem; padding: .4rem .8rem; background: var(--accent); }
