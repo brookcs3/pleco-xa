@@ -55,6 +55,11 @@ const {
           <div class="timeline-marker"></div>
         </div>
       </div>
+      <div class="half-toggle">
+        <label>
+          <input type="checkbox" id="halfDoubleToggle" /> Half/Double-time
+        </label>
+      </div>
     </div>
 
     <div class="waveform-container">
@@ -187,6 +192,18 @@ const {
   .bpm-label {
     font-size: 1.2rem;
     opacity: 0.8;
+  }
+
+  .half-toggle {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .half-toggle input {
+    transform: scale(1.1);
   }
 
   .timeline-container {
@@ -368,6 +385,7 @@ const {
   let currentAudioBuffer = null;
   let isPlaying = false;
   let currentBeats = []; // Store beat times from BPM detection
+  let allowHalfDouble = false; // Toggle for half/double-time handling
   
   // Initialize audio processor when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
@@ -424,17 +442,24 @@ const {
           
           // Analyze the audio (BPM detection)
           const bpmResult = await detectBPM(currentAudioBuffer);
-          document.getElementById('bpmValue').textContent = bpmResult.bpm.toFixed(1);
+          const bpm = normalizeBPM(bpmResult.bpm);
+          window.currentBPM = bpm;
+          document.getElementById('bpmValue').textContent = bpm.toFixed(1);
           
           // Draw waveform with loop points
           drawWaveform(currentAudioBuffer, 'waveformCanvas', { start: 0, end: 1 });
           
-          console.log('✅ Audio loaded and analyzed');
-        } catch (error) {
-          console.error('❌ Error loading file:', error);
-          showError(`Failed to load ${file.name}: ${error.message}`);
-        }
+        console.log('✅ Audio loaded and analyzed');
+      } catch (error) {
+        console.error('❌ Error loading file:', error);
+        showError(`Failed to load ${file.name}: ${error.message}`);
       }
+      }
+    });
+
+    // Half/double-time toggle
+    document.getElementById('halfDoubleToggle')?.addEventListener('change', (e) => {
+      allowHalfDouble = (e.target as HTMLInputElement).checked;
     });
     
     // Playback controls
@@ -596,7 +621,18 @@ const {
       }
     });
   }
-  
+
+  // Choose an appropriate BPM within 80-180 unless toggle enabled
+  function normalizeBPM(bpm) {
+    if (allowHalfDouble) return bpm;
+    if (bpm >= 80 && bpm <= 180) return bpm;
+    const doubled = bpm * 2;
+    if (doubled >= 80 && doubled <= 180) return doubled;
+    const halved = bpm / 2;
+    if (halved >= 80 && halved <= 180) return halved;
+    return bpm;
+  }
+
   // Load a sample audio file
   async function loadSampleFile(url, name) {
     try {
@@ -637,16 +673,7 @@ const {
         try {
           // Detect initial BPM for all files using the accurate method
           const bpmResult = await detectBPM(currentAudioBuffer);
-          let bpm = bpmResult.bpm;
-          
-          // Adjust BPM if it's likely a half-time misinterpretation
-          if (bpm < 80) {
-            const doubledBpm = bpm * 2;
-            if (doubledBpm <= 160) {
-              bpm = doubledBpm;
-              console.log('✅ Adjusted BPM from half-time:', bpm);
-            }
-          }
+          let bpm = normalizeBPM(bpmResult.bpm);
           
           // Store BPM for live updates and beat times for precise pulsing
           window.currentBPM = bpm;
@@ -794,15 +821,7 @@ const {
           const currentSample = Math.floor(position * currentAudioBuffer.length);
           // Perform windowed BPM detection (use a 4-second window)
           detectBPMWindow(currentAudioBuffer, currentSample, 4.0).then(result => {
-            let bpm = result.bpm;
-            // Adjust BPM if it's likely a half-time misinterpretation
-            if (bpm < 80) {
-              const doubledBpm = bpm * 2;
-              if (doubledBpm <= 160) {
-                bpm = doubledBpm;
-                console.log('✅ Live adjusted BPM from half-time:', bpm);
-              }
-            }
+            const bpm = normalizeBPM(result.bpm);
             window.currentBPM = bpm;
             document.getElementById('bpmValue').textContent = bpm.toFixed(1);
             console.log('✅ Live BPM updated:', bpm);
