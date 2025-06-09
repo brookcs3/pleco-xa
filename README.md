@@ -98,7 +98,7 @@ See `examples/demo.html` for a simple interactive page that detects BPM from an 
 
 ## Debugging
 
-Enable verbose logging by setting the `PLECO_DEBUG` flag or by calling `setDebug(true)` from code. Both `setDebug` and `debugLog` are exported from `pleco-xa`. In Node.js you can run:
+Enable verbose logging by setting the `PLECO_DEBUG` environment variable or by calling `setDebug(true)` from code. Both `setDebug` and `debugLog` are exported from `pleco-xa`. In Node.js you can run:
 
 ```bash
 PLECO_DEBUG=true node your-script.js

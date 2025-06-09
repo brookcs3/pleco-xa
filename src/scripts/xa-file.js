@@ -12,6 +12,8 @@
  * @version 1.0.0
  */
 
+import { debugLog } from './debug.js'
+
 /**
  * Custom error class for file operation errors
  */
@@ -213,7 +215,7 @@ export async function example(
 
   try {
     // Fetch from remote server
-    console.log(
+    debugLog(
       `Loading example: ${key} (${hq ? 'HQ' : 'standard'}) from ${baseUrl}${filename}`,
     )
 
@@ -234,7 +236,7 @@ export async function example(
     // Cache the result
     audioCache.set(cacheKey, data)
 
-    console.log(`Loaded ${filename}: ${Math.round(data.byteLength / 1024)}KB`)
+    debugLog(`Loaded ${filename}: ${Math.round(data.byteLength / 1024)}KB`)
 
     return data
   } catch (error) {
@@ -445,7 +447,7 @@ export function cache() {
       const results = await Promise.all(promises)
       const loaded = results.filter((r) => r !== null).length
 
-      console.log(`Preloaded ${loaded}/${keys.length} examples`)
+      debugLog(`Preloaded ${loaded}/${keys.length} examples`)
       return { loaded, total: keys.length }
     },
   }
@@ -557,20 +559,20 @@ const samples = await exampleAudio('vibeace', true, 0, audioContext);
 
 // List available examples
 const examples = listExamples();
-console.log('Available examples:', examples);
+debugLog('Available examples:', examples);
 
 // Load user file
 const fileInput = document.getElementById('audioFile');
 fileInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     const buffer = await loadFile(file, audioContext);
-    console.log('Loaded:', buffer.duration, 'seconds');
+    debugLog('Loaded:', buffer.duration, 'seconds');
 });
 
 // Cache management
 const cacheManager = cache();
 await cacheManager.preload(['brahms', 'trumpet']);
-console.log('Cache stats:', cacheManager.stats());
+debugLog('Cache stats:', cacheManager.stats());
 
 // Save processed audio
 saveAudio(processedSamples, 44100, 'processed_audio.wav');

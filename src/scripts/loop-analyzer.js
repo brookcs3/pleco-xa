@@ -17,7 +17,7 @@ import { spectralCentroid } from './xa-spectral.js'
 import { spectrogram } from './xa-fft.js'
 import { calculateBeatAlignment } from './musical-timing.js'
 // @ts-ignore - Missing type declarations
-import { debugLog } from '../utils/debug.js'
+import { debugLog } from './debug.js'
 
 /* -------------------------------------------------------------------------- */
 /*  High-level style loop analysis                                    */
@@ -250,7 +250,7 @@ export async function xaLoopAnalysis(audioBuffer) {
     throw new Error('Invalid audioBuffer: Channel data is empty')
   }
 
-  console.log('Input data validated for xaLoopAnalysis:', {
+  debugLog('Input data validated for xaLoopAnalysis:', {
     sampleRate: audioBuffer.sampleRate,
     duration: audioBuffer.duration,
     channelDataLength: audioData.length,
@@ -270,7 +270,7 @@ export async function xaLoopAnalysis(audioBuffer) {
   })
   const zeroCrossingRate = computeZeroCrossingRate(audioBuffer)
 
-  console.log('Core stats computed:', {
+  debugLog('Core stats computed:', {
     rms,
     peak,
     spectralCentroidVal,
@@ -280,7 +280,7 @@ export async function xaLoopAnalysis(audioBuffer) {
   // Step 3: Loop hunt using XA recurrence matrix
   const loopPoints = await fastOnsetLoopAnalysis(audioBuffer, bpmData)
 
-  console.log('Loop points detected:', loopPoints)
+  debugLog('Loop points detected:', loopPoints)
 
   // Step 4: Confidence tweak
   const typicalRMS = -20 // Typical RMS in dBFS

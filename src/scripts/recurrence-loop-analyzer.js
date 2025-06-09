@@ -6,6 +6,7 @@
 /**
  * Main loop detection using recurrence matrix - clean and minimal
  */
+import { debugLog } from './debug.js'
 export async function recurrenceLoopAnalysis(audioBuffer) {
   console.time('recurrence_loop_analysis')
 
@@ -15,7 +16,7 @@ export async function recurrenceLoopAnalysis(audioBuffer) {
     const result = await recurrenceLoopDetection(audioBuffer)
 
     console.timeEnd('recurrence_loop_analysis')
-    console.log(
+    debugLog(
       `Recurrence detection: ${result.loopStart.toFixed(3)}s - ${result.loopEnd.toFixed(3)}s`,
     )
 
