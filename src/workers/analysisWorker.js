@@ -1,25 +1,29 @@
-import { detectBPM } from '../scripts/analysis/BPMDetector.js';
-import { analyzeLoop } from '../scripts/analysis/LoopAnalyzer.js';
+import { fastBPMDetect } from '../scripts/analysis/BPMDetector.js';
+import { fastLoopAnalysis } from '../scripts/xa-loop.js';
 
-self.onmessage = async (e) => {
-  const { arrayBuffer } = e.data;
-  if (!arrayBuffer) return;
+self.onmessage = async (event) => {
+  const arrayBuffer = event.data;
+  if (!(arrayBuffer instanceof ArrayBuffer)) return;
 
-  // Notify start
-  self.postMessage({ progress: 0 });
   try {
+    self.postMessage({ progress: 0 });
+
     const ctx = new OfflineAudioContext(1, 1, 44100);
     const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    self.postMessage({ progress: 0.5 });
 
-    const bpmResult = await detectBPM(audioBuffer);
-    self.postMessage({ progress: 0.5, bpm: bpmResult.bpm });
+    const bpmResult = fastBPMDetect(audioBuffer);
+    self.postMessage({ progress: 0.75, bpm: bpmResult });
 
-    const loopAnalysis = await analyzeLoop(audioBuffer);
-    const best = loopAnalysis.best;
-    const loopPoints = best ? { start: best.start, end: best.end } : null;
+    let loop = null;
+    try {
+      loop = await fastLoopAnalysis(audioBuffer);
+    } catch (err) {
+      // ignore loop errors
+    }
 
-    self.postMessage({ progress: 1, bpm: bpmResult.bpm, loopPoints });
+    self.postMessage({ bpm: bpmResult, loopPoints: loop, progress: 1 });
   } catch (err) {
-    self.postMessage({ progress: 1, error: err.message });
+    self.postMessage({ error: err.message });
   }
 };
