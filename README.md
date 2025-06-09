@@ -108,11 +108,7 @@ In the browser, assign `window.PLECO_DEBUG = true` before loading Pleco Xa or ca
 
 Most example scripts and the sample servers use a `debugLog()` helper that
 checks this flag. Verbose messages are suppressed unless `PLECO_DEBUG` is set.
-For example, to see server logs while developing you can run:
 
-```bash
-PLECO_DEBUG=true node deploying/railway-api/server.js
-```
 
 ## Testing
 
@@ -328,9 +324,7 @@ A quick demo of random loop transformations.
 Pleco Xa can power a fully client-side web app with optional premium upgrades.
 Use the free tools to showcase BPM detection and waveform editing, then unlock
 advanced analysis when a token is present in `localStorage`. The example Astro
-site includes a simple `paywall.js` script that hides premium components until a
-valid token is set. Pair it with the Stripe backend in `deploying/railway-api`
-to sell access while keeping the main app static.
+site includes a simple `access-control.js` script that hides premium components until a valid token is set.
 
 ## Browser Compatibility
 
@@ -365,20 +359,6 @@ npm publish
 Update the package version in `package.json` before publishing. The package can
 be installed with `npm install pleco-xa` and is ready to publish with `npm publish`.
 
-## Deploying the Paywall API
-
-A minimal Stripe Checkout backend is included in the [deploying/](deploying/README.md) directory. It provides `createSession.js` and `success.js` handlers for generating and verifying Checkout sessions. Follow the guide to deploy these functions on Railway or any serverless platform.
-
-### Nixpacks configuration
-
-Railway reads the `.nixpacks.toml` file in `deploying/railway-api/` to set up the environment. It installs Node 20 automatically and then runs `npm ci` followed by `npm start`. Using `npm ci` ensures the installed packages exactly match the `package-lock.json` for reproducible builds.
-
-For local testing you can run the same commands without Docker:
-
-```bash
-npm ci
-npm start
-```
 
 ### Health Check Endpoint
 
