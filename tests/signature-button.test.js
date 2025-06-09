@@ -13,33 +13,26 @@ let applyLoop
 let enqueueToast
 
 function setupDom() {
-  dom = new JSDOM(`<button id="sigDemoBtn" data-buffer-var="currentAudioBuffer" data-apply-loop-var="applyLoop">Demo</button>`)
+  dom = new JSDOM(`<button id="sigDemoBtn">Demo</button>`)
   global.window = dom.window
   global.document = dom.window.document
 
   applyLoop = vi.fn()
   enqueueToast = vi.fn()
-  global.window.currentAudioBuffer = {}
-  global.window.applyLoop = applyLoop
-  global.enqueueToast = enqueueToast
+  const audioBuffer = {}
 
-  async function runDemo(buffer, applyLoopFn) {
-    const steps = signatureDemo(buffer)
+  async function runDemo() {
+    const steps = signatureDemo(audioBuffer)
     for (const { fn, op } of steps) {
       const { buffer: newBuf, loop } = fn()
-      applyLoopFn(newBuf, loop, op)
       enqueueToast(op)
+      applyLoop(newBuf, loop, op)
       await new Promise(r => setTimeout(r, 400))
     }
   }
 
   const el = document.getElementById('sigDemoBtn')
-  el.addEventListener('click', () => {
-    const buffer = window[el.dataset.bufferVar]
-    const applyLoopFn = window[el.dataset.applyLoopVar]
-    if (!buffer || typeof applyLoopFn !== 'function') return
-    runDemo(buffer, applyLoopFn)
-  })
+  el.addEventListener('click', runDemo)
   btn = el
 }
 
