@@ -86,7 +86,7 @@ export class LoopAnalyzer {
  *
  * @example
  * ```javascript
- * import { analyzeLoop } from './analysis/LoopAnalyzer.js';
+ * import { analyzeLoop } from './analysis/LoopAnalyzer.ts';
  *
  * const result = await analyzeLoop(audioBuffer, {
  *   minLoopLength: 1.0,
@@ -170,7 +170,7 @@ export async function analyzeLoop(audioBuffer, options = {}) {
  *
  * @example
  * ```javascript
- * import { findBestLoop } from './analysis/LoopAnalyzer.js';
+ * import { findBestLoop } from './analysis/LoopAnalyzer.ts';
  *
  * const loop = findBestLoop(audioBuffer, { minLoopLength: 2.0 });
  * if (loop) {
@@ -244,7 +244,7 @@ export function findBestLoop(audioBuffer, options = {}) {
  *
  * @example
  * ```javascript
- * import { validateLoop } from './analysis/LoopAnalyzer.js';
+ * import { validateLoop } from './analysis/LoopAnalyzer.ts';
  *
  * const validation = validateLoop(audioBuffer, 1.5, 3.2);
  * console.log('Loop quality:', validation.score);
@@ -316,7 +316,7 @@ export function validateLoop(audioBuffer, startTime, endTime, options = {}) {
  *
  * @example
  * ```javascript
- * import { createSeamlessLoop } from './analysis/LoopAnalyzer.js';
+ * import { createSeamlessLoop } from './analysis/LoopAnalyzer.ts';
  *
  * const loopBuffer = await createSeamlessLoop(audioBuffer, bestLoop, {
  *   fadeLength: 0.05,
