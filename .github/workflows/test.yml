@@ -21,7 +21,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v2
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
   deploy:
@@ -36,3 +36,4 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v2
+
