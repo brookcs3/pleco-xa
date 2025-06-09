@@ -5,6 +5,7 @@ export {
   doubleLoop,
   moveForward,
   reverseBufferSection,
+  resetLoop,
 } from './loopHelpers.js';
 export { randomSequence, glitchBurst, randomLocal } from './loopPlayground.js';
 export { startBeatGlitch } from './beatGlitcher.js';

@@ -15,7 +15,7 @@ const { audioBufferVar = 'currentAudioBuffer', ctxVar = 'audioContext', applyLoo
   data-ctx-var={ctxVar}
   data-apply-loop-var={applyLoopVar}
 >
-  🎲 Randomize Loop
+  🎲 Smart Random
 </button>
 
 <script>
@@ -31,7 +31,7 @@ const { audioBufferVar = 'currentAudioBuffer', ctxVar = 'audioContext', applyLoo
       const seq = randomSequence(buffer, {
         minMs: 10,
         maxMs: buffer.duration * 1000,
-        steps: 4
+        steps: 41
       });
       enqueueToast(seq.map(fn => fn.op || fn.action).join(' -> '));
       let buf = buffer;
@@ -39,7 +39,7 @@ const { audioBufferVar = 'currentAudioBuffer', ctxVar = 'audioContext', applyLoo
         const { buffer: newBuf, loop } = step();
         buf = newBuf;
         applyLoop(buf, loop, step.op || step.action, undefined);
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 100));
       }
       enqueueToast('Randomization done');
     });

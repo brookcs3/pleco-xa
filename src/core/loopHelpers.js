@@ -19,6 +19,10 @@ export function moveForward(loop, steps, maxSamples) {
   return { startSample: start, endSample: start + len };
 }
 
+export function resetLoop(buffer) {
+  return detectLoop(buffer);
+}
+
 export function reverseBufferSection(buffer, start, end) {
   for (let c = 0; c < buffer.numberOfChannels; c++) {
     const data = buffer.getChannelData(c);

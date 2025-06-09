@@ -61,10 +61,10 @@ export function initAudioProcessor() {
         gainNode.connect(ctx.destination);
         
         // Set loop points
-        currentSource.loop = true;
         const startTime = loopStart * audioBuffer.duration;
         const endTime = loopEnd * audioBuffer.duration;
         
+        currentSource.loop = true;
         currentSource.loopStart = startTime;
         currentSource.loopEnd = endTime;
         currentSource.start(0, startTime);
@@ -140,16 +140,14 @@ export function initAudioProcessor() {
       const currentTime = audioContext.currentTime;
       const elapsed = currentTime - playheadStartTime;
       
-      const loopStartSec = loopStart * currentSource.buffer.duration;
-      const loopEndSec = loopEnd * currentSource.buffer.duration;
-      const loopDuration = loopEndSec - loopStartSec;
+      const loopDuration = (loopEnd - loopStart) * currentSource.buffer.duration;
       
-      // Calculate position within loop
+      // Calculate position within current loop cycle
       const positionInLoop = elapsed % loopDuration;
-      const currentPosition = loopStartSec + positionInLoop;
+      const normalizedPosition = loopStart + (positionInLoop / currentSource.buffer.duration);
       
-      // Return normalized position (0-1)
-      return currentPosition / currentSource.buffer.duration;
+      // Ensure position stays within loop bounds
+      return Math.min(Math.max(normalizedPosition, loopStart), loopEnd);
     },
     
     /**

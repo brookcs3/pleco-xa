@@ -1,4 +1,4 @@
----
+d---
 /** 
  * AudioAnalyzer - Audio analysis component with BPM detection and loop finding
  * Handles audio loading, analysis, and visualization
@@ -10,6 +10,10 @@ interface Props {
 }
 import SignatureDemoButton from './SignatureDemoButton.astro';
 import RandomizerButton from './RandomizerButton.astro';
+import RandomizerButton2 from './RandomizerButton2.astro';
+import RandomizerButton3 from './RandomizerButton3.astro';
+import RandomizerButton4 from './RandomizerButton4.astro';
+import RandomizerButton5 from './RandomizerButton5.astro';
 import GlitchBurstButton from './GlitchBurstButton.astro';
 
 const {
@@ -91,6 +95,10 @@ function applyLoop() {}
         <div class="card-value" id="trackName">No track loaded</div>
         <p class="card-description" id="trackStatus">Load a sample to begin</p>
         <RandomizerButton />
+        <RandomizerButton2 />
+        <RandomizerButton3 />
+        <RandomizerButton4 />
+        <RandomizerButton5 />
       </div>
 
       <div class="analysis-card">
@@ -919,7 +927,7 @@ function applyLoop() {}
           // Calculate current sample position
           const currentSample = Math.floor(position * currentAudioBuffer.length);
           // Perform windowed BPM detection (use a 4-second window)
-          detectBPMWindow(currentAudioBuffer, currentSample, 4.0).then(result => {
+          detectBPM(currentAudioBuffer, { windowStart: currentSample, windowDuration: 4.0 }).then(result => {
             rawBPM = result.bpm;
             const bpm = normalizeBPM(rawBPM);
             window.currentBPM = bpm;
