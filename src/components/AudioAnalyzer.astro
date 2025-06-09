@@ -356,8 +356,8 @@ const {
 
 <script>
   // Import core functionality
-  import { 
-    initAudioProcessor, 
+  import {
+    initAudioProcessor,
     loadAudioFile,
     drawWaveform
   } from '../scripts/xa-audio-core.js';
@@ -369,6 +369,9 @@ const {
   import { detectBPM, detectBPMWindow } from '../scripts/analysis/BPMDetector.ts';
 
   import { findLoop, manipulateLoop } from '../scripts/xa-loop-detection.js';
+
+  // Worker for heavy analysis
+  let analysisWorker = null;
   
   // Initialize state
   let audioContext;
@@ -376,8 +379,7 @@ const {
   let currentAudioBuffer = null;
   let isPlaying = false;
   let currentBeats = []; // Store beat times from BPM detection
-  let isDraggingMarker = false;
-  let dragMarker = null; // 'start' or 'end'
+  let currentTrackName = '';
 
   
   // Initialize audio processor when DOM is ready
@@ -385,6 +387,24 @@ const {
     try {
       // Initialize the audio processor
       audioProcessor = initAudioProcessor();
+
+      // Create analysis worker
+      analysisWorker = new Worker(new URL('../core/analysisWorker.js', import.meta.url), { type: 'module' });
+      analysisWorker.onmessage = (e) => {
+        const { bpm, loopPoints, progress } = e.data;
+        if (typeof progress === 'number') {
+          updateTrackInfo(currentTrackName || '', `Analyzing: ${Math.round(progress * 100)}%`);
+        }
+        if (typeof bpm === 'number') {
+          window.currentBPM = bpm;
+          document.getElementById('bpmValue').textContent = bpm.toFixed(1);
+        }
+        if (loopPoints && currentAudioBuffer) {
+          audioProcessor.setLoopPoints(loopPoints.start, loopPoints.end);
+          updateLoopInfo(loopPoints);
+          drawWaveform(currentAudioBuffer, 'waveformCanvas', loopPoints);
+        }
+      };
       
       // Set up event listeners
       setupEventListeners();
@@ -419,13 +439,16 @@ const {
         try {
           clearAnalysisDisplay();
           updateTrackInfo(file.name, 'Loading...');
-          
-          // Load the file
+          currentTrackName = file.name;
+
+          // Load and analyze the file
+
           const result = await loadAudioFile(file);
           currentAudioBuffer = result.audioBuffer;
           audioContext = result.audioContext;
           if (analysisWorker && result.arrayBuffer) {
-            analysisWorker.postMessage({ arrayBuffer: result.arrayBuffer }, [result.arrayBuffer]);
+            analysisWorker.postMessage(result.arrayBuffer);
+
           }
           
           // Update UI with file info
@@ -437,6 +460,10 @@ const {
           document.getElementById('audioFormat').textContent =
             `${currentAudioBuffer.sampleRate}Hz / ${currentAudioBuffer.numberOfChannels}ch`;
           
+          // Fallback BPM detection if worker fails
+          const bpmResult = await detectBPM(currentAudioBuffer);
+          document.getElementById('bpmValue').textContent = bpmResult.bpm.toFixed(1);
+
           // BPM and loop detection handled by worker; show placeholder
           document.getElementById('bpmValue').textContent = '...';
           
@@ -680,8 +707,10 @@ const {
       const result = await loadAudioFile(url);
       currentAudioBuffer = result.audioBuffer;
       audioContext = result.audioContext;
+      currentTrackName = name;
       if (analysisWorker && result.arrayBuffer) {
-        analysisWorker.postMessage({ arrayBuffer: result.arrayBuffer }, [result.arrayBuffer]);
+        analysisWorker.postMessage(result.arrayBuffer);
+
       }
       
       // Update UI with file info immediately

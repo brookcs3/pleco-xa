@@ -185,7 +185,8 @@ export async function loadAudioFile(source) {
     if (audioBufferCache.has(url)) {
       return {
         audioBuffer: audioBufferCache.get(url),
-        audioContext
+        audioContext,
+        arrayBuffer: null
       };
     }
     
@@ -195,9 +196,10 @@ export async function loadAudioFile(source) {
     if (!response.ok) {
       throw new Error(`Failed to load audio: HTTP ${response.status}`);
     }
-
+    
     arrayBuffer = await response.arrayBuffer();
-    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+
     
     // Cache the result
     audioBufferCache.set(url, audioBuffer);
@@ -205,7 +207,8 @@ export async function loadAudioFile(source) {
   // Handle File object
   else if (source instanceof File) {
     arrayBuffer = await source.arrayBuffer();
-    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+
   }
   else {
     throw new Error('Invalid source type');
