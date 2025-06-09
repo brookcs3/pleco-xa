@@ -1055,10 +1055,14 @@ function updateLoopInfo() {
   const endTime = currentLoop.end * currentAudioBuffer.duration
   const duration = endTime - startTime
 
+  const reverseBtn = document.getElementById('reverseLoopBtn')
+
   let loopText
   if (currentLoop.start === 0 && currentLoop.end === 1) {
     loopText = 'Full Track'
+    if (reverseBtn) reverseBtn.disabled = true
   } else {
+    if (reverseBtn) reverseBtn.disabled = false
     // Calculate musical division if we have BPM
     if (currentBPM > 0) {
       const beatDuration = 60 / currentBPM

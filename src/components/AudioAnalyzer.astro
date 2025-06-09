@@ -958,18 +958,22 @@ const {
   // Update loop info in UI
   function updateLoopInfo(loopData) {
     if (!currentAudioBuffer || !loopData) return;
-    
+
     const startTime = loopData.start * currentAudioBuffer.duration;
     const endTime = loopData.end * currentAudioBuffer.duration;
     const duration = endTime - startTime;
-    
+
+    const reverseBtn = document.getElementById('reverseLoopBtn');
+
     let loopText;
     if (loopData.start === 0 && loopData.end === 1) {
       loopText = 'Full Track';
+      if (reverseBtn) reverseBtn.disabled = true;
     } else {
       loopText = `${duration.toFixed(2)}s (${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s)`;
+      if (reverseBtn) reverseBtn.disabled = false;
     }
-    
+
     document.getElementById('loopInfo').textContent = loopText;
   }
 
