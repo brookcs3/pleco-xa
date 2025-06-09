@@ -362,7 +362,7 @@ const {
     loadAudioFile,
     drawWaveform
   } from '../scripts/xa-audio-core.js';
-  import { reverseBufferSection } from '../core/index.js';
+  import { applyLoop as applyLoopHelper } from '../scripts/ui/applyLoop.js';
   
   // Set up animation frame for continuous waveform updates
   let animationFrameId = null;
@@ -974,14 +974,6 @@ const {
     enqueueToast(message, 2000);
   }
 
-  function applyLoop(loopData) {
-    if (!loopData || !audioProcessor) return;
-    audioProcessor.setLoopPoints(loopData.start, loopData.end);
-    updateLoopInfo(loopData);
-    drawWaveform(currentAudioBuffer, 'waveformCanvas', loopData);
-  }
-  window.applyLoop = applyLoop;
-  
   // Timeline animation
   function startTimelineAnimation() {
     if (!isPlaying || !audioProcessor) return;
@@ -1005,21 +997,23 @@ const {
     requestAnimationFrame(animateTimeline);
   }
 
+  // Wrapper using shared helper
   function applyLoop(buf, loop, op) {
-    if (!buf || !loop || !audioProcessor) return;
-    currentAudioBuffer = buf;
-    window.currentAudioBuffer = currentAudioBuffer;
-    const start = loop.startSample / buf.length;
-    const end = loop.endSample / buf.length;
-    audioProcessor.setLoopPoints(start, end);
-    updateLoopInfo({ start, end });
-    drawWaveform(currentAudioBuffer, 'waveformCanvas', { start, end });
-    updateTrackInfo(currentTrackName || '', op);
-    if (isPlaying) {
-      audioProcessor.stop();
-      audioProcessor.play(currentAudioBuffer).catch(() => {});
-      startTimelineAnimation();
-      startWaveformAnimation();
-    }
+    applyLoopHelper(buf, loop, op, {
+      audioProcessor,
+      drawWaveform,
+      updateLoopInfo,
+      updateTrackInfo,
+      currentTrackName: currentTrackName || '',
+      setCurrentBuffer: (b) => {
+        currentAudioBuffer = b
+        window.currentAudioBuffer = b
+      },
+      restart: isPlaying,
+      startTimelineAnimation,
+      startWaveformAnimation,
+    })
+
   }
+  window.applyLoop = applyLoop;
 </script>
