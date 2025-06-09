@@ -54,7 +54,20 @@ export async function POST({ request }) {
     const arrayBuffer = await audioFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    fs.writeFileSync(filePath, buffer)
+    try {
+      fs.writeFileSync(filePath, buffer)
+    } catch (err) {
+      debugLog('Write failed:', err)
+      return new Response(
+        JSON.stringify({
+          error: 'Uploads are unsupported in the current environment',
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      )
+    }
 
     debugLog(`Audio file saved: ${filename}`)
 
