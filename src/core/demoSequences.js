@@ -20,99 +20,51 @@ export function signatureDemo(buffer) {
     });
   };
 
-  while ((loop.endSample - loop.startSample) / buffer.sampleRate > 0.1) {
-    push('half', () => {
-      loop = halfLoop(loop);
-    });
-  }
-  push('reverse', () => {
-    buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
-  });
-
-  while (loop.startSample !== 0 || loop.endSample !== buffer.length) {
-    push('double', () => {
-      loop = doubleLoop(loop, buffer.length);
-    });
-    push('reverse', () => {
-      buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
-    });
-  }
-
-  const repeatHalfDoubleReverse = () => {
-    while ((loop.endSample - loop.startSample) / buffer.sampleRate > 0.1) {
-      push('half', () => {
-        loop = halfLoop(loop);
-      });
+  // Simple, clear signature sequence
+  // Phase 1: Narrow down to small loop
+  push('half', () => { loop = halfLoop(loop); });
+  push('half', () => { loop = halfLoop(loop); });
+  push('half', () => { loop = halfLoop(loop); });
+  push('reverse', () => { buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample); });
+  
+  // Phase 2: Move around and reverse
+  push('move forward', () => {
+    const duration = loop.endSample - loop.startSample;
+    const newStart = loop.startSample + duration;
+    const newEnd = loop.endSample + duration;
+    if (newEnd <= buffer.length) {
+      loop = { startSample: newStart, endSample: newEnd };
     }
-    while (loop.startSample !== 0 || loop.endSample !== buffer.length) {
-      push('double', () => {
-        loop = doubleLoop(loop, buffer.length);
-      });
-      push('reverse', () => {
-        buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
-      });
+  });
+  push('reverse', () => { buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample); });
+  
+  push('move forward', () => {
+    const duration = loop.endSample - loop.startSample;
+    const newStart = loop.startSample + duration;
+    const newEnd = loop.endSample + duration;
+    if (newEnd <= buffer.length) {
+      loop = { startSample: newStart, endSample: newEnd };
     }
-  };
-  repeatHalfDoubleReverse();
-
-  while ((loop.endSample - loop.startSample) / buffer.sampleRate > 0.1) {
-    push('half', () => {
-      loop = halfLoop(loop);
-    });
-  }
-  while (loop.startSample !== 0 || loop.endSample !== buffer.length) {
-    push('double', () => {
-      loop = doubleLoop(loop, buffer.length);
-    });
-    push('double', () => {
-      loop = doubleLoop(loop, buffer.length);
-    });
-    push('reverse', () => {
-      buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
-    });
-  }
-
-  while ((loop.endSample - loop.startSample) / buffer.sampleRate > 0.1) {
-    push('half', () => {
-      loop = halfLoop(loop);
-    });
-  }
-  const mf = (n) => () => {
-    loop = moveForward(loop, n, buffer.length);
-  };
-
-  push('move×3', mf(3));
-  push('reverse', () => {
-    buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
   });
-  push('move×2', mf(2));
-  push('reverse', () => {
-    buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
+  push('reverse', () => { buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample); });
+  
+  // Phase 3: Grow back up
+  push('double', () => { loop = doubleLoop(loop, buffer.length); });
+  push('reverse', () => { buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample); });
+  push('double', () => { loop = doubleLoop(loop, buffer.length); });
+  push('reverse', () => { buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample); });
+  push('double', () => { loop = doubleLoop(loop, buffer.length); });
+  
+  // Phase 4: Final moves and finish
+  push('move forward', () => {
+    const duration = loop.endSample - loop.startSample;
+    const newStart = loop.startSample + duration;
+    const newEnd = loop.endSample + duration;
+    if (newEnd <= buffer.length) {
+      loop = { startSample: newStart, endSample: newEnd };
+    }
   });
-  push('move×1', mf(1));
-  push('double', () => {
-    loop = doubleLoop(loop, buffer.length);
-  });
-  push('double', () => {
-    loop = doubleLoop(loop, buffer.length);
-  });
-  push('double', () => {
-    loop = doubleLoop(loop, buffer.length);
-  });
-  push('reverse', () => {
-    buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
-  });
-  push('move×2', mf(2));
-  push('double', () => {
-    loop = doubleLoop(loop, buffer.length);
-  });
-  push('reverse', () => {
-    buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
-  });
-  push('move×1', mf(1));
-  push('reverse', () => {
-    buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample);
-  });
+  push('reverse', () => { buffer = reverseBufferSection(buffer, loop.startSample, loop.endSample); });
 
   return steps;
 }
